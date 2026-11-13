@@ -8,6 +8,9 @@ def once(a,b,n=1):
     assert s.count(a)==n,(a[:60],s.count(a)); s=s.replace(a,b)
 # 1. the product name
 s=s.replace('Proview Bookings','Proview Reservations').replace('Proview <i>Bookings</i>','Proview <i>Reservations</i>')
+# 1b. the side-menu label and the browser tab say Reservations too (they are built from the venue name)
+once('if(b)b.innerHTML=esc(n)+" <i>Bookings</i>";','if(b)b.innerHTML=esc(n)+" <i>Reservations</i>";')
+once('document.title=n+" bookings"}','document.title=n+" reservations"}')
 # 2. the saved data lives under a per-business key in cloud mode (display preferences stay per device)
 once('KEY="proview-bookings-v1",APPV="v222";','KEY="proview-bookings-v1",APPV="v222";let CLK="";const SKEY=()=>CLK||KEY;')
 n1=s.count('localStorage.setItem(KEY,'); n2=s.count('localStorage.getItem(KEY)'); n3=s.count('KEY+"-vid"')

@@ -861,7 +861,7 @@ function sampleHist(){
  S.hist=h;S.histSample=true
 }
 
-function brandUp(){const n=((S.venue&&S.venue.name)||"Proview").trim()||"Proview",b=$("#bname"),m=$("#bmono");if(b)b.innerHTML=esc(n)+" <i>Bookings</i>";if(m)m.textContent=n.charAt(0).toUpperCase();document.title=n+" bookings"}
+function brandUp(){const n=((S.venue&&S.venue.name)||"Proview").trim()||"Proview",b=$("#bname"),m=$("#bmono");if(b)b.innerHTML=esc(n)+" <i>Reservations</i>";if(m)m.textContent=n.charAt(0).toUpperCase();document.title=n+" reservations"}
 function render(){
  syncTags();if(U.view==="waitlist"||!navOk(U.view))U.view="bookings";brandUp();
  const nbt=n=>`<button data-act="nav" data-v="${n[0]}" aria-label="${n[1]}" class="${U.view===n[0]?"on":""}">${ICON[n[0]]}<span class="lbl">${n[1]}</span></button>`,mbt=`<button data-act="${mgr()?"mgrout":"mgrin"}" aria-label="${mgr()?"Lock manager access":"Manager sign in"}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span class="lbl">${mgr()?"Lock":"Manager"}</span></button>`,NG=[["Service",["bookings","tables","floor","activity"]],["Grow",["guests","reports","online"]],["Manage",["settings"]]];
