@@ -6,14 +6,14 @@
 // Who is calling:
 //   1. The Supabase login (Authorization: Bearer <session>) says which business and location it may open
 //      (pr_business_members, or the Proview master) and whether the location is licensed.
-//   2. An Owner / Admin / Manager login (and the master) gets everything. A Staff login gets the document without
+//   2. An Admin / Manager login (and the master) gets everything. A Staff login gets the document without
 //      pay rates, labour and sales figures and the manager PIN, and cannot change them. On a Staff device a manager
 //      types the manager PIN: the PIN is checked HERE (POST api/unlock) and a short-lived token (x-token) then lets
 //      that device see and change the manager-only parts until it locks again.
 //
 // Routes (all under /res-api/, header x-site: <location id>):
 //   GET  api/ping      → { proview, rev, hasState, role, master, full }
-//   POST api/init      { state }       first upload for an empty location (owner, admin or master only)
+//   POST api/init      { state }       first upload for an empty location (admin or master only)
 //   POST api/unlock    { pin } → { token }      manager PIN on a Staff device
 //   POST api/lock                               give the token back
 //   GET  api/state     → { rev, state, full }
@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
     const gate = g.data as Any;
     if (!gate?.exists || (!gate.master && !gate.role)) return send({ error: "site" }, 403);
     if (!gate.master && !gate.ok) return send({ error: "licence", suspended: !!gate.suspended }, 402);
-    const boss = gate.master || gate.role === "Owner" || gate.role === "Admin";
+    const boss = gate.master || gate.role === "Admin";
     const body = async () => { try { return await req.json(); } catch (_) { return {}; } };
 
     // manager PIN unlock on a Staff device
@@ -172,7 +172,7 @@ Deno.serve(async (req) => {
     if (path === "api/init" && req.method === "POST") {
       const b = await body();
       if (!state && b.state) {
-        if (!boss) return send({ error: "Only the owner can set this business up." }, 403);
+        if (!boss) return send({ error: "Only an admin can set this business up." }, 403);
         const nr = await commit(db, site, 0, b.state, null);
         rev = nr || (await loadState(db, site)).rev;
       }
