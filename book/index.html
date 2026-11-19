@@ -56,6 +56,11 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);outline-off
 @keyframes bp{50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.splash{animation:none}}
 @media (max-width:520px){body{padding:14px 10px}.card{padding:22px 18px;border-radius:18px}h1{font-size:23px}}
+
+.pol{border:1px solid var(--line);border-radius:var(--rad);padding:10px 12px 12px;margin:0;display:flex;flex-direction:column;gap:10px;min-width:0}
+.pol .chk{color:var(--ink);font-size:15px}
+.pol legend{font-weight:600;font-size:14px;padding:0 6px}
+.nrh{margin-top:16px}.nr{margin-top:12px;display:flex;flex-direction:column;gap:8px}
 </style>
 </head>
 <body>
@@ -75,7 +80,10 @@ const fmtD=d=>new Date(d+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"long
 const t12=t=>{const h=+t.slice(0,2),m=t.slice(3);return((h+11)%12+1)+":"+m+(h<12?"am":"pm")};
 const guests=n=>n+(n===1?" guest":" guests");
 let API="",KEY="",V=null;                                       // V = what the venue allows
-const U={step:"pick",size:2,date:"",times:null,why:"",time:"",busy:false,err:"",done:null,f:{name:"",phone:"",email:"",notes:"",mk:true}};
+const U={step:"pick",size:2,date:"",times:null,why:"",near:[],time:"",busy:false,err:"",done:null,f:{name:"",phone:"",email:"",notes:"",mk:true,pol:{}}};
+const POL=()=>Array.isArray(V&&V.pol)?V.pol:[];
+/* a few times spread across the day, for a suggested day */
+const spread=(a,n)=>a.length<=n?a:Array.from({length:n},(_,i)=>a[Math.round(i*(a.length-1)/(n-1))]);
 async function call(a,params,body){const u=new URL(API);u.searchParams.set("v",SITE);u.searchParams.set("a",a);Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
   const r=await fetch(u,{method:body?"POST":"GET",headers:Object.assign({apikey:KEY,Authorization:"Bearer "+KEY},body?{"content-type":"application/json"}:{}),body:body?JSON.stringify(body):undefined});
   let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw Object.assign(new Error(j.message||"Something went wrong. Please try again."),{code:j.error||"",status:r.status});return j}
@@ -106,6 +114,7 @@ function render(){
       <div class="row"><label class="af">Mobile number<input id="f-phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" value="${esc(f.phone)}" required></label>
       <label class="af">Email (optional)<input id="f-email" type="email" inputmode="email" autocomplete="email" maxlength="120" value="${esc(f.email)}"></label></div>
       <label class="af">Anything we should know? (optional)<textarea id="f-notes" rows="2" maxlength="300" placeholder="Allergies, high chair, occasion…">${esc(f.notes)}</textarea></label>
+      ${POL().length?`<fieldset class="pol"><legend>Please tick to agree</legend>${POL().map((t,i)=>`<label class="chk"><input type="checkbox" data-pol="${i}" ${f.pol[i]?"checked":""} required><span>${esc(t)}</span></label>`).join("")}</fieldset>`:""}
       <label class="chk"><input type="checkbox" id="f-mk" ${f.mk?"checked":""}><span>Happy to receive offers by email from ${esc(V.name)}</span></label>
       <div class="hp" aria-hidden="true"><label>Website<input id="f-web" tabindex="-1" autocomplete="off"></label></div>
       <button class="go" type="submit" ${U.busy?"disabled":""}>${U.busy?"Sending…":V.confirm==="request"?"Request this table":"Confirm booking"}</button></form>
@@ -116,7 +125,7 @@ function render(){
   const last=addD(V.today,V.ahead),days=[];for(let i=0;i<14&&addD(V.today,i)<=last;i++){const d=addD(V.today,i),p=dParts(d);days.push(`<button type="button" data-a="day" data-d="${d}" class="${d===U.date?"on":""}" aria-pressed="${d===U.date}"><small>${i===0?"Today":p.dn}</small><b>${p.day}</b><small>${p.mn}</small></button>`)}
   let tm="";
   if(U.times===null)tm=`<p class="muted">Checking times…</p>`;
-  else if(U.why&&!U.times.length)tm=`<div class="notice">${esc(U.why)}</div>`;
+  else if(!U.times.length)tm=`<div class="notice">${esc(U.why||"There are no times that day.")}</div>${U.near.length?`<h2 class="nrh">Nearest days with a table for ${esc(guests(U.size))}</h2>${U.near.map(n=>`<div class="nr"><b>${esc(fmtD(n.date))}</b><div class="times">${spread(n.times,4).map(t=>`<button type="button" data-a="ntime" data-d="${n.date}" data-t="${t}">${t12(t)}</button>`).join("")}</div>${n.times.length>4?`<button class="link" data-a="day" data-d="${n.date}">All ${n.times.length} times that day</button>`:""}</div>`).join("")}`:""}`;
   else tm=`<div class="times">${U.times.map(t=>`<button type="button" data-a="time" data-t="${t}">${t12(t)}</button>`).join("")}</div>`;
   page(`${head(esc(V.label||"Book a table"))}${U.err?`<div class="notice bad">${esc(U.err)}</div>`:""}
     <div class="row"><label class="af">Guests<select id="p-size">${opts.join("")}</select></label>
@@ -128,22 +137,23 @@ function render(){
   $("#p-date").addEventListener("change",e=>{const d=e.target.value;if(d&&d>=V.today&&d<=last){U.date=d;loadTimes()}});
   const on=document.querySelector(".days .on");if(on&&on.scrollIntoView)try{on.scrollIntoView({block:"nearest",inline:"nearest"})}catch(e){}}
 let seq=0;
-async function loadTimes(){const my=++seq;U.times=null;U.why="";U.err="";render();
-  try{const r=await call("slots",{date:U.date,size:U.size});if(my!==seq)return;if(r.on===false){V.on=false;fail("Online booking is not available",r.message||"");return}U.times=r.times||[];U.why=r.why||""}
-  catch(e){if(my!==seq)return;U.times=[];U.why=e.message}render()}
+async function loadTimes(){const my=++seq;U.times=null;U.why="";U.near=[];U.err="";render();
+  try{const r=await call("slots",{date:U.date,size:U.size});if(my!==seq)return;if(r.on===false){V.on=false;fail("Online booking is not available",r.message||"");return}U.times=r.times||[];U.why=r.why||"";U.near=Array.isArray(r.near)?r.near:[]}
+  catch(e){if(my!==seq)return;U.times=[];U.near=[];U.why=e.message}render()}
 async function submit(e){e.preventDefault();if(U.busy)return;const f=U.f;
-  f.name=$("#f-name").value.trim();f.phone=$("#f-phone").value.trim();f.email=$("#f-email").value.trim();f.notes=$("#f-notes").value.trim();f.mk=$("#f-mk").checked;const web=$("#f-web").value;
+  f.name=$("#f-name").value.trim();f.phone=$("#f-phone").value.trim();f.email=$("#f-email").value.trim();f.notes=$("#f-notes").value.trim();f.mk=$("#f-mk").checked;const web=$("#f-web").value;f.pol={};document.querySelectorAll("[data-pol]").forEach(c=>{f.pol[c.dataset.pol]=c.checked});
   if(f.name.length<2){U.err="Please enter your name.";render();$("#f-name").focus();return}
   if(f.phone.replace(/\D/g,"").length<7){U.err="Please enter a phone number we can reach you on.";render();$("#f-phone").focus();return}
   if(f.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)){U.err="That email address does not look right.";render();$("#f-email").focus();return}
+  if(POL().some((t,i)=>!f.pol[i])){U.err="Please tick each box to agree before booking.";render();const c=document.querySelector("[data-pol]:not(:checked)");if(c)try{c.focus()}catch(x){}return}
   U.busy=true;U.err="";render();
-  try{const r=await call("book",{},{date:U.date,time:U.time,size:U.size,name:f.name,phone:f.phone,email:f.email,notes:f.notes,mk:!!(f.email&&f.mk),website:web});U.busy=false;U.done=r;U.step="done";render();scrollTo(0,0)}
+  try{const r=await call("book",{},{date:U.date,time:U.time,size:U.size,name:f.name,phone:f.phone,email:f.email,notes:f.notes,mk:!!(f.email&&f.mk),agree:POL().length?true:undefined,website:web});U.busy=false;U.done=r;U.step="done";render();scrollTo(0,0)}
   catch(err){U.busy=false;if(err.code==="gone"){U.step="pick";U.err=err.message;loadTimes();return}U.err=err.message;render()}}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;
   if(a==="day"){U.date=b.dataset.d;loadTimes()}
-  else if(a==="time"){U.time=b.dataset.t;U.step="form";U.err="";render();scrollTo(0,0);const n=$("#f-name");if(n&&!n.value)try{n.focus()}catch(x){}}
+  else if(a==="time"||a==="ntime"){if(a==="ntime")U.date=b.dataset.d;U.time=b.dataset.t;U.step="form";U.err="";render();scrollTo(0,0);const n=$("#f-name");if(n&&!n.value)try{n.focus()}catch(x){}}
   else if(a==="back"){U.step="pick";U.err="";loadTimes()}
-  else if(a==="again"){U.step="pick";U.done=null;U.time="";U.f.notes="";loadTimes()}});
+  else if(a==="again"){U.step="pick";U.done=null;U.time="";U.f.notes="";U.f.pol={};loadTimes()}});
 (async function start(){
   try{const c=await (await fetch("../cloud.json",{cache:"no-store"})).json();API=c.url.replace(/\/$/,"")+"/functions/v1/res-book";KEY=c.key}catch(e){fail("Cannot connect","Check the internet and try again.");return}
   if(!SITE){V={name:"Book a table"};fail("This booking link is not complete","Please ask the venue for their booking link.");return}

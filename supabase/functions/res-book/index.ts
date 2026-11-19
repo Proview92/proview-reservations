@@ -5,8 +5,10 @@
 // which times are free.
 //
 // Routes (all under /res-book, ?v=<location id>):
-//   GET  ?v=…&a=info                       → { name, on, label, msg, maxParty, ahead, mkTick, today, look }
-//   GET  ?v=…&a=slots&date=YYYY-MM-DD&size=N → { date, size, why, times: ["18:00", …] }
+//   GET  ?v=…&a=info                       → { name, on, label, msg, pol, maxParty, ahead, mkTick, today, look }
+//        pol = the venue's own policies (Widget page): the guest has to tick every one before booking
+//   GET  ?v=…&a=slots&date=YYYY-MM-DD&size=N → { date, size, why, times: ["18:00", …], near: [{ date, times }] }
+//        near = when that day has no times: the closest days (before or after) that do, nearest first, at most 3
 //   POST ?v=…&a=book  { date, time, size, name, phone, email, notes, mk } → { ok, ref, confirm, name, date, time, size }
 //
 // The free times are worked out with the same rules as the "Try it" box on the Widget page of the app
@@ -134,6 +136,8 @@ function lookOf(o: Any) {
   const L = (o && o.look) || {}, hex = (x: unknown) => (typeof x === "string" && /^#[0-9a-f]{6}$/i.test(x) ? x.toLowerCase() : "");
   return { mode: L.mode === "dark" ? "dark" : "light", accent: hex(L.accent), bg: hex(L.bg), corners: L.corners === "square" || L.corners === "pill" ? L.corners : "round" };
 }
+// The venue's policies for the booking page: short lines of text, at most 6.
+const polOf = (o: Any): string[] => (Array.isArray(o && o.pol) ? o.pol : []).map((x: unknown) => clean(x, 200)).filter(Boolean).slice(0, 6);
 const isDate = (d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d) && !isNaN(new Date(d + "T12:00:00Z").getTime());
 
 Deno.serve(async (req) => {
@@ -160,7 +164,7 @@ Deno.serve(async (req) => {
 
     if (a === "info") {
       if (!on) return off();
-      return send({ name, on: true, label: o.label || "Book a table", msg: o.msg || "", maxParty: o.maxParty, ahead: o.ahead, confirm: o.confirm, mkTick: row.data.venue.mkTick !== false, today, look: lookOf(o) });
+      return send({ name, on: true, label: o.label || "Book a table", msg: o.msg || "", pol: polOf(o), maxParty: o.maxParty, ahead: o.ahead, confirm: o.confirm, mkTick: row.data.venue.mkTick !== false, today, look: lookOf(o) });
     }
 
     if (a === "slots") {
@@ -170,7 +174,19 @@ Deno.serve(async (req) => {
       const r = R.availSlots(date, size);
       const times = r.slots.filter((s) => s.ok).map((s) => s.t);
       const why = guestWhy(r, o) || (times.length ? "" : "Sorry, there are no tables free online that day for " + size + (size === 1 ? " guest" : " guests") + ". Please try another date or contact us directly.");
-      return send({ date, size, times, why });
+      // nothing that day: offer the closest days that do have a table for this party
+      const near: { date: string; times: string[] }[] = [];
+      if (!times.length && r.code !== "size" && r.code !== "big") {
+        const last = addD(today, o.ahead), base = date < today ? today : date > last ? last : date;
+        for (let k = base === date ? 1 : 0; k <= 21 && near.length < 3; k++) {
+          for (const d of k ? [addD(base, k), addD(base, -k)] : [base]) {
+            if (d === date || d < today || d > last || near.length >= 3) continue;
+            const t = R.availSlots(d, size).slots.filter((s) => s.ok).map((s) => s.t);
+            if (t.length) near.push({ date: d, times: t });
+          }
+        }
+      }
+      return send({ date, size, times, why, near });
     }
 
     if (a === "book" && req.method === "POST") {
@@ -183,6 +199,7 @@ Deno.serve(async (req) => {
       if (gname.length < 2) return send({ error: "bad", message: "Please enter your name." }, 400);
       if (!normPh(phone)) return send({ error: "bad", message: "Please enter a phone number we can reach you on." }, 400);
       if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return send({ error: "bad", message: "That email address does not look right." }, 400);
+      if (polOf(o).length && b.agree !== true) return send({ error: "bad", message: "Please tick each box to agree before booking." }, 400);
 
       // no more than 8 bookings in ten minutes from one connection
       const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown", key = "book:" + site + ":" + ip;
@@ -199,6 +216,7 @@ Deno.serve(async (req) => {
         if (!slot || !slot.ok || !slot.unit) return send({ error: "gone", message: guestWhy(r, o) || "Sorry, that time has just been taken. Please choose another time." }, 409);
         const u = slot.unit, ask = o.confirm === "request";
         const p: Any = { id: uid(), name: gname, phone, size, date, time, dur: R.durFor(size), table: u.ids[0], status: "booked", notes: (ask ? "Online request: please confirm with the guest. " : "") + notes, email, src: "Website", tags: [], web: Date.now() };
+        if (polOf(o).length) p.agreed = Date.now(); // ticked every policy on the booking page
         if (u.ids.length > 1) p.join = u.ids.slice(1);
         if (u.part != null) p.part = u.part;
         if (ask) p.req = 1;
