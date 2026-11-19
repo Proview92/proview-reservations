@@ -97,9 +97,11 @@ function rules(S: Any, today: string, nowMin: number) {
       if (x < earliest) { ok = false; why = "too soon"; }
       else if (o.cap > 0 && parties.filter((p) => p.date === date && p.time === hm(x) && p.status !== "cancelled" && p.status !== "noshow").reduce((a, p) => a + p.size, 0) + size > o.cap) { ok = false; why = "slot full"; }
       else {
-        const fu = unitsFor(date).filter((u) => uFit(u, size) && uFree(u, date, x, du) && (!rs || rs.includes(u.area)));
+        // tables ticked "Walk-in only" are never offered online
+        const wo = (u: Any) => u.ids.some((id: string) => (tables.find((t) => t.id === id) || {}).wo);
+        const fu = unitsFor(date).filter((u) => uFit(u, size) && uFree(u, date, x, du) && (!rs || rs.includes(u.area)) && !wo(u));
         if (!fu.length) { ok = false; why = "no table"; }
-        else if (o.hold > 0) { const fr = unitsFor(date).filter((u) => !u.combo && uFree(u, date, x, du) && (!rs || rs.includes(u.area))).length; if (fr - fu[0].ids.length < o.hold) { ok = false; why = "kept for walk-ins"; } }
+        else if (o.hold > 0) { const fr = unitsFor(date).filter((u) => !u.combo && uFree(u, date, x, du) && (!rs || rs.includes(u.area)) && !wo(u)).length; if (fr - fu[0].ids.length < o.hold) { ok = false; why = "kept for walk-ins"; } }
         // the app's own choice of table for a party (auto): a table that seats them, single tables first, smallest first
         if (ok) unit = fu.slice().sort((a, b) => (+(size > a.seats) - +(size > b.seats)) || (+a.combo - +b.combo) || (a.seats - b.seats))[0];
       }
