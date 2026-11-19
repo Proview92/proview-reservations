@@ -171,25 +171,25 @@ function rsTimers(){if(RS.tm)return;RS.tm=1;setInterval(rsPoll,60000);setInterva
 /* ---------- manager PIN on a Staff login: checked on the server ---------- */
 async function clRelock(){if(!CL.tok)return;const t=CL.tok;U.mgr=false;try{await rsFlush()}catch(e){}try{await rsFetch("api/lock",{method:"POST",body:"{}"})}catch(e){}if(CL.tok===t)CL.tok="";await rsResync(true)}
 {const mgrin0=A.mgrin,mgrok0=A.mgrok,mgrout0=A.mgrout;
- A.mgrin=b=>{if(!CL.site||CL.base)return mgrin0(b);if(S.mgrPin)return mgrModal("Manager sign in","","mgrok",false);toast("No manager PIN yet. The owner or a manager sets it from their own login.")};
+ A.mgrin=b=>{if(!CL.site||CL.base)return mgrin0(b);if(S.mgrPin)return mgrModal("Manager sign in","","mgrok",false);toast("No manager PIN yet. An admin or a manager sets it from their own login.")};
  A.mgrok=async b=>{if(!CL.site||CL.base)return mgrok0(b);if(CL.unl)return;const pin=$("#m-pin").value.trim();if(!pin)return;CL.unl=true;
   try{await rsFlush();const r=await fetch(rsUrl("api/unlock"),{method:"POST",headers:await rsHdr(),body:JSON.stringify({pin})});const j=await r.json().catch(()=>({}));
    if(r.status===200&&j.token){CL.tok=j.token;await rsResync(true);mgrOn()}
    else if(r.status===429)toast("Too many tries. Wait ten minutes.");
    else if(r.status===401&&j.error==="pin"){toast("That PIN is not right");$("#m-pin").value=""}
-   else if(j.error==="nopin")toast("No manager PIN yet. The owner or a manager sets it from their own login.");
+   else if(j.error==="nopin")toast("No manager PIN yet. An admin or a manager sets it from their own login.");
    else toast("Could not check the PIN. Check the internet.")}
   catch(e){toast("Could not check the PIN. Check the internet.")}finally{CL.unl=false}};
  A.mgrout=b=>{mgrout0(b);if(CL.tok)clRelock()}}
 
 /* ---------- Settings: who is signed in, and the logins of this business ---------- */
-const clBoss=()=>!!CL.site&&(CL.who.is_master||CL.site.role==="Owner"||CL.site.role==="Admin");
+const clBoss=()=>!!CL.site&&(CL.who.is_master||CL.site.role==="Admin");
 async function clMembers(){try{const r=await CL.sb.rpc("pr_list_members",{p_business:CL.site.business_id});if(r.error)throw r.error;CL.mem=r.data.members||[];CL.memErr=""}catch(e){CL.mem=CL.mem||[];CL.memErr=clErr(e)}if(U.view==="settings"&&rsIdle())render()}
 function clSettings(){if(!CL.site||U.view!=="settings")return;const main=$("#main");if(!main||document.getElementById("cl-set"))return;
  const many=(CL.who.sites||[]).length>1;let h=`<div class="card pad"><h2>Account</h2><p class="mut" style="margin-top:0">Signed in as <b>${esc(CL.who.email)}</b> · ${esc(CL.site.name)} · ${esc(CL.who.is_master?"Proview":CL.site.role||"")}. ${CL.base?"This login sees everything.":"This is a staff login: pay rates and sales figures stay on the server until a manager enters the PIN."}</p><div class="bar" style="margin:0">${many?`<button class="btn" data-act="clSwitch">Switch business</button>`:""}<button class="btn" data-act="clOut">Sign out</button></div></div>`;
  if(clBoss()){if(!CL.mem){CL.mem=[];clMembers()}
-  h+=`<div class="card pad"><h2>Logins</h2><p class="mut" style="margin-top:0">Each person signs in with their own email. <b>Manager</b>, Admin and Owner logins see everything. A <b>Staff</b> login (good for a shared tablet) never receives pay rates or sales figures unless the manager PIN is entered.</p>${CL.memErr?`<p style="color:var(--bad)">${esc(CL.memErr)}</p>`:""}
-  ${(CL.mem||[]).map(m=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)"><div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis"><b>${esc(m.email)}</b><br><span class="mut small">${esc(m.role)}${m.joined?"":" · has not signed in yet"}${m.me?" · you":""}</span></div>${m.me||(m.role==="Owner"&&CL.site.role==="Admin")?"":`<button class="btn" data-act="clMemDel" data-e="${esc(m.email)}">Remove</button>`}</div>`).join("")}
+  h+=`<div class="card pad"><h2>Logins</h2><p class="mut" style="margin-top:0">Each person signs in with their own email. <b>Manager</b> and Admin logins see everything. A <b>Staff</b> login (good for a shared tablet) never receives pay rates or sales figures unless the manager PIN is entered.</p>${CL.memErr?`<p style="color:var(--bad)">${esc(CL.memErr)}</p>`:""}
+  ${(CL.mem||[]).map(m=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)"><div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis"><b>${esc(m.email)}</b><br><span class="mut small">${esc(m.role)}${m.joined?"":" · has not signed in yet"}${m.me?" · you":""}</span></div>${m.me?"":`<button class="btn" data-act="clMemDel" data-e="${esc(m.email)}">Remove</button>`}</div>`).join("")}
   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:10px;margin-top:4px"><input id="cl-me" type="email" placeholder="Email of the new login" style="flex:2 1 200px"><select id="cl-mr" style="flex:1 1 110px"><option>Staff</option><option>Manager</option><option>Admin</option></select><button class="btn pri" data-act="clMemAdd">Add login</button></div>
   <p class="mut small" style="margin-bottom:0">They then open this page and choose "First time? Create your account" with that email.</p></div>`}
  const d=document.createElement("div");d.id="cl-set";d.innerHTML=h;main.appendChild(d)}
@@ -253,7 +253,7 @@ async function cloudStart(){
  try{
   const p=await rsFetch("api/ping");CL.base=!!p.full;
   if(!p.hasState){
-   if(!(p.master||p.role==="Owner"||p.role==="Admin")){clScreen("fail",{err:"This business has not been set up yet. Ask the owner to sign in first."});return}
+   if(!(p.master||p.role==="Admin")){clScreen("fail",{err:"This business has not been set up yet. Ask your business admin to sign in first."});return}
    await rsFetch("api/init",{method:"POST",body:JSON.stringify({state:blankState(site.name)})},30000)}
   const j=await rsFetch("api/state");
   rsAdopt(j.state,j.rev);
