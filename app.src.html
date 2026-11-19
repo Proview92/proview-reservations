@@ -135,6 +135,8 @@ body:has(#modal:not([hidden])) #wl-alert,body:has(#modal:not([hidden])) #bk-aler
 :root[data-theme="dark"] .stb.s-seated{color:#0d0f15}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .stb.s-seated{color:#0d0f15}}
 .stl{display:grid;gap:8px}.stx{display:flex;align-items:center;gap:10px;justify-content:flex-start;padding:12px 14px;font-size:15px;font-weight:600}.stx svg{flex:none}.tile{position:relative;width:56px;height:56px;box-sizing:border-box;border-radius:12px;border:2px solid var(--pri);background:var(--pril);color:var(--pri);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:inherit;font-weight:800;font-size:16px;line-height:1;padding:0;cursor:pointer;flex:none}.tile .ti{width:17px;height:17px;margin:0}.tile b{font-variant-numeric:tabular-nums}.tile.tl b{font-size:12px}.tile .cn{position:absolute;top:2px;right:4px;font-size:10px;font-style:normal;opacity:.85}div.tile{cursor:default}.tile.t-arr{border-color:var(--warn);background:var(--warnl);color:var(--warn)}.tile.t-seat{background:var(--pri);border-color:var(--pri);color:#fff}.tile.t-done{border-color:var(--line);background:color-mix(in srgb,var(--ink) 6%,var(--card));color:var(--mut)}.tile.t-x{border-color:var(--bad);background:var(--badl);color:var(--bad)}.tile.t-asg{border-style:dashed;border-color:var(--warn);background:var(--warnl);color:var(--warn)}.tile.t-bad{border-color:var(--bad);color:var(--bad);background:var(--badl)}
 :root[data-theme="dark"] .tile.t-seat{color:#0d0f15}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .tile.t-seat{color:#0d0f15}}
+/* A table that is allocated is a solid block. A suggested or missing table is a faint dashed outline. Works in every colour theme. */
+.tile.t-on{background:var(--pri);border-color:var(--pri);color:#fff}:root[data-theme="dark"] .tile.t-on{color:#0d0f15}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .tile.t-on{color:#0d0f15}}.tile.t-on.t-arr{background:var(--warn);border-color:var(--warn);color:var(--card)}.tile.t-asg,.tile.t-asg.t-bad{background:transparent;border-width:2px;border-style:dashed}.tile.t-asg>b,.tile.t-asg>.ti{opacity:.6}
 .bwc{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}.bwq{min-width:0}.bwq:empty{display:none}
 .chip.tb{background:var(--pril);color:var(--pri);font-weight:800;font-size:13px;border:1px solid color-mix(in srgb,var(--pri) 45%,transparent)}.tbs{display:none}.psz{display:inline-flex;align-items:center;gap:3px;font-weight:700;color:var(--ink);background:color-mix(in srgb,var(--ink) 8%,transparent);border-radius:999px;padding:2px 8px 2px 6px;font-size:13.5px;font-variant-numeric:tabular-nums}.psz svg{opacity:.7}.psz b{font-weight:800}
 .bdet{display:grid;gap:10px}.bdet.card{padding:14px 16px}
@@ -1051,7 +1053,7 @@ function bkTile(p){
  const ids=p.table?ptabs(p):[],lab=ids.length?ids.map(tnum).join("+"):"",big=lab.length>3?" tl":"",sg=sugT(p);
  let cls="",act="",cn="",ttl="";
  if(p.status==="booked"){
-  if(p.table){const due=pastDue(p)||p.arr;cls=due?"t-arr":"";act="alloc";cn="\u21C4";ttl="Change table"}
+  if(p.table){const due=pastDue(p)||p.arr;cls="t-on"+(due?" t-arr":"");act="alloc";cn="\u21C4";ttl="Change table"}
   else if(sg){cls="t-asg";act="alloc";cn="+";ttl="Choose a table (suggested "+sg.name+")"}
   else{cls="t-asg t-bad";act="alloc";cn="+";ttl="Choose a table"}
  }else if(p.status==="seated"){cls="t-seat";act="alloc";cn="\u21C4";ttl="Change table"}
