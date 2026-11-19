@@ -95,6 +95,7 @@ function render(){
   if(U.step==="done"){const d=U.done,ask=d.confirm==="request";
     page(`${head("")}<div class="notice ok"><b>${ask?"Request sent":"You are booked"}</b><br>${ask?"We will be in touch to confirm your table.":"We look forward to seeing you."}</div>
       <div class="sum">${esc(fmtD(d.date))} at ${esc(t12(d.time))}<span>${esc(guests(d.size))} · ${esc(U.f.name)} · reference ${esc(d.ref)}</span></div>
+      ${V.msg?`<div class="notice">${esc(V.msg)}</div>`:""}
       <p class="muted small">To change or cancel, please contact ${esc(V.name)} directly and give your name and booking time.</p>
       <button class="link" data-a="again">Make another booking</button>`);return}
   if(U.step==="form"){const f=U.f;
