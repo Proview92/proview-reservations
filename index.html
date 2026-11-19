@@ -825,8 +825,7 @@ function vSettings(){
  ${hoursCard()}${specialCard()}
  ${msgCard()}
  ${FT("loyalty")?`<div class="card pad"><h2>Loyalty scheme</h2><p class="mut" style="margin-top:0">${LOY().on?`On: every ${LOY().n} confirmed visits earns ${LOY().pct}% off.`:"Off."} Set it up and see your regulars in Guests, Loyalty.</p><button class="btn" data-act="gloy">Open loyalty</button></div>`:""}
- ${mgr()?`<div class="card pad"><h2>Demo data</h2><p class="mut" style="margin-top:0">For testing. Tables adds extra tables of different sizes and shapes, up to 20 in total. Bookings adds a busy spread of bookings over today and the next two days, with different party sizes, sources and notes. Your own bookings are never touched, and you can remove the demo data again at any time.</p><div class="bar"><button class="btn pri" data-act="demot">Add demo tables</button><button class="btn pri" data-act="demob">Add demo bookings</button><button class="btn" data-act="demotx">Remove demo data</button></div></div>`:""}
- ${mgr()?`<div class="card pad"><h2>Sample data</h2><p class="mut">Bookings are saved in this browser only. Reset replaces everything with fresh sample data.</p><button class="btn danger" data-act="reset">Reset to sample data</button></div>`:""}
+ ${mgr()&&(S.parties.some(p=>p.demo)||S.tables.some(t=>t.demo))?`<div class="card pad"><h2>Demo data</h2><p class="mut" style="margin-top:0">This business still has ${S.parties.filter(p=>p.demo).length} demo bookings and ${S.tables.filter(t=>t.demo).length} demo tables from earlier testing. Your own bookings and tables are not touched.</p><div class="bar"><button class="btn" data-act="demotx">Remove demo data</button></div></div>`:""}
  ${comboCard()}
  ${splitCard()}
  
