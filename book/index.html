@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Book a table</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="../icon-app.svg">
+<style>
+:root{--bg:#f4f3ef;--ink:#17171c;--line:#e4e2dc;--mut:#55555f;--pri:#4a6cd0;color-scheme:light}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 "Inter","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;padding:32px 14px}
+body.embed{background:transparent;padding:0}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:30px 28px;width:min(520px,100%);margin:0 auto;display:flex;flex-direction:column;gap:16px;box-shadow:0 1px 2px rgba(20,20,30,.04),0 18px 50px -18px rgba(20,20,30,.18)}
+body.embed .card{box-shadow:none;width:100%;max-width:560px}
+h1{font-size:26px;line-height:1.2;margin:0;letter-spacing:-.02em;font-weight:700}
+h2{font-size:15px;margin:0 0 8px;font-weight:600}
+.muted{color:var(--mut);margin:0}
+.small{font-size:13px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1 1 140px;min-width:0}
+label.af{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:#3d3d46}
+input,select,textarea{height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font:inherit;font-size:16px;font-weight:400;background:#fff;color:var(--ink);width:100%;margin:0}
+textarea{height:auto;padding:10px 12px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px;border-color:transparent}
+.days{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:thin}
+.days button{flex:none;min-width:58px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font:inherit;padding:8px 6px;cursor:pointer;text-align:center;line-height:1.2}
+.days button small{display:block;color:var(--mut);font-size:11.5px;font-weight:500}
+.days button b{font-size:16px}
+.days button.on{border-color:transparent;background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);color:#fff}
+.days button.on small{color:#e6ecff}
+.times{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px}
+.times button{height:42px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.times button:hover{background:var(--bg)}
+.times button.on{border-color:transparent;background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);color:#fff}
+.go{height:46px;border:0;border-radius:10px;background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);color:#fff;font:inherit;font-weight:600;font-size:15px;cursor:pointer;width:100%}
+.go:disabled{opacity:.6;cursor:default}
+.link{border:0;background:none;font:inherit;font-weight:600;font-size:13.5px;color:var(--ink);padding:8px 12px;border-radius:8px;cursor:pointer;align-self:flex-start;margin-left:-12px}
+.link:hover{background:var(--bg)}
+.notice{background:#edf2fd;border:1px solid #cbd8f6;color:#213f8a;padding:10px 14px;border-radius:10px;font-size:14px;line-height:1.4}
+.notice.bad{background:#fef0ef;border-color:#f7c6c2;color:#a3231a}
+.notice.ok{background:#ecfdf3;border-color:#b7ebc9;color:#0b6b34}
+.sum{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);font-weight:600}
+.sum span{display:block;color:var(--mut);font-weight:400;font-size:13px}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--mut);cursor:pointer}
+.chk input{width:18px;height:18px;flex:none;margin-top:2px}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.foot{text-align:center;color:var(--mut);font-size:12px;margin:14px auto 0}
+.foot a{color:inherit}
+.splash{width:56px;height:56px;border-radius:22%;margin:40px auto;background:url(../icon-app.svg) center/contain no-repeat;opacity:.9;animation:bp 1.2s ease-in-out infinite}
+@keyframes bp{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.splash{animation:none}}
+@media (max-width:520px){body{padding:14px 10px}.card{padding:22px 18px;border-radius:18px}h1{font-size:23px}}
+</style>
+</head>
+<body>
+<main class="card" id="root" aria-live="polite"><div class="splash" role="status" aria-label="Loading"></div></main>
+<p class="foot" id="foot">Bookings by <a href="https://proviewcrm.co.uk" target="_blank" rel="noopener">Proview Reservations</a></p>
+<script>
+/* Proview Reservations: the public booking page.
+   Opened as  …/book/?v=<location id>   (add &embed=1 inside an iframe on the venue's own website).
+   It only ever talks to the res-book function: venue name, online rules and free times in; one booking out. */
+const $=s=>document.querySelector(s),esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const Q=new URLSearchParams(location.search),SITE=(Q.get("v")||"").toLowerCase(),EMBED=Q.get("embed")==="1";
+if(EMBED){document.body.classList.add("embed");$("#foot").style.margin="10px auto"}
+const pad=n=>String(n).padStart(2,"0"),addD=(d,n)=>{const x=new Date(d+"T12:00:00Z");x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10)};
+const DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],MN=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const dParts=d=>{const x=new Date(d+"T12:00:00Z");return{dn:DN[x.getUTCDay()],day:x.getUTCDate(),mn:MN[x.getUTCMonth()]}};
+const fmtD=d=>new Date(d+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",timeZone:"UTC"});
+const t12=t=>{const h=+t.slice(0,2),m=t.slice(3);return((h+11)%12+1)+":"+m+(h<12?"am":"pm")};
+const guests=n=>n+(n===1?" guest":" guests");
+let API="",KEY="",V=null;                                       // V = what the venue allows
+const U={step:"pick",size:2,date:"",times:null,why:"",time:"",busy:false,err:"",done:null,f:{name:"",phone:"",email:"",notes:"",mk:true}};
+async function call(a,params,body){const u=new URL(API);u.searchParams.set("v",SITE);u.searchParams.set("a",a);Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
+  const r=await fetch(u,{method:body?"POST":"GET",headers:Object.assign({apikey:KEY,Authorization:"Bearer "+KEY},body?{"content-type":"application/json"}:{}),body:body?JSON.stringify(body):undefined});
+  let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw Object.assign(new Error(j.message||"Something went wrong. Please try again."),{code:j.error||"",status:r.status});return j}
+function tell(){try{if(EMBED&&parent!==window)parent.postMessage({proviewBookingHeight:document.documentElement.scrollHeight},"*")}catch(e){}}
+function page(h){$("#root").innerHTML=h;tell()}
+function head(sub){return`<div><h1>${esc(V&&V.name||"Book a table")}</h1>${sub?`<p class="muted" style="margin-top:6px">${sub}</p>`:""}</div>`}
+function fail(title,msg){page(`${head("")}<div class="notice bad"><b>${esc(title)}</b><br>${esc(msg)}</div>`)}
+
+function render(){
+  if(U.step==="done"){const d=U.done,ask=d.confirm==="request";
+    page(`${head("")}<div class="notice ok"><b>${ask?"Request sent":"You are booked"}</b><br>${ask?"We will be in touch to confirm your table.":"We look forward to seeing you."}</div>
+      <div class="sum">${esc(fmtD(d.date))} at ${esc(t12(d.time))}<span>${esc(guests(d.size))} · ${esc(U.f.name)} · reference ${esc(d.ref)}</span></div>
+      <p class="muted small">To change or cancel, please contact ${esc(V.name)} directly and give your name and booking time.</p>
+      <button class="link" data-a="again">Make another booking</button>`);return}
+  if(U.step==="form"){const f=U.f;
+    page(`${head("")}<div class="sum">${esc(fmtD(U.date))} at ${esc(t12(U.time))}<span>${esc(guests(U.size))}</span></div>
+      ${V.msg?`<div class="notice">${esc(V.msg)}</div>`:""}${U.err?`<div class="notice bad">${esc(U.err)}</div>`:""}
+      <form id="fm" novalidate style="display:flex;flex-direction:column;gap:14px">
+      <label class="af">Name<input id="f-name" autocomplete="name" maxlength="80" value="${esc(f.name)}" required></label>
+      <div class="row"><label class="af">Mobile number<input id="f-phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" value="${esc(f.phone)}" required></label>
+      <label class="af">Email (optional)<input id="f-email" type="email" inputmode="email" autocomplete="email" maxlength="120" value="${esc(f.email)}"></label></div>
+      <label class="af">Anything we should know? (optional)<textarea id="f-notes" rows="2" maxlength="300" placeholder="Allergies, high chair, occasion…">${esc(f.notes)}</textarea></label>
+      <label class="chk"><input type="checkbox" id="f-mk" ${f.mk?"checked":""}><span>Happy to receive offers by email from ${esc(V.name)}</span></label>
+      <div class="hp" aria-hidden="true"><label>Website<input id="f-web" tabindex="-1" autocomplete="off"></label></div>
+      <button class="go" type="submit" ${U.busy?"disabled":""}>${U.busy?"Sending…":V.confirm==="request"?"Request this table":"Confirm booking"}</button></form>
+      <button class="link" data-a="back">Change date or time</button>`);
+    $("#fm").addEventListener("submit",submit);return}
+  // pick guests, date and time
+  const max=V.maxParty,opts=[];for(let n=1;n<=max;n++)opts.push(`<option value="${n}" ${n===U.size?"selected":""}>${guests(n)}</option>`);
+  const last=addD(V.today,V.ahead),days=[];for(let i=0;i<14&&addD(V.today,i)<=last;i++){const d=addD(V.today,i),p=dParts(d);days.push(`<button type="button" data-a="day" data-d="${d}" class="${d===U.date?"on":""}" aria-pressed="${d===U.date}"><small>${i===0?"Today":p.dn}</small><b>${p.day}</b><small>${p.mn}</small></button>`)}
+  let tm="";
+  if(U.times===null)tm=`<p class="muted">Checking times…</p>`;
+  else if(U.why&&!U.times.length)tm=`<div class="notice">${esc(U.why)}</div>`;
+  else tm=`<div class="times">${U.times.map(t=>`<button type="button" data-a="time" data-t="${t}">${t12(t)}</button>`).join("")}</div>`;
+  page(`${head(esc(V.label||"Book a table"))}${U.err?`<div class="notice bad">${esc(U.err)}</div>`:""}
+    <div class="row"><label class="af">Guests<select id="p-size">${opts.join("")}</select></label>
+    <label class="af">Date<input id="p-date" type="date" min="${V.today}" max="${last}" value="${U.date}"></label></div>
+    <div class="days" role="group" aria-label="Choose a day">${days.join("")}</div>
+    <div><h2>${esc(fmtD(U.date))}</h2>${tm}</div>
+    <p class="muted small">For more than ${max} guests please contact ${esc(V.name)} directly.</p>`);
+  $("#p-size").addEventListener("change",e=>{U.size=+e.target.value;loadTimes()});
+  $("#p-date").addEventListener("change",e=>{const d=e.target.value;if(d&&d>=V.today&&d<=last){U.date=d;loadTimes()}});
+  const on=document.querySelector(".days .on");if(on&&on.scrollIntoView)try{on.scrollIntoView({block:"nearest",inline:"nearest"})}catch(e){}}
+let seq=0;
+async function loadTimes(){const my=++seq;U.times=null;U.why="";U.err="";render();
+  try{const r=await call("slots",{date:U.date,size:U.size});if(my!==seq)return;if(r.on===false){V.on=false;fail("Online booking is not available",r.message||"");return}U.times=r.times||[];U.why=r.why||""}
+  catch(e){if(my!==seq)return;U.times=[];U.why=e.message}render()}
+async function submit(e){e.preventDefault();if(U.busy)return;const f=U.f;
+  f.name=$("#f-name").value.trim();f.phone=$("#f-phone").value.trim();f.email=$("#f-email").value.trim();f.notes=$("#f-notes").value.trim();f.mk=$("#f-mk").checked;const web=$("#f-web").value;
+  if(f.name.length<2){U.err="Please enter your name.";render();$("#f-name").focus();return}
+  if(f.phone.replace(/\D/g,"").length<7){U.err="Please enter a phone number we can reach you on.";render();$("#f-phone").focus();return}
+  if(f.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)){U.err="That email address does not look right.";render();$("#f-email").focus();return}
+  U.busy=true;U.err="";render();
+  try{const r=await call("book",{},{date:U.date,time:U.time,size:U.size,name:f.name,phone:f.phone,email:f.email,notes:f.notes,mk:!!(f.email&&f.mk),website:web});U.busy=false;U.done=r;U.step="done";render();scrollTo(0,0)}
+  catch(err){U.busy=false;if(err.code==="gone"){U.step="pick";U.err=err.message;loadTimes();return}U.err=err.message;render()}}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;
+  if(a==="day"){U.date=b.dataset.d;loadTimes()}
+  else if(a==="time"){U.time=b.dataset.t;U.step="form";U.err="";render();scrollTo(0,0);const n=$("#f-name");if(n&&!n.value)try{n.focus()}catch(x){}}
+  else if(a==="back"){U.step="pick";U.err="";loadTimes()}
+  else if(a==="again"){U.step="pick";U.done=null;U.time="";U.f.notes="";loadTimes()}});
+(async function start(){
+  try{const c=await (await fetch("../cloud.json",{cache:"no-store"})).json();API=c.url.replace(/\/$/,"")+"/functions/v1/res-book";KEY=c.key}catch(e){fail("Cannot connect","Check the internet and try again.");return}
+  if(!SITE){V={name:"Book a table"};fail("This booking link is not complete","Please ask the venue for their booking link.");return}
+  try{V=await call("info")}catch(e){V={name:"Book a table"};fail(e.status===404?"Booking link not found":"Cannot connect",e.message);return}
+  document.title=(V.label||"Book a table")+" · "+V.name;
+  if(!V.on){fail("Online booking is not available",V.message||"Please contact us directly.");return}
+  U.f.mk=V.mkTick!==false;U.size=Math.min(2,V.maxParty);U.date=V.today;
+  const qd=Q.get("date"),qs=+Q.get("size");if(qd&&/^\d{4}-\d{2}-\d{2}$/.test(qd)&&qd>=V.today&&qd<=addD(V.today,V.ahead))U.date=qd;if(qs>=1&&qs<=V.maxParty)U.size=Math.round(qs);
+  loadTimes()})();
+new ResizeObserver(tell).observe(document.documentElement);
+</script>
+</body>
+</html>

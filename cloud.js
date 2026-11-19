@@ -134,7 +134,10 @@ async function rsFetch(path,opt,ms){const ctl=new AbortController(),t=setTimeout
 function rsAdopt(state,rev){RS.hold=true;try{try{localStorage.setItem(SKEY(),JSON.stringify(state))}catch(e){}load();snapInit()}finally{RS.hold=false}RS.rev=rev;RS.snap=rsSnap(S)}
 function rsIdle(){const a=document.activeElement;return $("#modal").hidden&&!(a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName))&&!U.drag}
 function rsRender(){if(!RS.pend)return;if(!rsIdle())return;RS.pend=false;try{render()}catch(e){console.error(e)}}
-function rsRemote(list){list.forEach(ops=>rsApply(ops,S,RS.snap));snapInit();try{localStorage.setItem(SKEY(),JSON.stringify(S))}catch(e){}RS.pend=true;rsRender()}
+function rsRemote(list){const had={};(S.parties||[]).forEach(p=>{had[p.id]=1});list.forEach(ops=>rsApply(ops,S,RS.snap));snapInit();
+ // a booking that has just come in from the booking link
+ try{const nw=(S.parties||[]).filter(p=>p.web&&!had[p.id]&&Date.now()-p.web<6e5);if(nw.length)setTimeout(()=>toast(nw.length===1?"New online booking: "+nw[0].name+", "+nw[0].size+(nw[0].size===1?" guest, ":" guests, ")+fmtD(nw[0].date)+" "+nw[0].time:nw.length+" new online bookings"),600)}catch(e){}
+ try{localStorage.setItem(SKEY(),JSON.stringify(S))}catch(e){}RS.pend=true;rsRender()}
 function rsMark(){if(!RS.on||RS.hold)return;clearTimeout(RS.t);RS.t=setTimeout(rsPush,350);rsDot()}
 // the server no longer treats this device as unlocked (the manager token ran out): lock the screen too
 function rsFullCheck(full){if(CL.tok&&full===false){CL.tok="";U.mgr=false;toast("Manager access locked");rsResync(true)}}
@@ -190,7 +193,26 @@ function clSettings(){if(!CL.site||U.view!=="settings")return;const main=$("#mai
   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:10px;margin-top:4px"><input id="cl-me" type="email" placeholder="Email of the new login" style="flex:2 1 200px"><select id="cl-mr" style="flex:1 1 110px"><option>Staff</option><option>Manager</option><option>Admin</option></select><button class="btn pri" data-act="clMemAdd">Add login</button></div>
   <p class="mut small" style="margin-bottom:0">They then open this page and choose "First time? Create your account" with that email.</p></div>`}
  const d=document.createElement("div");d.id="cl-set";d.innerHTML=h;main.appendChild(d)}
+/* ---------- Widget page: the booking link for Google and the venue's website ---------- */
+const clBookUrl=()=>location.origin+location.pathname.replace(/[^/]*$/,"")+"book/?v="+encodeURIComponent(CL.site.id);
+function clBookCard(){if(!CL.site||U.view!=="online")return;const main=$("#main");if(!main||document.getElementById("cl-book"))return;const host=main.querySelector(".sgc")||main;
+ const url=clBookUrl(),on=!!OB().on,lab=OB().label||"Book a table";
+ const btn=`<a href="${url}" target="_blank" rel="noopener" style="display:inline-block;padding:12px 22px;border-radius:10px;background:#3f5fd0;color:#fff;font-family:Arial,sans-serif;font-weight:bold;text-decoration:none">${esc(lab)}</a>`;
+ const frame=`<iframe src="${url}&embed=1" title="${esc(lab)}" style="width:100%;max-width:560px;height:760px;border:0" loading="lazy"></iframe>`;
+ const box=(id,v,rows)=>`<div style="display:flex;gap:8px;align-items:flex-start;margin:6px 0 0">${rows?`<textarea id="${id}" readonly rows="${rows}" style="flex:1;min-width:0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px">${esc(v)}</textarea>`:`<input id="${id}" readonly value="${esc(v)}" style="flex:1;min-width:0">`}<button class="btn" data-act="clBkCopy" data-f="${id}">Copy</button></div>`;
+ const d=document.createElement("div");d.id="cl-book";d.className="card pad";d.style.marginBottom="14px";
+ d.innerHTML=`<h2>Your booking link</h2><p class="mut" style="margin-top:0">Guests book a table themselves from this link. It follows the rules below, only offers times with a free table, and each booking appears here straight away marked Website.</p>
+ ${on?`<p style="margin:0 0 6px;color:var(--ok);font-weight:600">Online booking is on.</p>`:`<p style="margin:0 0 6px;color:var(--warn);font-weight:600">Online booking is off. Switch on "Accept online bookings" below and guests can book from this link.</p>`}
+ ${box("cl-bk-u",url)}<div class="bar" style="margin:10px 0 0"><a class="btn pri" href="${url}" target="_blank" rel="noopener">Open the booking page</a></div>
+ <h3>Add it to Google</h3><ol class="mut" style="margin:0;padding-left:20px"><li>Sign in to the Google account that manages your Business Profile and search for your business name.</li><li>Choose <b>Bookings</b> (on some profiles: Edit profile, then Bookings or Reservations).</li><li>Choose <b>Links to your online booking tools</b>, then <b>Add a link</b>.</li><li>Paste your booking link and save. Google shows it on Search and Maps, usually within a few minutes.</li></ol>
+ <h3>Add it to your website</h3><p class="mut" style="margin:0">A button that opens your booking page. Paste this where the button should be:</p>${box("cl-bk-b",btn,3)}
+ <p class="mut" style="margin:12px 0 0">Or show the booking form inside your own page:</p>${box("cl-bk-f",frame,3)}
+ <p class="mut small" style="margin:10px 0 0">The link also works in Instagram and Facebook profiles, emails and on a QR code.</p>`;
+ host.insertBefore(d,host.firstChild);
+ const i=main.querySelector(".obi");if(i)i.textContent="Rules for your booking link. They apply to every online booking, on Google and on your website.";
+ main.querySelectorAll(".swt small").forEach(x=>{if(/widget is connected/.test(x.textContent))x.textContent="Guests can book from your link while this is on"})}
 Object.assign(A,{
+ clBkCopy:b=>{const f=document.getElementById(b.dataset.f);if(!f)return;f.focus();f.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}const bad=()=>toast("Could not copy by button. The text is selected: press Cmd+C.");if(ok){toast("Copied");return}try{navigator.clipboard.writeText(f.value).then(()=>toast("Copied"),bad)}catch(e){bad()}},
  clMemAdd:async()=>{const e=(($("#cl-me")||{}).value||"").trim().toLowerCase(),role=($("#cl-mr")||{}).value||"Staff";if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast("Enter a valid email address");return}
   const r=await CL.sb.rpc("pr_save_member",{p_business:CL.site.business_id,p_email:e,p_role:role});if(r.error){toast(clErr(r.error));return}toast("Login added");await clMembers();render()},
  clMemDel:b=>ask("Remove the login "+b.dataset.e+"?","Remove",async()=>{const r=await CL.sb.rpc("pr_remove_member",{p_business:CL.site.business_id,p_email:b.dataset.e});if(r.error){toast(clErr(r.error));return}toast("Login removed");await clMembers();render()})
@@ -216,7 +238,7 @@ async function cloudStart(){
   rsAdopt(j.state,j.rev);
   // hook saving: every save() also sends the changes
   const save0=save;save=function(){save0();rsMark()};
-  const render0=render;render=function(){render0();try{clSettings()}catch(e){console.error(e)}};
+  const render0=render;render=function(){render0();try{clSettings();clBookCard()}catch(e){console.error(e)}};
   RS.on=true;RS.hold=false;clHide();
   autoRun();render();setBtn();rsTimers();rsDot();
   document.title=(S.venue&&S.venue.name?S.venue.name+" · ":"")+"Proview Reservations";
