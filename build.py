@@ -11,15 +11,15 @@ s=s.replace('Proview Bookings','Proview Reservations').replace('Proview <i>Booki
 # 1b. the side-menu label and the browser tab say Reservations too (they are built from the venue name)
 once('if(b)b.innerHTML=esc(n)+" <i>Bookings</i>";','if(b)b.innerHTML=esc(n)+" <i>Reservations</i>";')
 once('document.title=n+" bookings"}','document.title=n+" reservations"}')
-# 1c. the menu logo matches the other Proview sites: the PV mark and a PROVIEW RESERVATIONS wordmark
-import base64
-logo='data:image/png;base64,'+base64.b64encode(open(os.path.join(here,'proview-logo.png'),'rb').read()).decode()
-once('<span class="mono" id="bmono">P</span><span class="bname" id="bname">Proview <i>Reservations</i></span>','<span class="pvlogo" role="img" aria-label="Proview logo"></span><span class="bname pvword">PROVIEW<i>RESERVATIONS</i></span>')
-css='.pvlogo{display:block;float:left;width:36px;height:26px;margin:1px 9px 0 0;flex:none;background:url('+logo+') center/contain no-repeat}'\
- '.pvword{font-size:12px;font-weight:500;letter-spacing:.04em;line-height:1.2;color:#fff;max-width:none}'\
- '.pvword i,.brand .pvword i{display:block;font-style:normal;background:linear-gradient(90deg,#62b0ec 0%,#8b88dc 100%);-webkit-background-clip:text;background-clip:text;color:transparent}'\
- '.brand{overflow:hidden}'
-i=s_i=s.index('</style>'); s=s[:i]+css+s[i:]
+# 1c. the Proview shell: the same app-icon logo, sign-in page and loading page as the other Proview sites
+import urllib.parse
+icon='data:image/svg+xml,'+urllib.parse.quote(open(os.path.join(here,'icon-app.svg')).read(),safe="/:=;, ")
+once('<span class="mono" id="bmono">P</span><span class="bname" id="bname">Proview <i>Reservations</i></span>','<span class="pvlogo" role="img" aria-label="Proview Reservations"></span><span class="bname pvword">PROVIEW<i>RESERVATIONS</i></span>')
+css=open(os.path.join(here,'shell.css')).read().replace('ICON','"'+icon+'"').replace('GRAD_A','#8B5CF6').replace('GRAD_B','#6D28D9')
+i=s.index('</style>'); s=s[:i]+css+s[i:]
+# the loading page is in the page itself, so it shows before any script runs
+once('<body>','<body><div id="cl-root" class="pvs-wait"><div class="pvs-splash" role="status" aria-label="Loading Proview Reservations"></div></div>')
+i=s.index('<link rel="icon"'); j=s.index('>',i)+1; s=s[:i]+'<link rel="icon" type="image/svg+xml" href="icon-app.svg">'+s[j:]
 # 2. the saved data lives under a per-business key in cloud mode (display preferences stay per device)
 once('KEY="proview-bookings-v1",APPV="v222";','KEY="proview-bookings-v1",APPV="v222";let CLK="";const SKEY=()=>CLK||KEY;')
 n1=s.count('localStorage.setItem(KEY,'); n2=s.count('localStorage.getItem(KEY)'); n3=s.count('KEY+"-vid"')

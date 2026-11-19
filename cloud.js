@@ -22,33 +22,42 @@ function clLic(s){if(s.suspended)return "This business is paused.";if(!s.license
 function blankState(name){const s=seed();s.parties=[];s.waiting=[];s.staff=[];s.punches=[];s.hist={};s.histSample=false;s.gnotes={};s.ts={};s.rotaSh=[];s.demoY=s.demoU=s.demoB=s.demoP=1;s.venue.name=name||"My venue";delete s.venue.id;return s}
 
 /* ---------- sign-in screens ---------- */
-function clRoot(){let r=document.getElementById("cl-root");if(!r){r=document.createElement("div");r.id="cl-root";r.style.cssText="position:fixed;inset:0;z-index:200;background:var(--bg);color:var(--ink);overflow:auto;padding:32px 16px;display:grid;gap:16px;align-content:start;justify-items:center";document.body.appendChild(r)}return r}
+function clRoot(){let r=document.getElementById("cl-root");if(!r){r=document.createElement("div");r.id="cl-root";document.body.appendChild(r)}return r}
 function clHide(){const r=document.getElementById("cl-root");if(r)r.remove()}
-function clShow(){const r=clRoot(),m=CL.scr,em=esc(CL.email||"");let b="";
- const msg=(CL.err?`<p style="margin:0;color:var(--bad)">${esc(CL.err)}</p>`:"")+(CL.note?`<p class="mut" style="margin:0">${esc(CL.note)}</p>`:""),dis=CL.busy?"disabled":"";
- const box=h=>`<div class="card" style="width:min(360px,100%);padding:22px 18px;display:grid;gap:12px;text-align:center">${h}</div>`,bt=(act,t,pri,extra)=>`<button class="btn${pri?" pri":""}" style="justify-content:center;min-height:42px" data-act="${act}" ${extra||""}>${t}</button>`;
- const out=bt("clOut","Sign out");
- if(m==="wait")b=`<p class="mut">${esc(CL.note||"Loading...")}</p>`;
- else if(m==="in")b=box(`<h2 style="margin:0">Sign in</h2><input id="clem" type="email" autocomplete="username" placeholder="Email" value="${em}"><input id="clpw" type="password" autocomplete="current-password" placeholder="Password">${msg}${bt("clIn","Sign in",1,dis)}${CL.cfg.sso?bt("clSso","Sign in with Proview account"):""}${bt("clScr","First time? Create your account",0,'data-s="up"')}${bt("clScr","Forgot password",0,'data-s="reset"')}`);
- else if(m==="up")b=box(`<h2 style="margin:0">Create your account</h2><p class="mut" style="margin:0">Use the email your manager added for you, or your own if you are setting up a new business.</p><input id="clem" type="email" autocomplete="username" placeholder="Email" value="${em}"><input id="clpw" type="password" autocomplete="new-password" placeholder="Choose a password (6 or more characters)">${msg}${bt("clUp","Create account",1,dis)}${bt("clScr","Back to sign in",0,'data-s="in"')}`);
- else if(m==="reset")b=box(`<h2 style="margin:0">Forgot password</h2><p class="mut" style="margin:0">We will email you a link to choose a new one.</p><input id="clem" type="email" autocomplete="username" placeholder="Email" value="${em}">${msg}${bt("clReset","Send the link",1,dis)}${bt("clScr","Back to sign in",0,'data-s="in"')}`);
- else if(m==="newpw")b=box(`<h2 style="margin:0">Choose a new password</h2><input id="clpw" type="password" autocomplete="new-password" placeholder="New password (6 or more characters)">${msg}${bt("clNewPw","Save and continue",1,dis)}`);
- else if(m==="setup")b=box(`<h2 style="margin:0">Set up your business</h2><p class="mut" style="margin:0">Signed in as ${esc(CL.who.email)}. This login is not part of a business yet.</p><p class="mut" style="margin:0">Staff: ask your manager to add this email under Settings, Logins, then press Check again.</p><input id="clbn" type="text" maxlength="80" placeholder="Business name">${msg}${bt("clMake","Create my business",1,dis)}${bt("clAgain","Check again")}${out}`);
- else if(m==="empty")b=box(`<h2 style="margin:0">No businesses yet</h2><p class="mut" style="margin:0">Add the first one in the licence portal (New business).</p><a class="btn pri" style="justify-content:center;min-height:42px;display:inline-flex;align-items:center" href="${CL_PORTAL}" target="_blank" rel="noopener">Open the licence portal</a>${bt("clAgain","Check again")}${out}`);
- else if(m==="pick"){const ss=CL.who.sites||[];b=`<p class="mut" style="margin:0">Which business?</p><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;width:min(900px,100%)">${ss.map(s=>`<button class="card" style="padding:14px;text-align:left;cursor:pointer;color:inherit;font:inherit" data-act="clPick" data-id="${esc(s.id)}"><b>${esc(s.name)}</b><br><span class="mut small">${esc(s.business&&s.business!==s.name?s.business+" · ":"")}${s.ok?esc(s.role||""):esc(clLic(s))}</span></button>`).join("")}</div>${out}`}
- else if(m==="lock"){const s=CL.locked;b=box(`<h2 style="margin:0">${esc(s.name)}</h2><p style="margin:0;color:var(--bad)">${esc(clLic(s))}</p><p class="mut" style="margin:0">${s.suspended?"Call Proview on "+CL_PHONE+".":"Buy or renew a licence in the licence portal, or call Proview on "+CL_PHONE+"."}</p>${s.suspended?"":`<a class="btn pri" style="justify-content:center;min-height:42px;display:inline-flex;align-items:center" href="${CL_PORTAL}" target="_blank" rel="noopener">Open the licence portal</a>`}${bt("clAgain","Check again")}${(CL.who.sites||[]).length>1?bt("clScr","Another business",0,'data-s="pick"'):""}${out}`)}
- else if(m==="fail")b=box(`<h2 style="margin:0">Cannot connect</h2><p class="mut" style="margin:0">${esc(CL.err||"Check the internet and try again.")}</p>${bt("clReload","Try again",1)}${CL.who?out:""}`);
- r.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:10px"><span class="pvlogo" role="img" aria-label="Proview logo" style="float:none;margin:0;width:76px;height:52px"></span><span class="pvword" style="font-size:17px;letter-spacing:.14em;color:var(--ink)">PROVIEW<i style="display:inline">RESERVATIONS</i></span></div>${b}`;
+const CL_EYE='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const CL_BRAND='<div class="pvs-brand"><span class="pvlogo" role="img" aria-label="Proview logo"></span><span class="pvword">PROVIEW<i>RESERVATIONS</i></span></div>';
+const CL_ART='<div class="pvs-art">'+CL_BRAND+'<h2>Every table, every guest — one calm service.</h2><div class="pvs-mock" aria-hidden="true"><div class="hd"><b>Tonight · 42 covers</b><span>19:12</span></div><div class="rw"><b>19:00</b><em>Hughes · 4</em><span class="s">Seated</span></div><div class="rw"><b>19:30</b><em>Okafor · 2</em><span class="r">Booked</span></div><div class="rw"><b>19:45</b><em>Martin · 6</em><span class="r">Booked</span></div><div class="rw"><b>20:15</b><em>Walk-in · 3</em><span class="f">Waiting</span></div></div><div class="sub">Take reservations, run the waitlist and seat guests from your phone, iPad or till.</div></div>';
+function clShow(){const r=clRoot(),m=CL.scr,em=esc(CL.email||"");
+ if(m==="wait"){r.className="pvs-wait";r.innerHTML=`<div class="pvs-splash" role="status" aria-label="${esc(CL.note||"Loading Proview Reservations")}"></div>`;return}
+ const msg=`<div>${CL.err?`<div class="notice bad">${esc(CL.err)}</div>`:""}${CL.note?`<div class="notice">${esc(CL.note)}</div>`:""}</div>`,dis=CL.busy?"disabled":"";
+ const go=(act,t)=>`<button type="button" class="go" data-act="${act}" ${dis}>${t}</button>`,alt=(act,t,extra)=>`<button type="button" class="pv-sso" data-act="${act}" ${extra||""}>${t}</button>`,lnk=(act,t,extra)=>`<button type="button" data-act="${act}" ${extra||""}>${t}</button>`;
+ const fEm=`<label class="af">Email<input id="clem" type="email" autocomplete="email" placeholder="you@company.com" value="${em}"></label>`;
+ const fPw=(id,lab,ac,ph)=>`<label class="af">${lab}<div class="pw-wrap"><input id="${id}" type="password" autocomplete="${ac}" placeholder="${ph}"><button type="button" class="pw-eye" data-act="clEye" data-f="${id}" title="Show password" aria-label="Show password">${CL_EYE}</button></div></label>`;
+ const portal=`<a class="go" href="${CL_PORTAL}" target="_blank" rel="noopener">Open the licence portal</a>`;
+ const out=lnk("clOut","Sign out"),links=h=>`<div class="alinks">${h}</div>`;
+ let b="",split=false,wide=false;
+ if(m==="in"){split=true;b=`<h1>Sign in</h1><p class="muted">Manage your reservations, tables and guests.</p>${msg}${fEm}${fPw("clpw","Password","current-password","••••••••")}${go("clIn","Sign in")}${CL.cfg.sso?`<div class="or-line">or</div>${alt("clSso","Sign in with Proview account")}`:""}${links(lnk("clScr","Create an account",'data-s="up"')+lnk("clScr","Forgot password?",'data-s="reset"'))}`}
+ else if(m==="up"){split=true;b=`<h1>Create your account</h1><p class="muted">Use the email address your manager added for you, or your own if you are setting up a new business. Choose a password of at least 6 characters.</p>${msg}${fEm}${fPw("clpw","Password","new-password","At least 6 characters")}${fPw("clpw2","Confirm password","new-password","Type it again")}${go("clUp","Create account")}${links(lnk("clScr","I already have an account",'data-s="in"'))}`}
+ else if(m==="reset"){split=true;b=`<h1>Forgot password</h1><p class="muted">We will email you a link to choose a new one.</p>${msg}${fEm}${go("clReset","Send the link")}${links(lnk("clScr","Back to sign in",'data-s="in"'))}`}
+ else if(m==="newpw")b=`<h1>Choose a new password</h1><p class="muted">At least 6 characters.</p>${msg}${fPw("clpw","New password","new-password","At least 6 characters")}${go("clNewPw","Save and continue")}`;
+ else if(m==="setup")b=`<h1>Set up your business</h1><p class="muted">Signed in as ${esc(CL.who.email)}. This login is not part of a business yet.</p><p class="muted">Staff: ask your manager to add this email under Settings, Logins, then press Check again.</p>${msg}<label class="af">Business name<input id="clbn" type="text" maxlength="80" placeholder="e.g. Bella Pizza" autocomplete="organization"></label>${go("clMake","Create my business")}${links(lnk("clAgain","Check again")+out)}`;
+ else if(m==="empty")b=`<h1>No businesses yet</h1><p class="muted">Add the first one in the licence portal (New business).</p>${msg}${portal}${links(lnk("clAgain","Check again")+out)}`;
+ else if(m==="pick"){wide=true;const ss=CL.who.sites||[];b=`<h1>Which business?</h1><p class="muted">Signed in as ${esc(CL.who.email||"")}.</p>${msg}<div class="pvs-pick">${ss.map(s=>`<button type="button" data-act="clPick" data-id="${esc(s.id)}"><b>${esc(s.name)}</b><span>${esc(s.business&&s.business!==s.name?s.business+" · ":"")}${s.ok?esc(s.role||""):esc(clLic(s))}</span></button>`).join("")}</div>${links(out)}`}
+ else if(m==="lock"){const s=CL.locked;b=`<h1>${esc(s.name)}</h1><div class="notice bad">${esc(clLic(s))}</div><p class="muted">${s.suspended?"Call Proview on "+CL_PHONE+".":"Buy or renew a licence in the licence portal, or call Proview on "+CL_PHONE+"."}</p>${s.suspended?"":portal}${links(lnk("clAgain","Check again")+((CL.who.sites||[]).length>1?lnk("clScr","Another business",'data-s="pick"'):"")+out)}`}
+ else if(m==="fail")b=`<h1>Cannot connect</h1><p class="muted">${esc(CL.err||"Check the internet and try again.")}</p>${go("clReload","Try again").replace(" disabled","")}${CL.who?links(out):""}`;
+ r.className="";
+ r.innerHTML=`<div class="pvs-auth${split?"":" solo"}">${split?CL_ART:""}<div class="pvs-form"><form class="pvs-card${wide?" wide":""}" novalidate onsubmit="return false">${CL_BRAND}${b}</form></div></div>`;
  const f=$("#clem")&&!$("#clem").value?$("#clem"):($("#clpw")||$("#clbn")||$("#clem"));if(f)setTimeout(()=>{try{f.focus()}catch(e){}},50);
- r.querySelectorAll("input").forEach(i=>i.addEventListener("keydown",e=>{if(e.key==="Enter"){const k={in:"clIn",up:"clUp",reset:"clReset",newpw:"clNewPw",setup:"clMake"}[CL.scr];if(k)A[k]()}}))}
+ r.querySelectorAll("input").forEach(i=>i.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();const k={in:"clIn",up:"clUp",reset:"clReset",newpw:"clNewPw",setup:"clMake"}[CL.scr];if(k)A[k]()}}))}
 function clScreen(s,o){CL.scr=s;CL.err=(o&&o.err)||"";CL.note=(o&&o.note)||"";CL.busy=false;clShow()}
 function clVals(){const e=$("#clem"),p=$("#clpw");if(e)CL.email=e.value.trim().toLowerCase();return{email:CL.email,pw:p?p.value:""}}
 async function clTry(fn){if(CL.busy)return;CL.busy=true;CL.err="";try{await fn()}catch(e){CL.busy=false;CL.err=clErr(e);clShow()}}
 Object.assign(A,{
  clScr:b=>{clVals();clScreen(b.dataset.s)},
+ clEye:b=>{const i=document.getElementById(b.dataset.f);if(!i)return;const on=i.type==="password";i.type=on?"text":"password";b.classList.toggle("on",on);b.title=on?"Hide password":"Show password";b.setAttribute("aria-label",b.title)},
  clReload:()=>location.reload(),
  clIn:()=>clTry(async()=>{const v=clVals();if(!v.email||!v.pw)throw new Error("Enter your email and password.");const r=await CL.sb.auth.signInWithPassword({email:v.email,password:v.pw});if(r.error)throw r.error;await clAfter()}),
- clUp:()=>clTry(async()=>{const v=clVals();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email))throw new Error("Enter a valid email address.");if(v.pw.length<6)throw new Error("The password needs at least 6 characters.");
+ clUp:()=>clTry(async()=>{const v=clVals();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email))throw new Error("Enter a valid email address.");if(v.pw.length<6)throw new Error("The password needs at least 6 characters.");const p2=$("#clpw2");if(p2&&p2.value!==v.pw)throw new Error("The two passwords do not match.");
   const r=await CL.sb.auth.signUp({email:v.email,password:v.pw,options:{emailRedirectTo:location.origin+location.pathname}});if(r.error)throw r.error;
   if(r.data&&r.data.session){await clAfter();return}clScreen("in",{note:"Almost there: open the link we just emailed you, then sign in here."})}),
  clReset:()=>clTry(async()=>{const v=clVals();if(!v.email)throw new Error("Enter your email.");const r=await CL.sb.auth.resetPasswordForEmail(v.email,{redirectTo:location.origin+location.pathname});if(r.error)throw r.error;clScreen("in",{note:"If that email has an account, a link is on its way."})}),
@@ -189,11 +198,11 @@ Object.assign(A,{
 
 /* ---------- start ---------- */
 async function cloudStart(){
- if(!/^https?:$/.test(location.protocol)){BOOT();return}
+ if(!/^https?:$/.test(location.protocol)){clHide();BOOT();return}
  // nothing is shown, and nothing saved, until we know whether this site uses the cloud
  CLK=KEY+"-gate";S={parties:[],tables:[],staff:[],punches:[],waiting:[],ts:{},gnotes:{},hist:{},venue:{},deco:[],rooms:[]};RS.hold=true;
  try{S=blankState("")}catch(e){}
- const veil=clRoot();veil.innerHTML="";
+ CL.scr="wait";clShow();
  const cfg=await clCfg();
  if(!cfg){CLK="";RS.hold=false;clHide();BOOT();return}
  const site=await cloudGate(cfg);

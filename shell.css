@@ -1,0 +1,67 @@
+/* ===== Proview shell: the same logo, sign-in page and loading page as the other Proview sites ===== */
+.pvlogo{display:block;float:left;width:30px;height:30px;margin:0 9px 0 0;flex:none;border-radius:22%;background:url(ICON) center/contain no-repeat}
+.pvword{font-size:12px;font-weight:500;letter-spacing:.04em;line-height:1.25;color:#fff;max-width:none}
+.pvword i,.brand .pvword i{display:block;font-style:normal;background:linear-gradient(90deg,GRAD_A 0%,GRAD_B 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand{overflow:hidden}
+#cl-root{position:fixed;inset:0;z-index:200;overflow:auto;--bg:#f4f3ef;--ink:#17171c;--line:#e4e2dc;--mut:#55555f;--card:#fff;--pri:#4a6cd0;background:var(--bg);color:var(--ink);color-scheme:light;font:15px/1.45 "Inter","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+#cl-root *{box-sizing:border-box}
+/* loading page: 72px app icon, centred on the page background, 1.2s pulse */
+#cl-root.pvs-wait{display:grid;place-items:center}
+.pvs-splash{width:72px;height:72px;border-radius:22%;background:url(ICON) center/contain no-repeat;opacity:.9;animation:pvsboot 1.2s ease-in-out infinite}
+@keyframes pvsboot{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.pvs-splash{animation:none}}
+/* sign-in page */
+.pvs-auth{display:grid;grid-template-columns:1.1fr 1fr;min-height:100%}
+.pvs-auth.solo{grid-template-columns:1fr}
+.pvs-art{background:#141418;color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;min-height:100vh}
+.pvs-brand{display:flex;align-items:center;gap:10px}
+.pvs-brand .pvlogo{float:none;margin:0}
+.pvs-brand .pvword{font-size:15px;white-space:nowrap}
+.pvs-brand .pvword i{display:inline}
+.pvs-art h2{font-size:clamp(30px,3.2vw,40px);line-height:1.05;max-width:400px;letter-spacing:-.03em;margin:0;font-weight:700;position:relative;z-index:1}
+.pvs-art .sub{color:#9a9aa4;max-width:300px;font-size:15px;line-height:1.45;position:relative;z-index:1}
+.pvs-mock{position:absolute;pointer-events:none;z-index:0;right:-40px;bottom:56px;width:380px;transform:rotate(-5deg);background:#1f1f26;border:1px solid #33333c;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 30px 70px rgba(0,0,0,.45);color:#fff}
+.pvs-mock .hd{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.pvs-mock .hd span{font-size:11px;color:#9a9aa4}
+.pvs-mock .rw{display:flex;align-items:center;gap:10px;background:#18181d;border:1px solid #2c2c34;border-radius:10px;padding:9px 11px;font-size:12px}
+.pvs-mock .rw b{font-size:12.5px;min-width:40px}
+.pvs-mock .rw em{font-style:normal;color:#c9c9d1;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pvs-mock .rw span{font-size:10.5px;font-weight:700;border-radius:999px;padding:3px 9px;white-space:nowrap}
+.pvs-mock .s{background:linear-gradient(90deg,#62b0ec,#8b88dc);color:#fff}
+.pvs-mock .r{background:rgba(98,176,236,.12);color:#9fd0f5;box-shadow:inset 0 0 0 1.5px #62b0ec}
+.pvs-mock .f{color:#77777f;box-shadow:inset 0 0 0 1.5px #4a4a54}
+.pvs-form{display:grid;place-items:center;padding:32px 20px}
+.pvs-card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:34px 32px;width:min(440px,100%);display:flex;flex-direction:column;gap:14px;box-shadow:0 1px 2px rgba(20,20,30,.04),0 18px 50px -18px rgba(20,20,30,.18);margin:0}
+.pvs-card.wide{width:min(720px,100%)}
+.pvs-card .pvs-brand{gap:12px;margin-bottom:8px}
+.pvs-card .pvs-brand .pvlogo{width:60px;height:60px}
+.pvs-card .pvs-brand .pvword{font-size:20px;letter-spacing:.14em;color:var(--ink)}
+.pvs-card h1{font-size:26px;line-height:1.2;margin:0;letter-spacing:-.02em;font-weight:700;color:var(--ink)}
+.pvs-card .muted{color:var(--mut);margin:0;font-size:15px;line-height:1.45}
+.pvs-card label.af{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:#3d3d46}
+.pvs-card label.af input{height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font:inherit;font-size:15px;font-weight:400;background:#fff;color:var(--ink);width:100%;margin:0}
+.pvs-card label.af input:focus{outline:2px solid var(--pri);outline-offset:-1px;border-color:transparent}
+.pvs-card .pw-wrap{position:relative}
+.pvs-card .pw-wrap input{padding-right:44px}
+.pvs-card .pw-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;background:none;color:#8a8a94;cursor:pointer;display:grid;place-items:center;border-radius:8px;padding:0}
+.pvs-card .pw-eye:hover{color:var(--ink);background:var(--bg)}
+.pvs-card .pw-eye.on{color:var(--pri)}
+.pvs-card .go{height:44px;border:0;border-radius:10px;background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);color:#fff;font:inherit;font-weight:600;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none;width:100%}
+.pvs-card .go:disabled{opacity:.6;cursor:default}
+.pvs-card .or-line{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:13px;margin:2px 0}
+.pvs-card .or-line:before,.pvs-card .or-line:after{content:"";flex:1;height:1px;background:var(--line)}
+.pvs-card .pv-sso{height:44px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-weight:600;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.pvs-card .pv-sso:hover{background:var(--bg)}
+.pvs-card .alinks{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.pvs-card .alinks button{border:0;background:none;font:inherit;font-weight:600;font-size:13.5px;color:var(--ink);padding:8px 12px;border-radius:8px;cursor:pointer}
+.pvs-card .alinks button:hover{background:var(--bg)}
+.pvs-card .notice{background:#edf2fd;border:1px solid #cbd8f6;color:#213f8a;padding:10px 14px;border-radius:10px;font-size:14px;line-height:1.4}
+.pvs-card .notice.bad{background:#fef0ef;border-color:#f7c6c2;color:#a3231a}
+.pvs-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.pvs-pick button{border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font:inherit;text-align:left;padding:13px 14px;cursor:pointer;display:block}
+.pvs-pick button:hover{background:var(--bg)}
+.pvs-pick button b{display:block;font-size:15px}
+.pvs-pick button span{color:var(--mut);font-size:13px}
+@media (max-width:1300px) and (min-width:821px){.pvs-mock{width:300px}}
+@media (max-width:820px){.pvs-auth{grid-template-columns:1fr}.pvs-art{display:none}.pvs-form{padding:24px 14px;align-content:start;min-height:100vh}.pvs-card{padding:26px 20px;border-radius:18px;margin-top:4vh}.pvs-card label.af input{font-size:16px}.pvs-card .pvs-brand .pvword{font-size:17px}}
+@media (max-width:380px){.pvs-card .pvs-brand .pvword{font-size:14px;letter-spacing:.1em}}
