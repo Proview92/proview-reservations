@@ -1443,7 +1443,7 @@ function pickInfo(){const pk=U.pick;if(!pk||U.edit)return null;const p=pk.k==="p
 function vPlan(){
  const PI=pickInfo();
  const areas=roomList(),ar=curRoom(),ts=S.tables.filter(t=>(t.area||"Main room")===ar),ds=S.deco.filter(d=>d.area===ar);
- let W=Math.max(520,...ts.map(t=>t.x+tdim(t).w+30),...ds.map(d=>d.x+d.w+30))+(U.edit?170:0),H=Math.max(320,...ts.map(t=>t.y+tdim(t).h+40),...ds.map(d=>d.y+d.h+40))+(U.edit?420:0),ox=0,oy=0;
+ let W=Math.max(520,...ts.map(t=>t.x+tdim(t).w+30),...ds.map(d=>d.x+d.w+30))+(U.edit?60:0),H=Math.max(320,...ts.map(t=>t.y+tdim(t).h+40),...ds.map(d=>d.y+d.h+40))+(U.edit?420:0),ox=0,oy=0;
  if(PHP()&&(ts.length||ds.length)){const al=[...ts.map(t=>({x:t.x,y:t.y,w:tdim(t).w,h:tdim(t).h})),...ds.map(d=>({x:d.x,y:d.y,w:d.w,h:d.h}))];ox=Math.max(0,Math.min(...al.map(a=>a.x))-16);oy=Math.max(0,Math.min(...al.map(a=>a.y))-16);W=Math.max(...al.map(a=>a.x+a.w))+16-ox;H=Math.max(...al.map(a=>a.y+a.h))+16-oy}
  const lw=innerWidth>=900&&innerWidth>=innerHeight&&!U.edit?LW():0,avail=innerWidth-(innerWidth>760?188:68)-72-(lw?lw+16:0),Z=U.zauto===false?U.zoom:PHP()?clamp(+((((document.querySelector('.content')||{}).clientWidth||innerWidth-90)-34)/W).toFixed(2),.3,1.8):clamp(+(avail/W).toFixed(2),.6,1.6);U.zeff=Z;
  const arr=S.parties.filter(p=>p.date===today()&&p.status==="booked").sort((a,b)=>a.time.localeCompare(b.time)).slice(0,8);
