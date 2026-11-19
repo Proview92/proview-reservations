@@ -29,8 +29,7 @@ function hdrWho(){if(hdrCloud()){const email=CL.who.email||(CL.user&&CL.user.ema
   return{name,email,sub:(CL.who.is_master?"Proview":CL.site.role||"Staff")+" · "+(CL.site.name||"")}}
  const v=((S&&S.venue&&S.venue.name)||"Proview").trim()||"Proview";return{name:v,email:"",sub:"On this device only"}}
 const hdrIni=n=>String(n).replace(/[^\p{L}\p{N}\s._-]/gu," ").split(/[\s._-]+/).filter(Boolean).map(w=>w[0]).slice(0,2).join("").toUpperCase()||"?";
-function hdrAccount(){const go=()=>{const c=document.getElementById("cl-set");if(c){c.scrollIntoView({block:"start",behavior:"smooth"});const b=c.querySelector("button");if(b)try{b.focus({preventScroll:true})}catch(e){}}};
- if(U.view!=="settings"){A.nav({dataset:{v:"settings"}});setTimeout(go,60)}else go()}
+function hdrAccount(){A.nav({dataset:{v:navOk("users")?"users":"settings"}})}
 function topMe(){const t=document.getElementById("top");if(!t)return;t.querySelectorAll(":scope>.pv-dash,:scope>.top-me,:scope>.hdr-br").forEach(e=>e.remove());
  const w=hdrWho(),ini=hdrIni(w.name),cloud=hdrCloud();
  const br=document.createElement("span");br.className="hdr-br";br.setAttribute("aria-hidden","true");t.appendChild(br);
@@ -38,7 +37,7 @@ function topMe(){const t=document.getElementById("top");if(!t)return;t.querySele
  const me=document.createElement("div");me.className="top-me";
  me.innerHTML=`<button type="button" class="top-av" title="${esc(w.name+(w.sub?" · "+w.sub:""))}" aria-label="My account" aria-haspopup="menu" aria-expanded="${pvAcct&&pvAcct.el.isConnected?"true":"false"}">${esc(ini)}</button>`;
  me.querySelector(".top-av").onclick=e=>{e.stopPropagation();const items=[];
-  if(navOk("settings"))items.push({label:cloud?"Account":"Settings",icon:"user",run:hdrAccount});
+  if(cloud?navOk("users"):navOk("settings"))items.push({label:cloud?"Users":"Settings",icon:"user",run:hdrAccount});
   if(cloud&&(CL.who.sites||[]).length>1)items.push({label:"Switch business",icon:"swap",run:()=>A.clSwitch()});
   if(cloud)items.push({label:"Sign out",icon:"logout",run:()=>A.clOut(),sep:items.length>0});
   pvAccountMenu(e.currentTarget,{initials:ini,name:w.name,email:w.email?"Signed in as "+w.email:"",sub:w.sub,focusFirst:e.detail===0,items})};
