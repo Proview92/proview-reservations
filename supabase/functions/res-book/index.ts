@@ -5,7 +5,7 @@
 // which times are free.
 //
 // Routes (all under /res-book, ?v=<location id>):
-//   GET  ?v=…&a=info                       → { name, on, label, msg, maxParty, ahead, mkTick, today }
+//   GET  ?v=…&a=info                       → { name, on, label, msg, maxParty, ahead, mkTick, today, look }
 //   GET  ?v=…&a=slots&date=YYYY-MM-DD&size=N → { date, size, why, times: ["18:00", …] }
 //   POST ?v=…&a=book  { date, time, size, name, phone, email, notes, mk } → { ok, ref, confirm, name, date, time, size }
 //
@@ -127,6 +127,11 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 const clean = (v: unknown, max: number) => String(v == null ? "" : v).replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
 const normPh = (x: string) => { let d = String(x || "").replace(/\D/g, ""); if (d.startsWith("0044")) d = "0" + d.slice(4); else if (d.startsWith("440")) d = d.slice(2); else if (d.startsWith("44") && d.length >= 11) d = "0" + d.slice(2); return d.length >= 7 ? d : ""; };
 const gkeyOf = (ph: string, n: string) => normPh(ph) || (ph || n).toLowerCase();
+// The venue's look for the booking page: only known values are passed on.
+function lookOf(o: Any) {
+  const L = (o && o.look) || {}, hex = (x: unknown) => (typeof x === "string" && /^#[0-9a-f]{6}$/i.test(x) ? x.toLowerCase() : "");
+  return { mode: L.mode === "dark" ? "dark" : "light", accent: hex(L.accent), bg: hex(L.bg), corners: L.corners === "square" || L.corners === "pill" ? L.corners : "round" };
+}
 const isDate = (d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d) && !isNaN(new Date(d + "T12:00:00Z").getTime());
 
 Deno.serve(async (req) => {
@@ -143,7 +148,7 @@ Deno.serve(async (req) => {
     const load = async () => { const r = await db.from("pr_site_state").select("rev,data").eq("id", site).maybeSingle(); if (r.error) throw r.error; return r.data; };
     let row = await load();
     const name = (row && row.data && row.data.venue && row.data.venue.name) || g.data.site_name || "";
-    const off = (extra: Record<string, unknown> = {}) => send({ name, on: false, message: "Online booking is not available at the moment. Please contact us directly.", ...extra });
+    const off = (extra: Record<string, unknown> = {}) => send({ name, on: false, look: lookOf(row && row.data && row.data.venue && row.data.venue.ob), message: "Online booking is not available at the moment. Please contact us directly.", ...extra });
     if (!g.data.ok || !row || !row.data) return a === "book" ? send({ error: "off", message: "Online booking is not available at the moment. Please contact us directly." }, 403) : off();
 
     const { today, nowMin } = nowParts();
@@ -153,7 +158,7 @@ Deno.serve(async (req) => {
 
     if (a === "info") {
       if (!on) return off();
-      return send({ name, on: true, label: o.label || "Book a table", msg: o.msg || "", maxParty: o.maxParty, ahead: o.ahead, confirm: o.confirm, mkTick: row.data.venue.mkTick !== false, today });
+      return send({ name, on: true, label: o.label || "Book a table", msg: o.msg || "", maxParty: o.maxParty, ahead: o.ahead, confirm: o.confirm, mkTick: row.data.venue.mkTick !== false, today, look: lookOf(o) });
     }
 
     if (a === "slots") {

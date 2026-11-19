@@ -7,12 +7,13 @@
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/svg+xml" href="../icon-app.svg">
 <style>
-:root{--bg:#f4f3ef;--ink:#17171c;--line:#e4e2dc;--mut:#55555f;--pri:#4a6cd0;color-scheme:light}
+:root{--bg:#f4f3ef;--card:#fff;--ink:#17171c;--line:#e4e2dc;--mut:#55555f;--lab:#3d3d46;--pri:#4a6cd0;--btn:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);--btnink:#fff;--hov:#f4f3ef;--rad:10px;color-scheme:light}
+:root.dark{--bg:#0e0e11;--card:#17171c;--ink:#ececf1;--line:#2a2a32;--mut:#9a9aa5;--lab:#c9c9d1;--hov:#22222a;color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%}
 body{background:var(--bg);color:var(--ink);font:15px/1.45 "Inter","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;padding:32px 14px}
 body.embed{background:transparent;padding:0}
-.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:30px 28px;width:min(520px,100%);margin:0 auto;display:flex;flex-direction:column;gap:16px;box-shadow:0 1px 2px rgba(20,20,30,.04),0 18px 50px -18px rgba(20,20,30,.18)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:calc(var(--rad) * 2);padding:30px 28px;width:min(520px,100%);margin:0 auto;display:flex;flex-direction:column;gap:16px;box-shadow:0 1px 2px rgba(20,20,30,.04),0 18px 50px -18px rgba(20,20,30,.18)}
 body.embed .card{box-shadow:none;width:100%;max-width:560px}
 h1{font-size:26px;line-height:1.2;margin:0;letter-spacing:-.02em;font-weight:700}
 h2{font-size:15px;margin:0 0 8px;font-weight:600}
@@ -20,28 +21,31 @@ h2{font-size:15px;margin:0 0 8px;font-weight:600}
 .small{font-size:13px}
 .row{display:flex;gap:10px;flex-wrap:wrap}
 .row>*{flex:1 1 140px;min-width:0}
-label.af{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:#3d3d46}
-input,select,textarea{height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font:inherit;font-size:16px;font-weight:400;background:#fff;color:var(--ink);width:100%;margin:0}
+label.af{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--lab)}
+input,select,textarea{height:44px;border:1px solid var(--line);border-radius:var(--rad);padding:0 12px;font:inherit;font-size:16px;font-weight:400;background:var(--card);color:var(--ink);width:100%;margin:0}
 textarea{height:auto;padding:10px 12px;resize:vertical}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px;border-color:transparent}
 .days{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:thin}
-.days button{flex:none;min-width:58px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font:inherit;padding:8px 6px;cursor:pointer;text-align:center;line-height:1.2}
+.days button{flex:none;min-width:58px;border:1px solid var(--line);border-radius:calc(var(--rad) + 2px);background:var(--card);color:var(--ink);font:inherit;padding:8px 6px;cursor:pointer;text-align:center;line-height:1.2}
 .days button small{display:block;color:var(--mut);font-size:11.5px;font-weight:500}
 .days button b{font-size:16px}
-.days button.on{border-color:transparent;background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);color:#fff}
-.days button.on small{color:#e6ecff}
+.days button.on{border-color:transparent;background:var(--btn);color:var(--btnink)}
+.days button.on small{color:var(--btnink);opacity:.85}
 .times{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px}
-.times button{height:42px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
-.times button:hover{background:var(--bg)}
-.times button.on{border-color:transparent;background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);color:#fff}
-.go{height:46px;border:0;border-radius:10px;background:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);color:#fff;font:inherit;font-weight:600;font-size:15px;cursor:pointer;width:100%}
+.times button{height:42px;border:1px solid var(--line);border-radius:var(--rad);background:var(--card);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.times button:hover{background:var(--hov)}
+.times button.on{border-color:transparent;background:var(--btn);color:var(--btnink)}
+.go{height:46px;border:0;border-radius:var(--rad);background:var(--btn);color:var(--btnink);font:inherit;font-weight:600;font-size:15px;cursor:pointer;width:100%}
 .go:disabled{opacity:.6;cursor:default}
 .link{border:0;background:none;font:inherit;font-weight:600;font-size:13.5px;color:var(--ink);padding:8px 12px;border-radius:8px;cursor:pointer;align-self:flex-start;margin-left:-12px}
-.link:hover{background:var(--bg)}
+.link:hover{background:var(--hov)}
 .notice{background:#edf2fd;border:1px solid #cbd8f6;color:#213f8a;padding:10px 14px;border-radius:10px;font-size:14px;line-height:1.4}
 .notice.bad{background:#fef0ef;border-color:#f7c6c2;color:#a3231a}
 .notice.ok{background:#ecfdf3;border-color:#b7ebc9;color:#0b6b34}
-.sum{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);font-weight:600}
+.dark .notice{background:#1b2540;border-color:#31416d;color:#c5d4ff}
+.dark .notice.bad{background:#3a1f1f;border-color:#6b3030;color:#ffc9c4}
+.dark .notice.ok{background:#16301f;border-color:#2a5a3a;color:#b9efcb}
+.sum{border:1px solid var(--line);border-radius:calc(var(--rad) + 2px);padding:12px 14px;background:var(--hov);font-weight:600}
 .sum span{display:block;color:var(--mut);font-weight:400;font-size:13px}
 .chk{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--mut);cursor:pointer}
 .chk input{width:18px;height:18px;flex:none;margin-top:2px}
@@ -75,6 +79,13 @@ const U={step:"pick",size:2,date:"",times:null,why:"",time:"",busy:false,err:"",
 async function call(a,params,body){const u=new URL(API);u.searchParams.set("v",SITE);u.searchParams.set("a",a);Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
   const r=await fetch(u,{method:body?"POST":"GET",headers:Object.assign({apikey:KEY,Authorization:"Bearer "+KEY},body?{"content-type":"application/json"}:{}),body:body?JSON.stringify(body):undefined});
   let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw Object.assign(new Error(j.message||"Something went wrong. Please try again."),{code:j.error||"",status:r.status});return j}
+/* The venue's own look (Widget page, "Look of the booking page"): light or dark, button colour, background, corners. */
+const HEX=/^#[0-9a-f]{6}$/i,lum=h=>{const c=parseInt(h.slice(1),16);return(0.299*(c>>16)+0.587*((c>>8)&255)+0.114*(c&255))/255};
+function applyLook(L){L=L||{};const r=document.documentElement,st=r.style;r.classList.toggle("dark",L.mode==="dark");
+  ["--pri","--btn","--btnink","--bg","--hov","--rad"].forEach(k=>st.removeProperty(k));
+  if(HEX.test(L.accent||"")){st.setProperty("--pri",L.accent);st.setProperty("--btn",L.accent);st.setProperty("--btnink",lum(L.accent)>0.62?"#17171c":"#fff")}
+  if(HEX.test(L.bg||""))st.setProperty("--bg",L.bg);
+  if(L.corners==="square")st.setProperty("--rad","3px");else if(L.corners==="pill")st.setProperty("--rad","22px")}
 function tell(){try{if(EMBED&&parent!==window)parent.postMessage({proviewBookingHeight:document.documentElement.scrollHeight},"*")}catch(e){}}
 function page(h){$("#root").innerHTML=h;tell()}
 function head(sub){return`<div><h1>${esc(V&&V.name||"Book a table")}</h1>${sub?`<p class="muted" style="margin-top:6px">${sub}</p>`:""}</div>`}
@@ -136,7 +147,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b
   try{const c=await (await fetch("../cloud.json",{cache:"no-store"})).json();API=c.url.replace(/\/$/,"")+"/functions/v1/res-book";KEY=c.key}catch(e){fail("Cannot connect","Check the internet and try again.");return}
   if(!SITE){V={name:"Book a table"};fail("This booking link is not complete","Please ask the venue for their booking link.");return}
   try{V=await call("info")}catch(e){V={name:"Book a table"};fail(e.status===404?"Booking link not found":"Cannot connect",e.message);return}
-  document.title=(V.label||"Book a table")+" · "+V.name;
+  document.title=(V.label||"Book a table")+" · "+V.name;applyLook(V.look);
   if(!V.on){fail("Online booking is not available",V.message||"Please contact us directly.");return}
   U.f.mk=V.mkTick!==false;U.size=Math.min(2,V.maxParty);U.date=V.today;
   const qd=Q.get("date"),qs=+Q.get("size");if(qd&&/^\d{4}-\d{2}-\d{2}$/.test(qd)&&qd>=V.today&&qd<=addD(V.today,V.ahead))U.date=qd;if(qs>=1&&qs<=V.maxParty)U.size=Math.round(qs);

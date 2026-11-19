@@ -195,15 +195,35 @@ function clSettings(){if(!CL.site||U.view!=="settings")return;const main=$("#mai
  const d=document.createElement("div");d.id="cl-set";d.innerHTML=h;main.appendChild(d)}
 /* ---------- Widget page: the booking link for Google and the venue's website ---------- */
 const clBookUrl=()=>location.origin+location.pathname.replace(/[^/]*$/,"")+"book/?v="+encodeURIComponent(CL.site.id);
+// The look of the booking page (kept with the online rules in venue.ob.look): theme, button colour, background, corners.
+const CL_LOOK={mode:"light",accent:"",bg:"",corners:"round"};
+const clLook=()=>Object.assign({},CL_LOOK,(OB().look)||{});
+const clLum=h=>{const c=parseInt(h.slice(1),16);return(0.299*(c>>16)+0.587*((c>>8)&255)+0.114*(c&255))/255};
+function clLookPrev(){const L=clLook(),dk=L.mode==="dark",bg=L.bg||(dk?"#0e0e11":"#f4f3ef"),card=dk?"#17171c":"#fff",ink=dk?"#ececf1":"#17171c",mut=dk?"#9a9aa5":"#55555f",line=dk?"#2a2a32":"#e4e2dc";
+ const btn=L.accent||"linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%)",bi=L.accent&&clLum(L.accent)>0.62?"#17171c":"#fff",rad=L.corners==="square"?3:L.corners==="pill"?22:10;
+ const chip=(t,on)=>`<span style="display:inline-block;padding:8px 12px;border-radius:${rad}px;border:1px solid ${on?"transparent":line};background:${on?btn:card};color:${on?bi:ink};font-weight:600;font-size:13px">${t}</span>`;
+ return`<div style="background:${bg};border:1px solid var(--line);border-radius:12px;padding:16px"><div style="background:${card};border:1px solid ${line};border-radius:${rad*2}px;padding:16px 18px;max-width:340px;margin:0 auto;font-family:Inter,'Segoe UI',system-ui,sans-serif;color:${ink}"><div style="font-size:19px;font-weight:700">${esc(S.venue.name||"Your venue")}</div><div style="color:${mut};font-size:13px;margin:2px 0 10px">${esc(OB().label||"Book a table")}</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${chip("6:30pm")}${chip("7:00pm",1)}${chip("7:30pm")}${chip("8:00pm")}</div><div style="background:${btn};color:${bi};border-radius:${rad}px;text-align:center;padding:11px;font-weight:600;font-size:14px">Confirm booking</div></div></div>`}
+function clLookSet(k,v,keep){if(!can("settings")){toast("Staff cannot change this. Ask a manager to sign in.");return}const o=OB();o.look=Object.assign({},CL_LOOK,o.look||{});o.look[k]=v;
+ const pv=document.getElementById("cl-bk-pv");if(pv)pv.innerHTML=clLookPrev();if(keep)return;save();const c=document.getElementById("cl-book");if(c){c.remove();clBookCard()}}
+document.addEventListener("input",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.bkl&&t.type==="color")clLookSet(t.dataset.bkl,t.value,true)});
+document.addEventListener("change",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.bkl)clLookSet(t.dataset.bkl,t.value)});
 function clBookCard(){if(!CL.site||U.view!=="online")return;const main=$("#main");if(!main||document.getElementById("cl-book"))return;const host=main.querySelector(".sgc")||main;
  const url=clBookUrl(),on=!!OB().on,lab=OB().label||"Book a table";
- const btn=`<a href="${url}" target="_blank" rel="noopener" style="display:inline-block;padding:12px 22px;border-radius:10px;background:#3f5fd0;color:#fff;font-family:Arial,sans-serif;font-weight:bold;text-decoration:none">${esc(lab)}</a>`;
+ const L=clLook(),bc=L.accent||"#3f5fd0",bi=L.accent&&clLum(L.accent)>0.62?"#17171c":"#fff",br=L.corners==="square"?3:L.corners==="pill"?22:10;
+ const btn=`<a href="${url}" target="_blank" rel="noopener" style="display:inline-block;padding:12px 22px;border-radius:${br}px;background:${bc};color:${bi};font-family:Arial,sans-serif;font-weight:bold;text-decoration:none">${esc(lab)}</a>`;
  const frame=`<iframe src="${url}&embed=1" title="${esc(lab)}" style="width:100%;max-width:560px;height:760px;border:0" loading="lazy"></iframe>`;
  const box=(id,v,rows)=>`<div style="display:flex;gap:8px;align-items:flex-start;margin:6px 0 0">${rows?`<textarea id="${id}" readonly rows="${rows}" style="flex:1;min-width:0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px">${esc(v)}</textarea>`:`<input id="${id}" readonly value="${esc(v)}" style="flex:1;min-width:0">`}<button class="btn" data-act="clBkCopy" data-f="${id}">Copy</button></div>`;
  const d=document.createElement("div");d.id="cl-book";d.className="card pad";d.style.marginBottom="14px";
  d.innerHTML=`<h2>Your booking link</h2><p class="mut" style="margin-top:0">Guests book a table themselves from this link. It follows the rules below, only offers times with a free table, and each booking appears here straight away marked Website.</p>
  ${on?`<p style="margin:0 0 6px;color:var(--ok);font-weight:600">Online booking is on.</p>`:`<p style="margin:0 0 6px;color:var(--warn);font-weight:600">Online booking is off. Switch on "Accept online bookings" below and guests can book from this link.</p>`}
  ${box("cl-bk-u",url)}<div class="bar" style="margin:10px 0 0"><a class="btn pri" style="text-decoration:none" href="${url}" target="_blank" rel="noopener">Open the booking page</a></div>
+ <h3>Look of the booking page</h3><p class="mut" style="margin:0 0 8px">Match the booking page to your brand. Changes show on your link and on your website straight away.</p>
+ <div class="g2"><label class="of"><span class="ot">Theme</span><select data-bkl="mode"><option value="light" ${L.mode!=="dark"?"selected":""}>Light</option><option value="dark" ${L.mode==="dark"?"selected":""}>Dark</option></select></label>
+ <label class="of"><span class="ot">Corners</span><select data-bkl="corners"><option value="round" ${L.corners==="round"?"selected":""}>Rounded</option><option value="square" ${L.corners==="square"?"selected":""}>Square</option><option value="pill" ${L.corners==="pill"?"selected":""}>Very round</option></select></label></div>
+ <div class="g2"><label class="of"><span class="ot">Button colour</span><input type="color" data-bkl="accent" value="${L.accent||"#3f6fc8"}" style="height:44px;padding:4px"><small class="mut">${L.accent?"Your colour "+esc(L.accent):"Proview blue (standard)"}</small></label>
+ <label class="of"><span class="ot">Page background</span><input type="color" data-bkl="bg" value="${L.bg||(L.mode==="dark"?"#0e0e11":"#f4f3ef")}" style="height:44px;padding:4px"><small class="mut">${L.bg?"Your colour "+esc(L.bg):"Standard for the theme"}. Inside your own website the page behind shows through.</small></label></div>
+ <div id="cl-bk-pv" style="margin:10px 0 0">${clLookPrev()}</div>
+ <div class="bar" style="margin:10px 0 0"><button class="btn" data-act="clBkReset">Use the Proview colours</button></div>
  <h3>Add it to Google</h3><ol class="mut" style="margin:0;padding-left:20px"><li>Sign in to the Google account that manages your Business Profile and search for your business name.</li><li>Choose <b>Bookings</b> (on some profiles: Edit profile, then Bookings or Reservations).</li><li>Choose <b>Links to your online booking tools</b>, then <b>Add a link</b>.</li><li>Paste your booking link and save. Google shows it on Search and Maps, usually within a few minutes.</li></ol>
  <h3>Add it to your website</h3><p class="mut" style="margin:0">A button that opens your booking page. Paste this where the button should be:</p>${box("cl-bk-b",btn,3)}
  <p class="mut" style="margin:12px 0 0">Or show the booking form inside your own page:</p>${box("cl-bk-f",frame,3)}
@@ -212,6 +232,7 @@ function clBookCard(){if(!CL.site||U.view!=="online")return;const main=$("#main"
  const i=main.querySelector(".obi");if(i)i.textContent="Rules for your booking link. They apply to every online booking, on Google and on your website.";
  main.querySelectorAll(".swt small").forEach(x=>{if(/widget is connected/.test(x.textContent))x.textContent="Guests can book from your link while this is on"})}
 Object.assign(A,{
+ clBkReset:()=>{if(!can("settings")){toast("Staff cannot change this. Ask a manager to sign in.");return}const o=OB();delete o.look;save();const c=document.getElementById("cl-book");if(c){c.remove();clBookCard()}toast("Back to the Proview colours")},
  clBkCopy:b=>{const f=document.getElementById(b.dataset.f);if(!f)return;f.focus();f.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}const bad=()=>toast("Could not copy by button. The text is selected: press Cmd+C.");if(ok){toast("Copied");return}try{navigator.clipboard.writeText(f.value).then(()=>toast("Copied"),bad)}catch(e){bad()}},
  clMemAdd:async()=>{const e=(($("#cl-me")||{}).value||"").trim().toLowerCase(),role=($("#cl-mr")||{}).value||"Staff";if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast("Enter a valid email address");return}
   const r=await CL.sb.rpc("pr_save_member",{p_business:CL.site.business_id,p_email:e,p_role:role});if(r.error){toast(clErr(r.error));return}toast("Login added");await clMembers();render()},
