@@ -4,7 +4,7 @@
    - Blue avatar with the initials of whoever is signed in: opens the account menu (Signed in as <email>, Account, Sign out).
    - Red sign-out button: signs out straight away (clOut in cloud.js). Hidden when the app runs on this device only (no cloud.json).
    It is added after every render(), which rebuilds #top. */
-const PVACCT_SVG={user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',swap:'<path d="M4 21V5l8-2v18M12 9h8v12M7 8h2M7 12h2M7 16h2M15 13h2M15 17h2"/>',help:'<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'};
+const PVACCT_SVG={moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',swap:'<path d="M4 21V5l8-2v18M12 9h8v12M7 8h2M7 12h2M7 16h2M15 13h2M15 17h2"/>',help:'<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'};
 let pvAcct=null;
 function pvCloseAccount(){if(!pvAcct)return;pvAcct.el.remove();pvAcct.btn.setAttribute("aria-expanded","false");document.removeEventListener("mousedown",pvAcct.out,true);document.removeEventListener("keydown",pvAcct.key,true);removeEventListener("hashchange",pvCloseAccount);pvAcct=null}
 function pvAccountMenu(btn,o){if(pvAcct){const was=pvAcct.btn;pvCloseAccount();if(was===btn||was.isConnected===false&&btn.classList.contains("top-av"))return}
@@ -39,6 +39,7 @@ function topMe(){const t=document.getElementById("top");if(!t)return;t.querySele
  me.querySelector(".top-av").onclick=e=>{e.stopPropagation();const items=[];
   if(cloud?navOk("users"):navOk("settings"))items.push({label:cloud?"Users":"Settings",icon:"user",run:hdrAccount});
   if(cloud&&(CL.who.sites||[]).length>1)items.push({label:"Switch business",icon:"swap",run:()=>A.clSwitch()});
+  items.push({label:isDark()?"Light mode":"Dark mode",icon:isDark()?"sun":"moon",run:()=>A.theme()});
   if(cloud)items.push({label:"Sign out",icon:"logout",run:()=>A.clOut(),sep:items.length>0});
   pvAccountMenu(e.currentTarget,{initials:ini,name:w.name,email:w.email?"Signed in as "+w.email:"",sub:w.sub,focusFirst:e.detail===0,items})};
  t.appendChild(me)}
