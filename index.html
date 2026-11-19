@@ -2554,7 +2554,7 @@ function pvAccountMenu(btn,o){if(pvAcct){const was=pvAcct.btn;pvCloseAccount();i
  if(o.focusFirst)items()[0]?.focus()}
 const hdrCloud=()=>!!(CL.site&&CL.who);
 // "Dashboard": the Proview master, owners and admins only (as Proview Signage and Bookings)
-const hdrCanDash=()=>hdrCloud()&&!!(CL.who.is_master||["Owner","Admin"].includes(CL.site.role));
+const hdrCanDash=()=>hdrCloud()&&!!(CL.who.is_master||CL.site.role==="Admin");
 function hdrWho(){if(hdrCloud()){const email=CL.who.email||(CL.user&&CL.user.email)||"";
   const name=email.split("@")[0].split(/[._-]+/).filter(Boolean).map(w=>w[0].toUpperCase()+w.slice(1)).join(" ")||"Me";
   return{name,email,sub:(CL.who.is_master?"Proview":CL.site.role||"Staff")+" · "+(CL.site.name||"")}}
