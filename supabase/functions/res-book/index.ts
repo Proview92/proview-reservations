@@ -182,7 +182,8 @@ Deno.serve(async (req) => {
       if (!isDate(date) || !/^\d{2}:\d{2}$/.test(time)) return send({ error: "bad", message: "Please choose a date and time." }, 400);
       if (gname.length < 2) return send({ error: "bad", message: "Please enter your name." }, 400);
       if (!normPh(phone)) return send({ error: "bad", message: "Please enter a phone number we can reach you on." }, 400);
-      if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return send({ error: "bad", message: "That email address does not look right." }, 400);
+      if (!email) return send({ error: "bad", message: "Please enter your email address so we can send your confirmation." }, 400);
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return send({ error: "bad", message: "That email address does not look right." }, 400);
 
       // no more than 8 bookings in ten minutes from one connection
       const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown", key = "book:" + site + ":" + ip;

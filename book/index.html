@@ -103,7 +103,7 @@ function render(){
       <form id="fm" novalidate style="display:flex;flex-direction:column;gap:14px">
       <label class="af">Name<input id="f-name" autocomplete="name" maxlength="80" value="${esc(f.name)}" required></label>
       <div class="row"><label class="af">Mobile number<input id="f-phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" value="${esc(f.phone)}" required></label>
-      <label class="af">Email (optional)<input id="f-email" type="email" inputmode="email" autocomplete="email" maxlength="120" value="${esc(f.email)}"></label></div>
+      <label class="af">Email<input id="f-email" type="email" inputmode="email" autocomplete="email" maxlength="120" value="${esc(f.email)}" required></label></div>
       <label class="af">Anything we should know? (optional)<textarea id="f-notes" rows="2" maxlength="300" placeholder="Allergies, high chair, occasion…">${esc(f.notes)}</textarea></label>
       <label class="chk"><input type="checkbox" id="f-mk" ${f.mk?"checked":""}><span>Happy to receive offers by email from ${esc(V.name)}</span></label>
       <div class="hp" aria-hidden="true"><label>Website<input id="f-web" tabindex="-1" autocomplete="off"></label></div>
@@ -134,7 +134,8 @@ async function submit(e){e.preventDefault();if(U.busy)return;const f=U.f;
   f.name=$("#f-name").value.trim();f.phone=$("#f-phone").value.trim();f.email=$("#f-email").value.trim();f.notes=$("#f-notes").value.trim();f.mk=$("#f-mk").checked;const web=$("#f-web").value;
   if(f.name.length<2){U.err="Please enter your name.";render();$("#f-name").focus();return}
   if(f.phone.replace(/\D/g,"").length<7){U.err="Please enter a phone number we can reach you on.";render();$("#f-phone").focus();return}
-  if(f.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)){U.err="That email address does not look right.";render();$("#f-email").focus();return}
+  if(!f.email){U.err="Please enter your email address so we can send your confirmation.";render();$("#f-email").focus();return}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)){U.err="That email address does not look right.";render();$("#f-email").focus();return}
   U.busy=true;U.err="";render();
   try{const r=await call("book",{},{date:U.date,time:U.time,size:U.size,name:f.name,phone:f.phone,email:f.email,notes:f.notes,mk:!!(f.email&&f.mk),website:web});U.busy=false;U.done=r;U.step="done";render();scrollTo(0,0)}
   catch(err){U.busy=false;if(err.code==="gone"){U.step="pick";U.err=err.message;loadTimes();return}U.err=err.message;render()}}
