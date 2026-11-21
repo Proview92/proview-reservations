@@ -81,6 +81,8 @@ html.eg body{font-family:"Jost","Futura","Century Gothic","Avenir Next",system-u
 .eg .times button{border-radius:999px;font-weight:500;height:38px}.eg .times button:hover{background:var(--sand);border-color:var(--sandd)}
 .eg .go{background:#1b1b1b;color:#fff;letter-spacing:.06em}
 .eg .link{margin-left:0}
+/* inside a wide website embed: three across (guests, calendar, times) and a slim title, so it fits under the site header without scrolling */
+@media(min-width:900px){.eg body.embed .card{max-width:1040px}.eg body.embed .eg-h{padding:4px 16px 0}.eg body.embed .eg-h h1,.eg body.embed .eg-h p{display:none}.eg body.embed .eg-tab{padding:6px 4px 8px}.eg body.embed .eg-b{padding:12px 22px 12px;gap:8px}.eg body.embed .eg-g{grid-template-columns:minmax(0,2.1fr) minmax(0,1fr)}.eg body.embed .eg-g>.eg-p:first-child{flex-direction:row;gap:26px}.eg body.embed .eg-g>.eg-p:first-child>div:first-child{flex:0 0 190px}.eg body.embed .eg-g>.eg-p:first-child>div:last-child{flex:1 1 auto;min-width:0}.eg body.embed .eg-c button{height:32px}.eg body.embed #foot{margin:4px auto!important}}
 @media (max-width:520px){.eg-h h1{font-size:21px;letter-spacing:.2em;padding-left:.2em}.eg-b{padding:14px 14px 16px}.eg-n{width:34px;height:34px;font-size:15px}.eg-sz{gap:6px}.eg-c button{height:34px}.eg .times{grid-template-columns:repeat(auto-fill,minmax(70px,1fr))}}
 @media (max-width:520px){body{padding:14px 10px}.card{padding:22px 18px;border-radius:18px}h1{font-size:23px}}
 </style>
