@@ -434,6 +434,8 @@ button.fd{cursor:pointer}.fd.on{background:var(--pril)}
 /* iPhone: date and time boxes keep to their own column instead of spilling over the next box */
 .sheet input[type=date],.sheet input[type=time]{-webkit-appearance:none;appearance:none;display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:34px}.sheet input[type=date]::-webkit-date-and-time-value,.sheet input[type=time]::-webkit-date-and-time-value{text-align:left;margin:0}.sheet.bkf>label{min-width:0;overflow:hidden;padding:2px}.sheet.bkf>.emw,.sheet.bkf>.tags{padding:0 2px}.sheet.bkf>.emw>label{padding:2px 0}
 #f-name,#w-name,#wk-name,#g-name{text-transform:uppercase}#f-name::placeholder,#w-name::placeholder,#wk-name::placeholder,#g-name::placeholder{text-transform:none}
+/* no progress line inside seated tables: the time alone is clearer on small tables */
+.tbl .tbar{display:none!important}
 /* phone table pop-up, split table: each half on its own line (name on the left, Left button on the right), Merge on a full line */
 .tsplit.ph .tsel>.tsb>span[style*="flex-basis"]{display:none}.tsplit.ph .tsel>.tsb>.spl{display:block!important;grid-column:1/span 3;align-self:center;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13.5px}.tsplit.ph .tsel>.tsb>.spm{grid-column:1/-1}.tsplit.ph .tsel>.tsb>.spl b{display:inline!important;font-size:inherit!important;margin:0 4px 0 0!important}
 /* phone: a slimmer table pop-up so it covers less of the floor plan */
