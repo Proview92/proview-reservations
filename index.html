@@ -462,6 +462,8 @@ button.fd{cursor:pointer}.fd.on{background:var(--pril)}
  .gtop{gap:6px!important;margin-bottom:6px!important}.tgs{gap:6px!important;margin-bottom:8px!important}
 }
 @media(max-width:639px){.sheet.apkm{padding:14px 12px!important}.sheet.apkm .apkl{font-size:12.5px;gap:3px 12px;margin-top:6px}.apkm .plan{padding:4px!important;max-height:none}.sheet.apkm .apkd{margin-top:4px}}
+/* phone: the enlarged arrivals chart uses the whole screen, like the Walk-in pop-up */
+@media(max-width:639px){.sheet.fpm{height:calc(100dvh - 16px)!important;max-height:none!important;margin:8px auto!important;display:flex!important;flex-direction:column;padding:12px 12px 10px!important;overflow:hidden}.sheet.fpm>div:first-child{flex:none}.sheet.fpm>div:first-child p{font-size:13px}.sheet.fpm .fpb2{flex:1 1 auto;min-height:0;overflow:auto;margin:8px 0 0}.sheet.fpm .fps2{height:100%!important;min-height:var(--ch)}.sheet.fpm .fq{flex:0 0 52px;width:52px}.sheet.fpm .fqb{height:var(--bh,30px);width:44px;font-size:var(--bf,14px)}.sheet.fpm .fqs{gap:6px}.sheet.fpm>.r{flex:none;padding:8px 0 0;margin:0}}
 .wl{display:block;font-size:13px;font-weight:600;color:var(--mut);margin-bottom:4px}
 /* Walk-in: Name and Guests line up, with boxes of one height */
 .sheet.wis>.fr{align-items:start!important;gap:10px}.sheet.wis>.fr>label,.sheet.wis>.fr>.stl2{display:flex;flex-direction:column;gap:0;margin:0;min-width:0}.sheet.wis .wl{line-height:18px;margin:0 0 4px}
@@ -1124,8 +1126,11 @@ function bdUp(){const el=$("#bdm");if(!el)return;const p=U.bdp&&!wideB()&&U.view
 let FPD=null;
 function fpShow(){const D=FPD;if(!D)return;const tot=D.slots.reduce((a,z)=>a+z.g,0),tn=D.slots.reduce((a,z)=>a+z.n,0);
  const mn=Math.max(1,...D.slots.map(z=>z.n)),ch=Math.max(250,mn*30+112);
- $("#modal").innerHTML=`<div class="sheet fpm" role="dialog" aria-modal="true" aria-label="Guests arriving each half hour"><div><h2 style="margin:0">Guests arriving each half hour</h2><p class="mut" style="margin:2px 0 0">${fmtD(U.date)} \u00b7 ${tot} guests in ${tn} booking${tn===1?"":"s"}. Each block is one booking with its party size. Swipe sideways to see the whole day.</p></div><div class="fpb2"><div class="fps2" style="height:${ch}px">${D.slots.map(z=>`<div class="fq${z.x===D.cur?" cur":""}${z.g===D.mx&&z.g>0?" pk":""}"><i class="fqn" title="${z.n} table${z.n===1?"":"s"}">${z.n?z.n+'<small>tbl</small>':"\u00b7"}</i><span class="fqs">${z.sz.map(v=>`<span class="fqb">${v}</span>`).join("")}</span><b>${z.g||"\u00b7"}</b><small>${hm(z.x)}</small></div>`).join("")}</div></div><div class="r"><button class="btn pri" data-act="close">Close</button></div></div>`;$("#modal").hidden=false;
- const c=$("#modal .fq.cur")||$("#modal .fq.pk"),w=$("#modal .fpb2");if(c&&w)w.scrollLeft=Math.max(0,c.offsetLeft-w.clientWidth/2+30)}
+ $("#modal").innerHTML=`<div class="sheet fpm" role="dialog" aria-modal="true" aria-label="Guests arriving each half hour"><div><h2 style="margin:0">Guests arriving each half hour</h2><p class="mut" style="margin:2px 0 0">${fmtD(U.date)} \u00b7 ${tot} guests in ${tn} booking${tn===1?"":"s"}. Each block is one booking with its party size. Swipe sideways to see the whole day.</p></div><div class="fpb2"><div class="fps2" style="height:${ch}px;--ch:${ch}px">${D.slots.map(z=>`<div class="fq${z.x===D.cur?" cur":""}${z.g===D.mx&&z.g>0?" pk":""}"><i class="fqn" title="${z.n} table${z.n===1?"":"s"}">${z.n?z.n+'<small>tbl</small>':"\u00b7"}</i><span class="fqs">${z.sz.map(v=>`<span class="fqb">${v}</span>`).join("")}</span><b>${z.g||"\u00b7"}</b><small>${hm(z.x)}</small></div>`).join("")}</div></div><div class="r"><button class="btn pri" data-act="close">Close</button></div></div>`;$("#modal").hidden=false;
+ const c=$("#modal .fq.cur")||$("#modal .fq.pk"),w=$("#modal .fpb2");
+ /* phone: the blocks grow to use the height of the screen */
+ if(w&&innerWidth<640){const bh=Math.max(30,Math.min(64,Math.floor((w.clientHeight-118)/mn)-8)),f=w.querySelector(".fps2");if(f){f.style.setProperty("--bh",bh+"px");f.style.setProperty("--bf",(bh>=46?17:14)+"px")}}
+ if(c&&w)w.scrollLeft=Math.max(0,c.offsetLeft-w.clientWidth/2+30)}
 const closeM=()=>{$("#modal").hidden=true;$("#modal").innerHTML=""};
 const isDark=()=>{const t=document.documentElement.dataset.theme;return t?t==="dark":matchMedia("(prefers-color-scheme:dark)").matches};
 let NAVP="l";try{NAVP=localStorage.getItem(KEY+"-nav")==="b"?"b":"l"}catch(e){}
