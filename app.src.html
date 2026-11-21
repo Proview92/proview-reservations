@@ -503,6 +503,9 @@ button.fd{cursor:pointer}.fd.on{background:var(--pril)}
 .ael>.ae.mu{background:color-mix(in srgb,var(--ink) 5%,var(--card))}.ael>.ae.sub{background:color-mix(in srgb,var(--ink) 9%,var(--card));margin-left:16px}
 .ael>.aed{background:none;border:0;padding:6px 4px 4px}
 .sheet.acp{max-width:520px;overflow:hidden}.sheet.acp>h2,.sheet.acp>p,.sheet.acp>.r{flex:none}.sheet.acp>.r{position:static;box-shadow:none;margin:0;padding:6px 0 0}.sheet.acp .card.acl{flex:1 1 auto;min-height:0;overflow-x:hidden!important;overflow-y:auto!important;margin:0;-webkit-overflow-scrolling:touch}.acl>.ae.sub{margin-left:0;padding-left:10px;background:color-mix(in srgb,var(--ink) 6%,var(--card))}.acl>.ae.sub:last-child{margin-bottom:0}@media(max-width:639px){.acl>.ae .aei small{white-space:normal}}
+/* phone: the big pop-ups (guest, edit guest, booking form, activity) are all the same full-screen size as Walk-in and Enlarge */
+@media(max-width:639px){#modal .sheet[aria-label="Guest details"],#modal .sheet[aria-label="Edit guest"],#modal .sheet.bkf,#modal .sheet.acp{height:calc(100dvh - 16px)!important;max-height:none!important;margin:8px auto!important;padding:12px 12px 10px!important;align-content:start}
+#modal .sheet[aria-label="Guest details"]>.r,#modal .sheet[aria-label="Edit guest"]>.r{margin-top:auto!important;bottom:-10px}#modal .sheet.bkf>.r{align-self:end;bottom:-10px}}
 /* Walk-in pop-up: colour key, one short message line, tables that can be joined on the spot */
 .wik{display:flex;flex-wrap:wrap;gap:4px 14px;margin:8px 0 0;font-size:12.5px;color:var(--mut)}.wik i{display:inline-block;width:13px;height:13px;border-radius:4px;border:2px solid var(--line);margin-right:5px;vertical-align:-2px}.wik .k1{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,var(--card))}.wik .k2{border-style:dashed;background:color-mix(in srgb,var(--mut) 16%,var(--card))}.wik .k3{border-color:var(--pri);background:color-mix(in srgb,var(--pri) 18%,var(--card));box-shadow:0 0 0 2px color-mix(in srgb,var(--pri) 35%,transparent)}.wik .k4{border-color:var(--warn);border-style:dashed;background:color-mix(in srgb,var(--warn) 18%,var(--card))}
 .wim{margin:8px 0 0;padding:9px 12px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid var(--line);background:color-mix(in srgb,var(--ink) 4%,transparent)}.wim.info{border-color:var(--pri);background:color-mix(in srgb,var(--pri) 12%,var(--card))}.wim.warn{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 16%,var(--card))}
@@ -811,7 +814,7 @@ function vGuests(){
  if(U.gtab==="tags")return gTabs()+vGTags();
  if(U.gtab==="mk")return gTabs()+vGuestMk();
  const q=U.q.toLowerCase(),M={};
- S.parties.forEach(p=>{const k=(p.phone||p.name).toLowerCase();const g=M[k]||(M[k]={key:k,name:p.name,phone:p.phone,v:0,n:0,up:0,last:"",tg:[]});p.tags.forEach(t=>{if(!g.tg.includes(t))g.tg.push(t)});
+ S.parties.forEach(p=>{const k=gkey(p);const g=M[k]||(M[k]={key:k,name:p.name,phone:p.phone,v:0,n:0,up:0,last:"",tg:[]});p.tags.forEach(t=>{if(!g.tg.includes(t))g.tg.push(t)});
   if(p.status==="done"||p.status==="seated"){g.v++;if(p.date>g.last)g.last=p.date}if(p.status==="noshow")g.n++;if(p.status==="booked"&&p.date>=today())g.up++});
  const ALL=Object.values(M),tf=U.gtf||"all",L=ALL.filter(g=>(!q||(g.name+g.phone).toLowerCase().includes(q))&&(tf==="all"||g.tg.includes(tf))).sort((a,b)=>b.v-a.v);
  U.gL=L;
