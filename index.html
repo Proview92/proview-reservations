@@ -1652,7 +1652,7 @@ Object.assign(A,{
  tpsave:b=>{if(!tpWrite(b.dataset.id)){return}save();render();toast("Saved")},
  addT:()=>{S.tables.push({id:uid(),name:nextTName(),seats:2,area:curRoom()});fixLay();save();render()},
  tile:b=>{if(U.edit)return;const t=S.tables.find(x=>x.id===b.dataset.id);
-  if(!U.pick){U.selT=t.id;render();return}
+  if(!U.pick){U.selT=U.selT===t.id?null:t.id;render();return}
   const pk=U.pick,p=pk.k==="p"?S.parties.find(x=>x.id===pk.id):null,w=pk.k==="w"?S.waiting.find(x=>x.id===pk.id):null,sz=p?p.size:w.size,du=p?p.dur:durFor(w.size);
   const us=unitsFor(p?p.date:today()).filter(u=>u.ids.includes(t.id)),ovk=t.id+":"+sz,fu=us.filter(u=>uFit(u,sz)||(U.ovr===ovk&&uUnder(u,sz))).sort((a,b)=>a.combo-b.combo||a.seats-b.seats);U.ovr=null;
   if(!fu.length){const u0=us.find(u=>!u.combo)||us[0];if(uUnder(u0,sz)){ask(underMsg(u0,sz),"Seat anyway",()=>{U.ovr=ovk;closeM();A.tile(b)});return}toast(fitMsg(u0,sz));return}
