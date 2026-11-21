@@ -592,6 +592,9 @@ button.fd{cursor:pointer}.fd.on{background:var(--pril)}
 .top .tbp .btn{padding:7px 11px;font-size:14px;min-height:36px}
 .top .tbp .nl{display:none}.top .tbp .ns{display:inline}
 }
+/* Square edges everywhere. Only real round shapes stay round: round tables and plants on the floor plan, and radio buttons. */
+html :is(#sq-all,*),html :is(#sq-all,*)::before,html :is(#sq-all,*)::after{border-radius:0!important}
+html body :is(#sq-all,.tbl.r,.tbl.r .ch,.dc-plant,input[type=radio]){border-radius:50%!important}
 </style>
 </head>
 <body>
