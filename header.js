@@ -59,3 +59,15 @@ async function pvUpdCheck(front){if(PVUPD.busy||!/^https?:/.test(location.protoc
  PVUPD.busy=false;if(PVUPD.ready){if(front&&pvIdle())pvReload();else pvUpdBar()}}
 setTimeout(()=>pvUpdCheck(false),4000);setInterval(()=>pvUpdCheck(false),240000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)pvUpdCheck(true)});
+
+/* ---- Pull down to refresh, on touch screens. Works when the page is scrolled to the top. Not on the floor plan or inside pop-ups, which have their own gestures. ---- */
+(function(){let y0=null,x0=0,pull=0,on=false,el=null;const MAX=110,GO=70;
+ const ind=()=>{if(!el){el=document.createElement("div");el.id="pvptr";el.setAttribute("aria-hidden","true");el.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>';document.body.appendChild(el)}return el};
+ const atTop=t=>{for(let n=t;n&&n!==document.documentElement;n=n.parentElement){if(n.scrollTop>0)return false}const m=document.getElementById("main");return(!m||m.scrollTop<=0)&&(document.scrollingElement||document.documentElement).scrollTop<=0};
+ const skip=t=>!t||!t.closest||!!t.closest("#modal,.plan,.cin,input,textarea,select,.fpbig,[role=menu]");
+ document.addEventListener("touchstart",e=>{y0=null;on=false;if(e.touches.length!==1||PVUPD.going)return;const t=e.target;if(skip(t)||!atTop(t))return;y0=e.touches[0].clientY;x0=e.touches[0].clientX},{passive:true});
+ document.addEventListener("touchmove",e=>{if(y0===null||e.touches.length!==1)return;const dy=e.touches[0].clientY-y0,dx=e.touches[0].clientX-x0;
+  if(!on){if(dy<8||Math.abs(dx)>Math.abs(dy)){if(dy<-4||Math.abs(dx)>12)y0=null;return}on=true}
+  if(e.cancelable)e.preventDefault();pull=Math.min(MAX,dy*.5);const i=ind();i.style.transition="none";i.style.transform="translate(-50%,"+(pull-50)+"px) rotate("+(pull*3)+"deg)";i.style.opacity=Math.min(1,pull/40);i.classList.toggle("go",pull>=GO)},{passive:false});
+ const end=()=>{if(!on){y0=null;return}on=false;y0=null;const i=ind();i.style.transition="transform .2s,opacity .2s";if(pull>=GO){PVUPD.going=true;i.classList.add("spin");i.style.transform="translate(-50%,24px)";setTimeout(pvReload,350)}else{i.style.transform="translate(-50%,-50px)";i.style.opacity=0}pull=0};
+ document.addEventListener("touchend",end);document.addEventListener("touchcancel",end)})();
