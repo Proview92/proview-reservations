@@ -147,7 +147,7 @@ function lookOf(o: Any) {
   const L = (o && o.look) || {}, hex = (x: unknown) => (typeof x === "string" && /^#[0-9a-f]{6}$/i.test(x) ? x.toLowerCase() : "");
   // pictures uploaded on the Widget page: only addresses in this project's own public bucket are passed on
   const pic = (x: unknown) => (typeof x === "string" && x.length < 300 && x.startsWith((Deno.env.get("SUPABASE_URL") || "") + "/storage/v1/object/public/pr-media/") && /^[\w\-./:]+$/.test(x) ? x : "");
-  return { logo: pic(L.logo), header: pic(L.header), bgimg: pic(L.bgimg), mode: L.mode === "dark" ? "dark" : "light", accent: hex(L.accent), bg: hex(L.bg), corners: L.corners === "square" || L.corners === "pill" ? L.corners : "round", style: L.style === "elegant" ? "elegant" : "", layout: L.layout === "wide" || L.layout === "stack" ? L.layout : "", size: L.size === "s" || L.size === "l" ? L.size : "" };
+  return { logo: pic(L.logo), header: pic(L.header), bgimg: pic(L.bgimg), mode: L.mode === "dark" ? "dark" : "light", accent: hex(L.accent), bg: hex(L.bg), corners: L.corners === "square" || L.corners === "pill" ? L.corners : "round", style: L.style === "elegant" || L.style === "show" ? L.style : "", layout: L.layout === "wide" || L.layout === "stack" ? L.layout : "", size: L.size === "s" || L.size === "l" ? L.size : "" };
 }
 const esc = (s: unknown) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
 const t12 = (t: string) => { const h = +t.slice(0, 2); return ((h + 11) % 12 + 1) + ":" + t.slice(3) + (h < 12 ? "am" : "pm"); };
