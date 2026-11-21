@@ -8,6 +8,11 @@
 //   GET  ?v=…&a=info                       → { name, on, label, msg, maxParty, ahead, mkTick, today, look }
 //   GET  ?v=…&a=slots&date=YYYY-MM-DD&size=N → { date, size, why, times: ["18:00", …] }
 //   POST ?v=…&a=book  { date, time, size, name, phone, email, notes, mk } → { ok, ref, confirm, name, date, time, size }
+//   POST ?v=…&a=find  { ref, email }   → the guest's own booking (needs the reference AND the email it was made with)
+//   POST ?v=…&a=amend { ref, email, action: "change" | "cancel", date, time, size } → the changed booking, or cancelled
+//
+// Emails (confirmation, change, cancel) go out through Resend when the function has the secrets RESEND_API_KEY and
+// RES_MAIL_FROM (for example "Brags and Brams <bookings@yourdomain>"). Without them nothing is sent and bookings work as before.
 //
 // The free times are worked out with the same rules as the "Try it" box on the Widget page of the app
 // (availSlots in the app): opening hours, special days, stay length, notice, days ahead, last booking before
@@ -134,6 +139,30 @@ function lookOf(o: Any) {
   const L = (o && o.look) || {}, hex = (x: unknown) => (typeof x === "string" && /^#[0-9a-f]{6}$/i.test(x) ? x.toLowerCase() : "");
   return { mode: L.mode === "dark" ? "dark" : "light", accent: hex(L.accent), bg: hex(L.bg), corners: L.corners === "square" || L.corners === "pill" ? L.corners : "round", style: L.style === "elegant" ? "elegant" : "" };
 }
+const esc = (s: unknown) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
+const t12 = (t: string) => { const h = +t.slice(0, 2); return ((h + 11) % 12 + 1) + ":" + t.slice(3) + (h < 12 ? "am" : "pm"); };
+const dayLong = (d: string) => new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+const refOf = (p: Any) => String(p.id).slice(0, 6).toUpperCase();
+// Sends one email through Resend. Returns false (and sends nothing) until RESEND_API_KEY and RES_MAIL_FROM are set.
+async function mail(to: string, subject: string, html: string, text: string) {
+  const key = Deno.env.get("RESEND_API_KEY"), from = Deno.env.get("RES_MAIL_FROM");
+  if (!key || !from || !to) return false;
+  try {
+    const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: "Bearer " + key, "content-type": "application/json" }, body: JSON.stringify({ from, to: [to], subject, html, text }) });
+    if (!r.ok) console.error("mail failed", r.status, await r.text());
+    return r.ok;
+  } catch (e) { console.error("mail error", e); return false; }
+}
+// kind: "new" | "request" | "changed" | "cancelled"
+function bookingMail(kind: string, venue: string, site: string, p: Any, extra: string) {
+  const ref = refOf(p), link = (Deno.env.get("RES_APP_URL") || "https://reservations.proviewcrm.co.uk") + "/book/?v=" + encodeURIComponent(site) + "&ref=" + ref;
+  const head = kind === "cancelled" ? "Your booking is cancelled" : kind === "changed" ? "Your booking has been changed" : kind === "request" ? "We have your booking request" : "Your booking is confirmed";
+  const when = dayLong(p.date) + " at " + t12(p.time), who = p.size + (p.size === 1 ? " guest" : " guests");
+  const lines = [head + " at " + venue + ".", "", when, who, "Reference: " + ref, "", ...(extra ? [extra, ""] : []),
+    ...(kind === "cancelled" ? ["We hope to see you another time."] : ["Need to change or cancel? Open " + link + " and use your reference " + ref + " with this email address."])];
+  const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#1b1b1b;max-width:520px"><h2 style="margin:0 0 12px">${esc(head)}</h2><p style="margin:0 0 4px"><b>${esc(venue)}</b></p><p style="margin:0">${esc(when)}<br>${esc(who)}</p><p style="margin:14px 0;padding:10px 14px;background:#f3eee6;border-radius:8px">Your reference: <b style="font-size:20px;letter-spacing:.1em">${ref}</b></p>${extra ? `<p style="margin:0 0 14px">${esc(extra)}</p>` : ""}${kind === "cancelled" ? "<p>We hope to see you another time.</p>" : `<p style="margin:0">Need to change or cancel? <a href="${esc(link)}">Manage your booking</a>. You will be asked for your reference and this email address.</p>`}</div>`;
+  return { subject: head + " · " + venue, html, text: lines.join("\n") };
+}
 const isDate = (d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d) && !isNaN(new Date(d + "T12:00:00Z").getTime());
 
 Deno.serve(async (req) => {
@@ -213,11 +242,69 @@ Deno.serve(async (req) => {
         if (c.error) throw c.error;
         if (c.data != null) {
           await db.rpc("pr_pin_failed", { p_key: key });
-          return send({ ok: true, ref: p.id.slice(0, 6).toUpperCase(), confirm: o.confirm, name, date, time, size });
+          const em = bookingMail(ask ? "request" : "new", name, site, p, o.msg || "");
+          const sent = await mail(email, em.subject, em.html, em.text);
+          return send({ ok: true, ref: p.id.slice(0, 6).toUpperCase(), confirm: o.confirm, name, date, time, size, emailed: sent });
         }
         // someone else saved in between: read again and re-check the time
       }
       return send({ error: "busy", message: "We could not save your booking just now. Please try again." }, 503);
+    }
+
+    // ---------- the guest finds, changes or cancels their own booking: reference + the email it was made with ----------
+    if ((a === "find" || a === "amend") && req.method === "POST") {
+      const b = await req.json().catch(() => ({}));
+      const ref = clean(b.ref, 12).toUpperCase().replace(/[^A-Z0-9]/g, ""), em = clean(b.email, 120).toLowerCase();
+      const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown", key = "amend:" + site + ":" + ip;
+      const bl = await db.rpc("pr_pin_blocked", { p_key: key, p_max: 10 });
+      if (bl.data === true) return send({ error: "busy", message: "Too many tries from this connection. Please wait ten minutes or contact us directly." }, 429);
+      await db.rpc("pr_pin_failed", { p_key: key }); // every try counts, so the reference cannot be guessed
+      const notFound = () => send({ error: "nofind", message: "We could not find a booking with that reference and email. Please check your confirmation email." }, 404);
+      if (ref.length < 4 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return notFound();
+      const mine = (S: Any) => (Array.isArray(S.parties) ? S.parties : []).find((p: Any) => refOf(p) === ref && String(p.email || "").toLowerCase() === em);
+      // a booking can be changed online until the minimum notice before it starts
+      const lockWhy = (p: Any, oo: Any) => {
+        if (p.status === "cancelled") return "This booking is already cancelled.";
+        if (p.status !== "booked") return "This booking cannot be changed online. Please contact us directly.";
+        const lead = p.date > today ? 1e9 : p.date < today ? -1 : m(p.time) - nowMin;
+        return lead < Math.max(1, +oo.notice || 0) * 60 ? "It is too close to your booking time to change it online. Please contact " + name + " directly." : "";
+      };
+      const p0 = mine(row.data);
+      if (!p0) return notFound();
+      const mk = (p: Any) => ({ ok: true, ref: refOf(p), name: p.name, date: p.date, time: p.time, size: p.size, status: p.status });
+      if (a === "find") return send({ ...mk(p0), canChange: on && !lockWhy(p0, o), why: !on ? "Online changes are not available at the moment. Please contact us directly." : lockWhy(p0, o), maxParty: o.maxParty, ahead: o.ahead, today });
+      if (!on) return send({ error: "off", message: "Online changes are not available at the moment. Please contact us directly." }, 403);
+      const act = b.action === "cancel" ? "cancel" : "change";
+      for (let tryN = 0; tryN < 5; tryN++) {
+        if (tryN) { row = await load(); if (!row || !row.data) break; }
+        const S = row!.data, p = mine(S);
+        if (!p) return notFound();
+        R = rules(S, today, nowMin); o = R.OB();
+        const lw = lockWhy(p, o); if (lw) return send({ error: "locked", message: lw }, 409);
+        const was = dayLong(p.date) + " at " + t12(p.time) + " for " + p.size;
+        if (act === "cancel") { p.status = "cancelled"; p.notes = ((p.notes ? p.notes + " " : "") + "Cancelled online by the guest.").slice(0, 400); }
+        else {
+          const date = String(b.date || ""), time = String(b.time || ""), size = Math.round(+b.size || 0);
+          if (!isDate(date) || !/^\d{2}:\d{2}$/.test(time)) return send({ error: "bad", message: "Please choose a date and time." }, 400);
+          // check the new time as if this booking were not holding its own table
+          const R2 = rules({ ...S, parties: (S.parties || []).filter((x: Any) => x.id !== p.id) }, today, nowMin), r = R2.availSlots(date, size), slot = r.slots.find((s) => s.t === time);
+          if (!slot || !slot.ok || !slot.unit) return send({ error: "gone", message: guestWhy(r, o) || "Sorry, that time is not free. Please choose another time." }, 409);
+          const u = slot.unit;
+          p.date = date; p.time = time; p.size = size; p.dur = R2.durFor(size); p.table = u.ids[0];
+          if (u.ids.length > 1) p.join = u.ids.slice(1); else delete p.join;
+          if (u.part != null) p.part = u.part; else delete p.part;
+          ["rem", "remVia", "conf", "aack", "snz", "resolved", "arr", "arrN"].forEach((k) => { delete p[k]; });
+          p.notes = ((p.notes ? p.notes + " " : "") + "Changed online by the guest (was " + was + ").").slice(0, 400);
+        }
+        const c = await db.rpc("pr_state_commit", { p_site: site, p_rev: row!.rev, p_data: S, p_ops: [{ k: "parties", up: [p] }] });
+        if (c.error) throw c.error;
+        if (c.data != null) {
+          const e = bookingMail(act === "cancel" ? "cancelled" : "changed", name, site, p, act === "cancel" ? "" : o.msg || "");
+          const sent = await mail(em, e.subject, e.html, e.text);
+          return send({ ...mk(p), emailed: sent });
+        }
+      }
+      return send({ error: "busy", message: "We could not save the change just now. Please try again." }, 503);
     }
     return send({ error: "bad" }, 400);
   } catch (e) {
