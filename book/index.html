@@ -85,6 +85,15 @@ html.eg body{font-family:"Jost","Futura","Century Gothic","Avenir Next",system-u
 @media(min-width:900px){html.eg.lw body.embed .card{max-width:1040px}html.eg.lw body.embed .eg-h{padding:4px 16px 0}html.eg.lw body.embed .eg-h h1,html.eg.lw body.embed .eg-h p{display:none}html.eg.lw body.embed .eg-tab{padding:6px 4px 8px}html.eg.lw body.embed .eg-b{padding:12px 22px 12px;gap:8px}html.eg.lw body.embed .eg-g{grid-template-columns:minmax(0,2.1fr) minmax(0,1fr)}html.eg.lw body.embed .eg-g>.eg-p:first-child{flex-direction:row;gap:26px}html.eg.lw body.embed .eg-g>.eg-p:first-child>div:first-child{flex:0 0 190px}html.eg.lw body.embed .eg-g>.eg-p:first-child>div:last-child{flex:1 1 auto;min-width:0}html.eg.lw body.embed .eg-c button{height:32px}html.eg.lw body.embed #foot{margin:4px auto!important}}
 html.sz-s body.embed .card{max-width:480px!important}html.sz-s body.embed .eg-g{grid-template-columns:minmax(0,1fr)!important}html.sz-l body.embed .card{max-width:760px}html.eg.sz-l body.embed .card{max-width:1040px}
 #f-name{text-transform:uppercase}
+/* the venue's pictures: logo and header photo above the form, background photo behind it (booking link only) */
+#brand{width:min(520px,100%);margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:18px}.eg #brand{width:min(760px,100%)}
+.b-logo{max-width:min(300px,70%);max-height:110px;object-fit:contain;display:block;margin-bottom:18px}.b-hd{width:100%;aspect-ratio:16/5;object-fit:cover;border-radius:calc(var(--rad) * 2) calc(var(--rad) * 2) 0 0;display:block}
+html.hashd body:not(.embed) .card{border-top-left-radius:0;border-top-right-radius:0;border-top:0}html.hashd .b-logo{margin-bottom:0}
+html.hasbg .b-logo{background:var(--card);padding:12px 24px;border-radius:calc(var(--rad) * 1.4);max-height:134px;box-shadow:0 8px 30px -10px rgba(0,0,0,.5)}
+.eg-h.nol{padding-top:6px}.eg-h.nol p{margin:8px 0 10px!important}h1.h-sm{font-size:21px}
+.h-logo{max-width:min(240px,70%);max-height:70px;object-fit:contain;display:block;margin:0 auto 10px}
+html.hasbg body{background-size:cover;background-position:center;background-attachment:fixed;background-repeat:no-repeat}html.hasbg .foot{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+@media(max-width:560px){.b-hd{aspect-ratio:16/7}.b-logo{max-height:84px}html.hasbg .b-logo{max-height:104px}}
 .rmw{margin-top:14px}.rms{display:flex;flex-wrap:wrap;gap:6px}.rms button{flex:1 1 auto;min-width:0;min-height:40px;padding:6px 14px;border:1px solid var(--line);border-radius:var(--rad);background:var(--card);color:var(--ink);font:inherit;font-size:15px;font-weight:600;cursor:pointer}.rms button.on{background:var(--btn);color:var(--btnink);border-color:transparent}
 .pers{display:flex;gap:6px;margin:0 0 8px}.pers button{flex:1 1 0;min-width:0;height:38px;border:1px solid var(--line);border-radius:var(--rad);background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer}.pers button.on{background:var(--btn);color:var(--btnink);border-color:transparent}.eg .pers button{border-radius:999px;font-weight:500}.eg .rms button{border-radius:999px;font-weight:500}.eg .rms button.on{background:var(--sand);border-color:var(--sandd);color:var(--sandink)}.eg .pers button.on{background:var(--sand);border-color:var(--sandd);color:var(--sandink)}
 @media(min-width:900px){html.eg.lw body.embed .times{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 5px}html.eg.lw body.embed .times button{height:34px;font-size:13px;padding:0;white-space:nowrap}html.eg.lw body.embed .pers button{height:34px}}
@@ -95,6 +104,7 @@ html.sz-s body.embed .card{max-width:480px!important}html.sz-s body.embed .eg-g{
 </style>
 </head>
 <body>
+<div id="brand" hidden></div>
 <main class="card" id="root" aria-live="polite"><div class="splash" role="status" aria-label="Loading"></div></main>
 <p class="foot" id="foot">Bookings by <a href="https://proviewcrm.co.uk" target="_blank" rel="noopener">Proview Reservations</a></p>
 <script>
@@ -126,11 +136,16 @@ function applyLook(L){L=L||{};const r=document.documentElement,st=r.style;r.clas
   if(HEX.test(L.accent||"")){st.setProperty("--pri",L.accent);st.setProperty("--btn",L.accent);st.setProperty("--btnink",lum(L.accent)>0.62?"#17171c":"#fff")}
   if(HEX.test(L.bg||""))st.setProperty("--bg",L.bg);
   if(L.style==="elegant"&&HEX.test(L.accent||"")){st.setProperty("--sand",L.accent);st.setProperty("--sandink",lum(L.accent)>0.62?"#1b1b1b":"#fff")}
-  if(L.corners==="square")st.setProperty("--rad","3px");else if(L.corners==="pill")st.setProperty("--rad","22px")}
+  if(L.corners==="square")st.setProperty("--rad","3px");else if(L.corners==="pill")st.setProperty("--rad","22px");
+  /* the venue's own pictures. On the booking link (a page of its own): logo on top, header photo, background photo. Inside a website: the logo only. */
+  const P=u=>typeof u==="string"&&/^https:\/\/[\w\-./:]+$/.test(u)?u:"",lg=P(L.logo),hd=EMBED?"":P(L.header),bg=EMBED?"":P(L.bgimg),B=$("#brand");
+  LOGO=lg;r.classList.toggle("haslogo",!!lg);r.classList.toggle("hashd",!!hd);r.classList.toggle("hasbg",!!bg);document.body.style.backgroundImage=bg?`url("${bg}")`:"";
+  if(B){B.hidden=EMBED||!(lg||hd);B.innerHTML=EMBED?"":`${lg?`<img class="b-logo" src="${lg}" alt="${esc(V&&V.name||"")}">`:""}${hd?`<img class="b-hd" src="${hd}" alt="">`:""}`}}
+let LOGO="";
 function tell(){try{if(EMBED&&parent!==window)parent.postMessage({proviewBookingHeight:Math.ceil(document.body.getBoundingClientRect().height)+2},"*")}catch(e){}}
 const EG=()=>document.documentElement.classList.contains("eg");
 function page(h){$("#root").innerHTML=EG()?h+"</div>":h;tell()}
-function head(sub){if(EG()){const p=String(V&&V.name||"Book a table").split(/\s+[-\u2013\u2014]\s+/),tg=V&&V.label&&V.label!=="Book a table"?V.label:"";return`<div class="eg-h"><h1>${esc(p[0])}</h1>${tg?`<p>${esc(tg)}</p>`:`<p style="margin-bottom:14px"></p>`}${p.length>1?`<div class="eg-tab">${esc(p.slice(1).join(" \u2013 "))}</div>`:""}</div><div class="eg-b">`}return`<div><h1>${esc(V&&V.name||"Book a table")}</h1>${sub?`<p class="muted" style="margin-top:6px">${sub}</p>`:""}</div>`}
+function head(sub){const lg=LOGO&&EMBED?`<img class="h-logo" src="${LOGO}" alt="${esc(V&&V.name||"")}">`:"";if(EG()){const p=String(V&&V.name||"Book a table").split(/\s+[-\u2013\u2014]\s+/),tg=V&&V.label&&V.label!=="Book a table"?V.label:"";return`<div class="eg-h${LOGO&&!EMBED?" nol":""}">${lg||(LOGO?"":`<h1>${esc(p[0])}</h1>`)}${tg?`<p>${esc(tg)}</p>`:`<p style="margin-bottom:14px"></p>`}${p.length>1?`<div class="eg-tab">${esc(p.slice(1).join(" \u2013 "))}</div>`:""}</div><div class="eg-b">`}return`<div>${lg||`<h1${LOGO?' class="h-sm"':""}>${esc(LOGO?(V&&V.label)||"Book a table":V&&V.name||"Book a table")}</h1>`}${sub?`<p class="muted" style="margin-top:6px">${sub}</p>`:""}</div>`}
 function fail(title,msg){page(`${head("")}<div class="notice bad"><b>${esc(title)}</b><br>${esc(msg)}</div>`)}
 
 const amBan=()=>U.am&&U.am.b?`<div class="notice">Changing booking <b>${esc(U.am.ref)}</b> (${esc(fmtD(U.am.b.date))} at ${esc(t12(U.am.b.time))}, ${esc(guests(U.am.b.size))}). Choose a new date, guests and time below.<br><button class="link" data-a="amkeep" style="margin:4px 0 0">Keep my booking as it is</button></div>`:"";

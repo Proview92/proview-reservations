@@ -67,3 +67,6 @@
 @media (max-width:380px){.pvs-card .pvs-brand .pvword{font-size:14px;letter-spacing:.1em}}
 /* Widget page: link, Google and website steps on the left, the look of the booking page on the right (laptop); one column on a phone */
 .clbk{display:grid;gap:14px;grid-template-columns:minmax(0,1fr);align-items:start;margin-bottom:14px}.clc{display:flex;flex-direction:column;gap:14px;min-width:0}.clbk .card{margin:0!important}.sgc.onl>.clbk{grid-column:1/-1}@media(min-width:1000px){.clbk{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Widget, Edit theme: the venue's pictures for the booking page */
+.clpx{margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--line)}.clpr{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0}.clpt{width:76px;height:52px;border:1px dashed var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--mut);background:color-mix(in srgb,var(--ink) 5%,transparent) center/cover no-repeat}.clpt.logo{background-size:contain}.clpt[style]{border-style:solid}.clpi{display:grid;gap:2px;min-width:0}.clpi small{line-height:1.3}.clpb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:560px){.clpr{grid-template-columns:60px minmax(0,1fr)}.clpt{width:60px;height:44px}.clpb{grid-column:1/-1;justify-content:flex-start}}
