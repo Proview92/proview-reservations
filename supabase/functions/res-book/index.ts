@@ -137,7 +137,7 @@ const gkeyOf = (ph: string, n: string) => normPh(ph) || (ph || n).toLowerCase();
 // The venue's look for the booking page: only known values are passed on.
 function lookOf(o: Any) {
   const L = (o && o.look) || {}, hex = (x: unknown) => (typeof x === "string" && /^#[0-9a-f]{6}$/i.test(x) ? x.toLowerCase() : "");
-  return { mode: L.mode === "dark" ? "dark" : "light", accent: hex(L.accent), bg: hex(L.bg), corners: L.corners === "square" || L.corners === "pill" ? L.corners : "round", style: L.style === "elegant" ? "elegant" : "" };
+  return { mode: L.mode === "dark" ? "dark" : "light", accent: hex(L.accent), bg: hex(L.bg), corners: L.corners === "square" || L.corners === "pill" ? L.corners : "round", style: L.style === "elegant" ? "elegant" : "", layout: L.layout === "wide" || L.layout === "stack" ? L.layout : "", size: L.size === "s" || L.size === "l" ? L.size : "" };
 }
 const esc = (s: unknown) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
 const t12 = (t: string) => { const h = +t.slice(0, 2); return ((h + 11) % 12 + 1) + ":" + t.slice(3) + (h < 12 ? "am" : "pm"); };
