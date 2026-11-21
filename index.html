@@ -423,6 +423,7 @@ button.fd{cursor:pointer}.fd.on{background:var(--pril)}
 .tsplit.ph .tsel .tsh{display:flex;align-items:center;gap:8px;padding:12px 14px 8px;flex:none}.tsplit.ph .tsel .tsh b{font-size:19px}.tsplit.ph .tsel .tsh .sp{flex:1}
 .dsor{display:grid;gap:8px;padding:12px 0;border-top:1px solid var(--line)}.dson{display:grid;gap:2px}.dson b{font-size:17px}.dsob{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.dsob .btn{min-height:46px;padding:8px 4px}
 @media(min-width:640px){#vbox{display:none!important}}
+#toast{z-index:200}#toast.inm{top:calc(14px + env(safe-area-inset-top,0px));bottom:auto;transform:translate(-50%,-20px);font-size:17px;font-weight:700;padding:14px 20px;border-radius:12px;background:var(--warn,#f5b83d);color:#1a1300;box-shadow:0 10px 30px rgba(0,0,0,.5);text-align:center}#toast.inm.on{transform:translate(-50%,0)}
 .dsnt{display:none}@media(min-width:640px){.dsnt{display:flex;margin:0;flex-wrap:nowrap}.dsnr{display:none}.dsta{line-height:1.75;font-size:15.5px;padding:10px 14px;resize:none}}
 .dsg>.dss{margin-top:14px}
 /* laptop and tablet on its side: Day summary and Outlook fit the screen without the page scrolling */
@@ -628,7 +629,7 @@ const PRESETS=[["Proview blue","#3f5fd0","#f2f4f9"],["Coffee","#6b4226","#fbf7f2
 let TH={main:"#3f5fd0",bg:"#f2f4f9"};
 try{const t=JSON.parse(localStorage.getItem(KEY+"-colors")||"null");if(t&&t.main&&t.bg)TH=t}catch(e){}
 function applyTh(){const r=document.documentElement.style,c=parseInt(TH.main.slice(1),16),l=0.299*(c>>16)+0.587*((c>>8)&255)+0.114*(c&255);r.setProperty("--main",TH.main);r.setProperty("--bgc",TH.bg);r.setProperty("--onpri",l>165?"#14161f":"#fff");try{localStorage.setItem(KEY+"-colors",JSON.stringify(TH))}catch(e){}}
-function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("on"),2800)}
+function toast(t){const e=$("#toast"),md=$("#modal"),im=!!md&&!md.hidden;e.textContent=t;e.classList.toggle("inm",im);e.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("on"),im?4500:2800)}
 const LSN=()=>JSON.stringify({t:S.tables,d:S.deco,r:S.rooms||null});
 function lhTrack(){const h=U.lh;if(!U.edit||!h)return;const c=LSN();if(h.cur!==c){h.u.push(h.cur);if(h.u.length>60)h.u.shift();h.r=[];h.cur=c}const ub=document.querySelector("[data-act=lundo]"),rb=document.querySelector("[data-act=lredo]");if(ub)ub.disabled=!h.u.length;if(rb)rb.disabled=!h.r.length}
 function save(){try{S.parties.forEach(p=>{if(p.status!=="seated"||!(p.seatN>0&&p.seatN<p.size))delete p.seatN;if(p.arr||p.status!=="booked"||!(p.arrN>0&&p.arrN<p.size))delete p.arrN})}catch(e){}try{lhTrack()}catch(e){}try{auditDiff()}catch(e){}try{localStorage.setItem(SKEY(),JSON.stringify(S))}catch(e){}}
@@ -1394,7 +1395,7 @@ Object.assign(A,{
   if(!name||!(size>0)||!(dur2>0)||!date||!time){toast("Add a name, party size, date and time");return}
   if(!Number.isInteger(size)||size>99){toast("Guests must be a whole number from 1 to 99");return}
   if(dur2<15||dur2>480){toast("Stay must be between 15 minutes and 8 hours");return}
-  if(!old){const ph=v("phone").trim();if(ph&&(!/^[+\d\s().-]+$/.test(ph)||ph.replace(/\D/g,"").length<7||ph.replace(/\D/g,"").length>15)){toast("That phone number does not look right. Check it or leave it empty.");return}}
+  if(!old){const ph=v("phone").trim();if(ph&&(!/^[+\d\s().-]+$/.test(ph)||ph.replace(/\D/g,"").length<7||ph.replace(/\D/g,"").length>15)){toast("That phone number does not look right. Check it or leave it empty.");const pe=$("#f-phone");pe&&pe.focus();return}}
   {const W=[],chg=!old||old.date!==date||old.time!==time,h=hoursFor(date),st0=m(time),k0=gkeyOf(old?old.phone:v("phone").trim(),name);
    if(chg){if(date<today()||(date===today()&&st0+dur2<nowMin()))W.push("That date and time have already passed.");
     if(h.closed)W.push("The venue is closed that day"+(h.note?" ("+h.note+")":"")+".");else if(st0<m(h.open)||st0>(m(h.close)<=m(h.open)?m(h.close)+1440:m(h.close)))W.push("That time is outside opening hours ("+h.open+" to "+h.close+").")}
