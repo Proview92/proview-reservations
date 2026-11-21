@@ -462,7 +462,9 @@ button.fd{cursor:pointer}.fd.on{background:var(--pril)}
 @media(min-width:900px) and (orientation:landscape){.content:has(.fitv)>.bar{margin-bottom:8px}.content:has(.fitv) .stats{margin-bottom:10px}.content:has(.fitv) .stat{padding-top:8px;padding-bottom:8px}
 .dsg>.dsl{height:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:0}.dsg>.dsl>.card{min-height:0;overflow:auto}
 .olg{display:grid;grid-template-columns:300px minmax(0,1fr);gap:12px;min-height:0}.olg>.card{margin-top:0!important;min-height:0;overflow:auto}.fitv .card.pad{padding:12px 14px}.fitv .card h2{margin-bottom:6px}}
-@media(min-width:640px){.flx>.flt,.flu.lt{display:none}}
+.flx>.flt,.flu.lt{display:none}
+/* phone Flow rows: each line once (time on table, time left); the guest count is already in the chip */
+@media(max-width:639px){.fr2 .fnm small span{display:inline}.fr2 .fnm small .fsc,.fr2 .fnm small .fgz{display:none}.fls .fr2 .fnm small{-webkit-line-clamp:3}}
 /* tablet (not phone): floorplan first, allocate list under it */
 @media(min-width:640px) and (max-width:899px),(min-width:900px) and (orientation:portrait){.tv-plan.tsplit:not(.ph) .tsr{order:1;position:static;margin:10px 0 0;padding:0;background:none}.tv-plan.tsplit:not(.ph) .al2 .abk{max-height:none;overflow:visible}}
 .tsplit.ph .tsel .tsh .tsx{float:none;width:40px;height:40px;min-height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);font-size:16px;flex:none;padding:0}
