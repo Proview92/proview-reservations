@@ -2573,6 +2573,10 @@ function clBookCard(){if(!CL.site||U.view!=="online")return;const main=$("#main"
  <div class="bar" style="margin:10px 0 0"><button class="btn" data-act="clBkReset">Use the Proview colours</button></div>
 </div></div>`;
  host.insertBefore(d,host.firstChild);
+ /* each Widget box minimises like the Settings boxes; the booking link starts open, the rest minimised */
+ if(!clBookCard.init){clBookCard.init=1;SETO["Your booking link"]=1}
+ d.querySelectorAll(".card").forEach(c=>{const h=c.firstElementChild;if(!h||h.tagName!=="H2")return;const t=h.textContent.trim();c.classList.add("sc");h.classList.add("sh");h.dataset.act="setc";h.dataset.t=t;h.setAttribute("role","button");h.setAttribute("tabindex","0");const cl=!SETO[t];c.classList.toggle("cl",cl);h.setAttribute("aria-expanded",cl?"false":"true")});
+ if(!main.querySelector(".setbar"))host.insertAdjacentHTML("beforebegin",'<div class="setbar"><button class="btn" data-act="setall" data-v="1">Minimise all</button><button class="btn" data-act="setall" data-v="0">Expand all</button></div>');
  const i=main.querySelector(".obi");if(i)i.textContent="Rules for your booking link. They apply to every online booking, on Google and on your website.";
  main.querySelectorAll(".swt small").forEach(x=>{if(/widget is connected/.test(x.textContent))x.textContent="Guests can book from your link while this is on"})}
 Object.assign(A,{
