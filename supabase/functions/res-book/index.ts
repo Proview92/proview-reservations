@@ -217,7 +217,7 @@ Deno.serve(async (req) => {
       const b = await req.json().catch(() => ({}));
       if (clean(b.website, 200)) return send({ ok: true, ref: uid().slice(0, 6).toUpperCase() }); // a field people never see: only robots fill it in
       const date = String(b.date || ""), time = String(b.time || ""), size = Math.round(+b.size || 0);
-      const gname = clean(b.name, 80), phone = clean(b.phone, 30), email = clean(b.email, 120).toLowerCase(), notes = clean(b.notes, 300);
+      const gname = clean(b.name, 80).toUpperCase(), phone = clean(b.phone, 30), email = clean(b.email, 120).toLowerCase(), notes = clean(b.notes, 300);
       if (!isDate(date) || !/^\d{2}:\d{2}$/.test(time)) return send({ error: "bad", message: "Please choose a date and time." }, 400);
       if (gname.length < 2) return send({ error: "bad", message: "Please enter your name." }, 400);
       if (!normPh(phone)) return send({ error: "bad", message: "Please enter a phone number we can reach you on." }, 400);
