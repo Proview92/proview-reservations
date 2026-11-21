@@ -465,6 +465,10 @@ button.fd{cursor:pointer}.fd.on{background:var(--pril)}
  .tsplit.ph .phr{margin:0 0 6px!important}.tsplit.ph .pz{margin:0 0 6px!important}
  /* Guests */
  .gtop{gap:6px!important;margin-bottom:6px!important}.tgs{gap:6px!important;margin-bottom:8px!important}
+ .gtb{margin:0 0 6px!important}.gtb .seg{display:flex;width:100%;flex-wrap:nowrap}.gtb .seg button{flex:1 1 auto;padding:7px 4px;font-size:13.5px;white-space:nowrap}
+ .gbar{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;gap:6px!important;margin:0 0 6px!important}.gbar #q{width:100%;min-width:0;height:38px}.gbar #gtf{height:38px;max-width:104px;padding-left:8px;padding-right:22px;font-size:13.5px}.gbar .btn{height:38px;padding:0 11px;font-size:13.5px}.gbar>.mut{display:none}
+ .tgs{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;margin-bottom:6px!important}.tgs .card.stat{padding:5px 6px!important;text-align:center}.tgs .stat small{font-size:10.5px;line-height:1.15;display:block;min-height:24px}.tgs .stat b{font-size:18px;line-height:1.1}
+ .gr2{padding-top:6px!important;padding-bottom:6px!important;gap:8px!important}.gr2 .btn{height:34px;padding:0 12px}
 }
 @media(max-width:639px){.sheet.apkm{padding:14px 12px!important}.sheet.apkm .apkl{font-size:12.5px;gap:3px 12px;margin-top:6px}.apkm .plan{padding:4px!important;max-height:none}.sheet.apkm .apkd{margin-top:4px}}
 /* phone: the enlarged arrivals chart uses the whole screen, like the Walk-in pop-up */
@@ -2176,7 +2180,7 @@ function vGuestMk(){
  <div class="bar"><input id="mkq" placeholder="Search the list" value="${esc(U.mkq||"")}" aria-label="Search the marketing list"><button class="btn" data-act="mklcopy">Copy emails</button><button class="btn" data-act="mklmail">Open email draft</button><span class="mut small">${inn.length} on the list</span></div>
  <div class="card">${A1.length?A1.map(g=>row(g,["mkout","Remove"])).join(""):`<div class="empty">${inn.length?"No guests match.":"Nobody is on the list yet. Guests are added when a booking has an email and the box is ticked."}</div>`}</div>
  ${A2.length?`<h3 style="margin:16px 0 6px">Removed from the list</h3><div class="card">${A2.map(g=>row(g,["mkin","Add back"])).join("")}</div>`:""}`}
-const gTabs=()=>`<div class="bar"><div class="seg">${[["all","All guests"]].concat(FT("loyalty")?[["loy","Loyalty"]]:[],[["mk","Marketing"],["tags","Tags"]]).map(x=>`<button data-act="gtab" data-v="${x[0]}" class="${(U.gtab||"all")===x[0]?"on":""}">${x[1]}</button>`).join("")}</div></div>`;
+const gTabs=()=>`<div class="bar gtb"><div class="seg">${[["all","All guests"]].concat(FT("loyalty")?[["loy","Loyalty"]]:[],[["mk","Marketing"],["tags","Tags"]]).map(x=>`<button data-act="gtab" data-v="${x[0]}" class="${(U.gtab||"all")===x[0]?"on":""}">${x[1]}</button>`).join("")}</div></div>`;
 document.addEventListener("input",e=>{const f=e.target.dataset&&e.target.dataset.lo;if(!f)return;const L=LOY(),v=e.target.value;if(f==="auto"){L.auto=e.target.checked;save();render();return}if(f==="delay")L.delay=Math.max(0,Math.min(14,Math.round(+v)||0));else if(f==="msg"){if(v.trim())L.msg=v;else delete L.msg}else if(f==="subj"){if(v.trim())L.subj=v;else delete L.subj}save();const pv=$("#lo-prev");if(pv)pv.textContent=(L.msg||LTPL).replace(/\{name\}/g,"Sam").replace(/\{venue\}/g,S.venue.name).replace(/\{pct\}/g,L.pct).replace(/\{nth\}/g,ordN(L.n))});
 function loyDue(rows){const L=LOY(),list=rows.filter(r=>r.I.avail>0).map(r=>Object.assign({so:loySendOn(r.g.key)},r));
  const sent=r=>(L.mailed||{})[r.g.key]===r.I.V,rdy=r=>r.so<=today(),todo=list.filter(r=>!sent(r)&&gem(r.g.key)&&rdy(r)),wait=list.filter(r=>!sent(r)&&!rdy(r));
