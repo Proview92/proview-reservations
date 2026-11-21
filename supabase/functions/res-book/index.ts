@@ -48,7 +48,7 @@ const m = (t: string) => { const a = String(t).split(":"); return +a[0] * 60 + +
 const hm = (x: number) => pad(Math.floor(x / 60)) + ":" + pad(x % 60);
 const addD = (d: string, n: number) => { const x = new Date(d + "T12:00:00Z"); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
 const dow = (d: string) => (new Date(d + "T12:00:00Z").getUTCDay() + 6) % 7; // Monday = 0
-const OBD = { on: false, step: 30, maxParty: 8, notice: 2, ahead: 60, lastBefore: 60, cap: 0, hold: 0, confirm: "auto", msg: "", label: "Book a table", rooms: null as string[] | null };
+const OBD = { on: false, step: 30, maxParty: 8, notice: 2, ahead: 60, lastBefore: 60, cap: 0, hold: 0, confirm: "auto", msg: "", label: "Book a table", rooms: null as string[] | null, pick: "" };
 const PL = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 function rules(S: Any, today: string, nowMin: number) {
@@ -88,7 +88,7 @@ function rules(S: Any, today: string, nowMin: number) {
   const uFree = (u: Any, date: string, st: number, du: number) => u.ids.every((id: string) => free(id, date, st, du, u.part));
 
   // The same checks, in the same order, as availSlots in the app. `unit` is the table the guest would get.
-  function availSlots(date: string, size: number) {
+  function availSlots(date: string, size: number, room = "") {
     const o = OB(), h = hoursFor(date), r: { date: string; size: number; why: string; code: string; slots: { t: string; ok: boolean; why: string; unit?: Any }[] } = { date, size, why: "", code: "", slots: [] };
     if (h.closed) { r.code = "closed"; r.why = "Closed" + (h.note ? " (" + h.note + ")" : ""); return r; }
     if (date < today) { r.code = "past"; r.why = "That date has passed"; return r; }
@@ -104,7 +104,7 @@ function rules(S: Any, today: string, nowMin: number) {
       else {
         // tables ticked "Walk-in only" are never offered online
         const wo = (u: Any) => u.ids.some((id: string) => (tables.find((t) => t.id === id) || {}).wo);
-        const fu = unitsFor(date).filter((u) => uFit(u, size) && uFree(u, date, x, du) && (!rs || rs.includes(u.area)) && !wo(u));
+        const fu = unitsFor(date).filter((u) => uFit(u, size) && uFree(u, date, x, du) && (!rs || rs.includes(u.area)) && (!room || u.area === room) && !wo(u));
         if (!fu.length) { ok = false; why = "no table"; }
         else if (o.hold > 0) { const fr = unitsFor(date).filter((u) => !u.combo && uFree(u, date, x, du) && (!rs || rs.includes(u.area)) && !wo(u)).length; if (fr - fu[0].ids.length < o.hold) { ok = false; why = "kept for walk-ins"; } }
         // the app's own choice of table for a party (auto): a table that seats them, single tables first, smallest first
@@ -115,7 +115,15 @@ function rules(S: Any, today: string, nowMin: number) {
     if (!r.slots.length) { r.code = "hours"; r.why = "No times fit inside opening hours"; }
     return r;
   }
-  return { OB, availSlots, durFor };
+  // Rooms the guest may choose between on the booking page: only when the venue switched this on and has two or more rooms online.
+  const pickRooms = () => {
+    const o = OB(); if (o.pick !== "opt" && o.pick !== "must") return [] as string[];
+    const out: string[] = [];
+    (Array.isArray(S.rooms) ? S.rooms : []).concat(tables.map((t) => t.area || "Main room")).forEach((a: string) => { if (!out.includes(a) && tables.some((t) => (t.area || "Main room") === a && !t.wo) && (!o.rooms || o.rooms.includes(a))) out.push(a); });
+    return out.length > 1 ? out : [];
+  };
+  const areaOf = (tid: string) => { const t = tables.find((x) => x.id === tid); return t ? t.area || "Main room" : ""; };
+  return { OB, availSlots, durFor, pickRooms, areaOf };
 }
 
 // What the guest reads when a day has no times.
@@ -154,13 +162,13 @@ async function mail(to: string, subject: string, html: string, text: string) {
   } catch (e) { console.error("mail error", e); return false; }
 }
 // kind: "new" | "request" | "changed" | "cancelled"
-function bookingMail(kind: string, venue: string, site: string, p: Any, extra: string) {
+function bookingMail(kind: string, venue: string, site: string, p: Any, extra: string, area = "") {
   const ref = refOf(p), link = (Deno.env.get("RES_APP_URL") || "https://reservations.proviewcrm.co.uk") + "/book/?v=" + encodeURIComponent(site) + "&ref=" + ref;
   const head = kind === "cancelled" ? "Your booking is cancelled" : kind === "changed" ? "Your booking has been changed" : kind === "request" ? "We have your booking request" : "Your booking is confirmed";
   const when = dayLong(p.date) + " at " + t12(p.time), who = p.size + (p.size === 1 ? " guest" : " guests");
-  const lines = [head + " at " + venue + ".", "", when, who, "Reference: " + ref, "", ...(extra ? [extra, ""] : []),
+  const lines = [head + " at " + venue + ".", "", when, who, ...(area ? ["Area: " + area] : []), "Reference: " + ref, "", ...(extra ? [extra, ""] : []),
     ...(kind === "cancelled" ? ["We hope to see you another time."] : ["Need to change or cancel? Open " + link + " and use your reference " + ref + " with this email address."])];
-  const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#1b1b1b;max-width:520px"><h2 style="margin:0 0 12px">${esc(head)}</h2><p style="margin:0 0 4px"><b>${esc(venue)}</b></p><p style="margin:0">${esc(when)}<br>${esc(who)}</p><p style="margin:14px 0;padding:10px 14px;background:#f3eee6;border-radius:8px">Your reference: <b style="font-size:20px;letter-spacing:.1em">${ref}</b></p>${extra ? `<p style="margin:0 0 14px">${esc(extra)}</p>` : ""}${kind === "cancelled" ? "<p>We hope to see you another time.</p>" : `<p style="margin:0">Need to change or cancel? <a href="${esc(link)}">Manage your booking</a>. You will be asked for your reference and this email address.</p>`}</div>`;
+  const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#1b1b1b;max-width:520px"><h2 style="margin:0 0 12px">${esc(head)}</h2><p style="margin:0 0 4px"><b>${esc(venue)}</b></p><p style="margin:0">${esc(when)}<br>${esc(who)}${area ? "<br>" + esc(area) : ""}</p><p style="margin:14px 0;padding:10px 14px;background:#f3eee6;border-radius:8px">Your reference: <b style="font-size:20px;letter-spacing:.1em">${ref}</b></p>${extra ? `<p style="margin:0 0 14px">${esc(extra)}</p>` : ""}${kind === "cancelled" ? "<p>We hope to see you another time.</p>" : `<p style="margin:0">Need to change or cancel? <a href="${esc(link)}">Manage your booking</a>. You will be asked for your reference and this email address.</p>`}</div>`;
   return { subject: head + " · " + venue, html, text: lines.join("\n") };
 }
 const isDate = (d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d) && !isNaN(new Date(d + "T12:00:00Z").getTime());
@@ -189,17 +197,19 @@ Deno.serve(async (req) => {
 
     if (a === "info") {
       if (!on) return off();
-      return send({ name, on: true, label: o.label || "Book a table", msg: o.msg || "", maxParty: o.maxParty, ahead: o.ahead, confirm: o.confirm, mkTick: row.data.venue.mkTick !== false, today, look: lookOf(o) });
+      return send({ name, on: true, label: o.label || "Book a table", msg: o.msg || "", maxParty: o.maxParty, ahead: o.ahead, confirm: o.confirm, mkTick: row.data.venue.mkTick !== false, today, look: lookOf(o), rooms: R.pickRooms(), pick: R.pickRooms().length ? o.pick : "" });
     }
 
     if (a === "slots") {
       if (!on) return off();
       const date = String(q.get("date") || ""), size = Math.round(+(q.get("size") || 0));
       if (!isDate(date)) return send({ error: "bad", message: "Please choose a date." }, 400);
-      const r = R.availSlots(date, size);
+      const prs = R.pickRooms(), room = prs.includes(String(q.get("room") || "")) ? String(q.get("room")) : "";
+      if (prs.length && o.pick === "must" && !room) return send({ date, size, times: [], why: "Please choose an area first.", room: "" });
+      const r = R.availSlots(date, size, room);
       const times = r.slots.filter((s) => s.ok).map((s) => s.t);
-      const why = guestWhy(r, o) || (times.length ? "" : "Sorry, there are no tables free online that day for " + size + (size === 1 ? " guest" : " guests") + ". Please try another date or contact us directly.");
-      return send({ date, size, times, why });
+      const why = guestWhy(r, o) || (times.length ? "" : "Sorry, there are no tables free online that day for " + size + (size === 1 ? " guest" : " guests") + (room ? " in " + room : "") + ". Please try another date" + (room ? ", another area" : "") + " or contact us directly.");
+      return send({ date, size, times, why, room });
     }
 
     if (a === "book" && req.method === "POST") {
@@ -225,10 +235,12 @@ Deno.serve(async (req) => {
         // pressed twice: the same phone at the same time is the booking they already have
         const same = parties.find((p) => p.date === date && p.time === time && normPh(p.phone) === normPh(phone) && p.status === "booked");
         if (same) return send({ ok: true, ref: String(same.id).slice(0, 6).toUpperCase(), confirm: o.confirm, name, date, time, size: same.size });
-        const r = R.availSlots(date, size), slot = r.slots.find((s) => s.t === time);
+        const prs = R.pickRooms(), room = prs.includes(String(b.room || "")) ? String(b.room) : "";
+        if (prs.length && o.pick === "must" && !room) return send({ error: "bad", message: "Please choose an area." }, 400);
+        const r = R.availSlots(date, size, room), slot = r.slots.find((s) => s.t === time);
         if (!slot || !slot.ok || !slot.unit) return send({ error: "gone", message: guestWhy(r, o) || "Sorry, that time has just been taken. Please choose another time." }, 409);
         const u = slot.unit, ask = o.confirm === "request";
-        const p: Any = { id: uid(), name: gname, phone, size, date, time, dur: R.durFor(size), table: u.ids[0], status: "booked", notes: (ask ? "Online request: please confirm with the guest. " : "") + notes, email, src: "Website", tags: [], web: Date.now() };
+        const p: Any = { id: uid(), name: gname, phone, size, date, time, dur: R.durFor(size), table: u.ids[0], status: "booked", notes: ((ask ? "Online request: please confirm with the guest. " : "") + (room ? "Guest chose " + room + ". " : "") + notes).slice(0, 400), email, src: "Website", tags: [], web: Date.now() };
         if (u.ids.length > 1) p.join = u.ids.slice(1);
         if (u.part != null) p.part = u.part;
         if (ask) p.req = 1;
@@ -242,9 +254,9 @@ Deno.serve(async (req) => {
         if (c.error) throw c.error;
         if (c.data != null) {
           await db.rpc("pr_pin_failed", { p_key: key });
-          const em = bookingMail(ask ? "request" : "new", name, site, p, o.msg || "");
+          const em = bookingMail(ask ? "request" : "new", name, site, p, o.msg || "", room);
           const sent = await mail(email, em.subject, em.html, em.text);
-          return send({ ok: true, ref: p.id.slice(0, 6).toUpperCase(), confirm: o.confirm, name, date, time, size, emailed: sent });
+          return send({ ok: true, ref: p.id.slice(0, 6).toUpperCase(), confirm: o.confirm, name, date, time, size, room, emailed: sent });
         }
         // someone else saved in between: read again and re-check the time
       }
@@ -271,7 +283,7 @@ Deno.serve(async (req) => {
       };
       const p0 = mine(row.data);
       if (!p0) return notFound();
-      const mk = (p: Any) => ({ ok: true, ref: refOf(p), name: p.name, date: p.date, time: p.time, size: p.size, status: p.status });
+      const mk = (p: Any) => { const pr = R.pickRooms(), ar = R.areaOf(p.table); return { ok: true, ref: refOf(p), name: p.name, date: p.date, time: p.time, size: p.size, status: p.status, room: pr.includes(ar) ? ar : "" }; };
       if (a === "find") return send({ ...mk(p0), canChange: on && !lockWhy(p0, o), why: !on ? "Online changes are not available at the moment. Please contact us directly." : lockWhy(p0, o), maxParty: o.maxParty, ahead: o.ahead, today });
       if (!on) return send({ error: "off", message: "Online changes are not available at the moment. Please contact us directly." }, 403);
       const act = b.action === "cancel" ? "cancel" : "change";
@@ -287,7 +299,7 @@ Deno.serve(async (req) => {
           const date = String(b.date || ""), time = String(b.time || ""), size = Math.round(+b.size || 0);
           if (!isDate(date) || !/^\d{2}:\d{2}$/.test(time)) return send({ error: "bad", message: "Please choose a date and time." }, 400);
           // check the new time as if this booking were not holding its own table
-          const R2 = rules({ ...S, parties: (S.parties || []).filter((x: Any) => x.id !== p.id) }, today, nowMin), r = R2.availSlots(date, size), slot = r.slots.find((s) => s.t === time);
+          const R2 = rules({ ...S, parties: (S.parties || []).filter((x: Any) => x.id !== p.id) }, today, nowMin), prs = R2.pickRooms(), room = prs.includes(String(b.room || "")) ? String(b.room) : prs.length && o.pick === "must" && prs.includes(R2.areaOf(p.table)) ? R2.areaOf(p.table) : "", r = R2.availSlots(date, size, room), slot = r.slots.find((s) => s.t === time);
           if (!slot || !slot.ok || !slot.unit) return send({ error: "gone", message: guestWhy(r, o) || "Sorry, that time is not free. Please choose another time." }, 409);
           const u = slot.unit;
           p.date = date; p.time = time; p.size = size; p.dur = R2.durFor(size); p.table = u.ids[0];
@@ -299,7 +311,7 @@ Deno.serve(async (req) => {
         const c = await db.rpc("pr_state_commit", { p_site: site, p_rev: row!.rev, p_data: S, p_ops: [{ k: "parties", up: [p] }] });
         if (c.error) throw c.error;
         if (c.data != null) {
-          const e = bookingMail(act === "cancel" ? "cancelled" : "changed", name, site, p, act === "cancel" ? "" : o.msg || "");
+          const e = bookingMail(act === "cancel" ? "cancelled" : "changed", name, site, p, act === "cancel" ? "" : o.msg || "", act === "cancel" ? "" : mk(p).room);
           const sent = await mail(em, e.subject, e.html, e.text);
           return send({ ...mk(p), emailed: sent });
         }

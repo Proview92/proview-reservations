@@ -84,7 +84,8 @@ html.eg body{font-family:"Jost","Futura","Century Gothic","Avenir Next",system-u
 /* inside a wide website embed: three across (guests, calendar, times) and a slim title, so it fits under the site header without scrolling */
 @media(min-width:900px){html.eg.lw body.embed .card{max-width:1040px}html.eg.lw body.embed .eg-h{padding:4px 16px 0}html.eg.lw body.embed .eg-h h1,html.eg.lw body.embed .eg-h p{display:none}html.eg.lw body.embed .eg-tab{padding:6px 4px 8px}html.eg.lw body.embed .eg-b{padding:12px 22px 12px;gap:8px}html.eg.lw body.embed .eg-g{grid-template-columns:minmax(0,2.1fr) minmax(0,1fr)}html.eg.lw body.embed .eg-g>.eg-p:first-child{flex-direction:row;gap:26px}html.eg.lw body.embed .eg-g>.eg-p:first-child>div:first-child{flex:0 0 190px}html.eg.lw body.embed .eg-g>.eg-p:first-child>div:last-child{flex:1 1 auto;min-width:0}html.eg.lw body.embed .eg-c button{height:32px}html.eg.lw body.embed #foot{margin:4px auto!important}}
 html.sz-s body.embed .card{max-width:480px!important}html.sz-s body.embed .eg-g{grid-template-columns:minmax(0,1fr)!important}html.sz-l body.embed .card{max-width:760px}html.eg.sz-l body.embed .card{max-width:1040px}
-.pers{display:flex;gap:6px;margin:0 0 8px}.pers button{flex:1 1 0;min-width:0;height:38px;border:1px solid var(--line);border-radius:var(--rad);background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer}.pers button.on{background:var(--btn);color:var(--btnink);border-color:transparent}.eg .pers button{border-radius:999px;font-weight:500}.eg .pers button.on{background:var(--sand);border-color:var(--sandd);color:var(--sandink)}
+.rmw{margin-top:14px}.rms{display:flex;flex-wrap:wrap;gap:6px}.rms button{flex:1 1 auto;min-width:0;min-height:40px;padding:6px 14px;border:1px solid var(--line);border-radius:var(--rad);background:var(--card);color:var(--ink);font:inherit;font-size:15px;font-weight:600;cursor:pointer}.rms button.on{background:var(--btn);color:var(--btnink);border-color:transparent}
+.pers{display:flex;gap:6px;margin:0 0 8px}.pers button{flex:1 1 0;min-width:0;height:38px;border:1px solid var(--line);border-radius:var(--rad);background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer}.pers button.on{background:var(--btn);color:var(--btnink);border-color:transparent}.eg .pers button{border-radius:999px;font-weight:500}.eg .rms button{border-radius:999px;font-weight:500}.eg .rms button.on{background:var(--sand);border-color:var(--sandd);color:var(--sandink)}.eg .pers button.on{background:var(--sand);border-color:var(--sandd);color:var(--sandink)}
 @media(min-width:900px){html.eg.lw body.embed .times{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 5px}html.eg.lw body.embed .times button{height:34px;font-size:13px;padding:0;white-space:nowrap}html.eg.lw body.embed .pers button{height:34px}}
 .eg-ds{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:46px;padding:8px 14px;border:1px solid var(--sandd,var(--line));border-radius:var(--rad);background:var(--card);color:var(--ink);font:inherit;cursor:pointer;text-align:left}.eg-ds b{font-size:16px;font-weight:600}.eg-ds span{font-size:13.5px;text-decoration:underline;white-space:nowrap}
 .nxt{margin:10px 0 0;display:grid;gap:8px}.nxt b{font-size:15px}.nxt .link{justify-self:start;padding:0}
@@ -108,8 +109,12 @@ const dParts=d=>{const x=new Date(d+"T12:00:00Z");return{dn:DN[x.getUTCDay()],da
 const fmtD=d=>new Date(d+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",timeZone:"UTC"});
 const t12=t=>{const h=+t.slice(0,2),m=t.slice(3);return((h+11)%12+1)+":"+m+(h<12?"am":"pm")};
 const guests=n=>n+(n===1?" guest":" guests");
+/* the venue may let the guest choose a room (restaurant or lounge, inside or outside) */
+const RMS=()=>(V&&Array.isArray(V.rooms)&&V.rooms.length>1)?V.rooms:[],needRoom=()=>RMS().length&&V.pick==="must"&&!U.room,rq=o=>{if(U.room&&RMS().includes(U.room))o.room=U.room;return o},rmTxt=()=>U.room&&RMS().includes(U.room)?" \u00b7 "+U.room:"";
+function roomHtml(){const R=RMS();if(!R.length)return"";const b=(v,l)=>`<button type="button" data-a="room" data-v="${esc(v)}" class="${U.room===v?"on":""}" aria-pressed="${U.room===v}">${esc(l)}</button>`;
+  return`<div class="rmw"><h2 class="${EG()?"eg-l":""}">Area</h2><div class="rms" role="group" aria-label="Area">${V.pick==="must"?"":b("","No preference")}${R.map(r=>b(r,r)).join("")}</div></div>`}
 let API="",KEY="",V=null;                                       // V = what the venue allows
-const U={step:"pick",size:2,date:"",times:null,why:"",time:"",busy:false,err:"",done:null,am:null,af:{ref:"",email:""},f:{name:"",phone:"",email:"",notes:"",mk:true}};
+const U={step:"pick",room:"",size:2,date:"",times:null,why:"",time:"",busy:false,err:"",done:null,am:null,af:{ref:"",email:""},f:{name:"",phone:"",email:"",notes:"",mk:true}};
 async function call(a,params,body){const u=new URL(API);u.searchParams.set("v",SITE);u.searchParams.set("a",a);Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
   const r=await fetch(u,{method:body?"POST":"GET",headers:Object.assign({apikey:KEY,Authorization:"Bearer "+KEY},body?{"content-type":"application/json"}:{}),body:body?JSON.stringify(body):undefined});
   let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw Object.assign(new Error(j.message||"Something went wrong. Please try again."),{code:j.error||"",status:r.status});return j}
@@ -153,7 +158,7 @@ async function amFind(e){e.preventDefault();if(U.busy)return;U.af.ref=$("#a-ref"
   if(U.af.ref.length<4){U.err="Please enter your booking reference.";render();return}
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(U.af.email)){U.err="Please enter the email address you booked with.";render();return}
   U.busy=true;U.err="";render();
-  try{const r=await call("find",{},{ref:U.af.ref,email:U.af.email});U.busy=false;U.am={ref:r.ref,email:U.af.email,b:{date:r.date,time:r.time,size:r.size,name:r.name},can:r.canChange,why:r.why};U.step="manage";render();scrollTo(0,0)}
+  try{const r=await call("find",{},{ref:U.af.ref,email:U.af.email});U.busy=false;U.am={ref:r.ref,email:U.af.email,b:{date:r.date,time:r.time,size:r.size,name:r.name,room:r.room||""},can:r.canChange,why:r.why};U.step="manage";render();scrollTo(0,0)}
   catch(err){U.busy=false;U.err=err.message;render()}}
 async function doAmend(action,extra){if(U.busy)return;U.busy=true;U.err="";if(U.step==="ask")render();
   try{const r=await call("amend",{},Object.assign({ref:U.am.ref,email:U.am.email,action},extra||{}));U.busy=false;U.am.b={date:r.date,time:r.time,size:r.size,name:r.name};U.am.em=!!r.emailed;U.adone=action;U.step="adone";render();scrollTo(0,0)}
@@ -163,11 +168,11 @@ function render(){
   if(renderAm())return;
   if(U.step==="done"){const d=U.done,ask=d.confirm==="request";
     page(`${head("")}<div class="notice ok"><b>${ask?"Request sent":"You are booked"}</b><br>${ask?"We will be in touch to confirm your table.":"We look forward to seeing you."}</div>
-      <div class="sum">${esc(fmtD(d.date))} at ${esc(t12(d.time))}<span>${esc(guests(d.size))} · ${esc(U.f.name)} · reference ${esc(d.ref)}</span></div>
+      <div class="sum">${esc(fmtD(d.date))} at ${esc(t12(d.time))}<span>${esc(guests(d.size))}${d.room?" · "+esc(d.room):""} · ${esc(U.f.name)} · reference ${esc(d.ref)}</span></div>
       ${d.emailed?`<p class="muted small">We have emailed your confirmation to ${esc(U.f.email)}.</p>`:""}<p class="muted small">To change or cancel, use \u201cAlready booked? Change or cancel it\u201d on the booking page with your reference <b>${esc(d.ref)}</b> and the email you booked with.</p>
       <button class="link" data-a="again">Make another booking</button>`);return}
   if(U.step==="form"){const f=U.f;
-    page(`${head("")}<div class="sum">${esc(fmtD(U.date))} at ${esc(t12(U.time))}<span>${esc(guests(U.size))}</span></div>
+    page(`${head("")}<div class="sum">${esc(fmtD(U.date))} at ${esc(t12(U.time))}<span>${esc(guests(U.size))}${esc(rmTxt())}</span></div>
       ${V.msg?`<div class="notice">${esc(V.msg)}</div>`:""}${U.err?`<div class="notice bad">${esc(U.err)}</div>`:""}
       <form id="fm" novalidate style="display:flex;flex-direction:column;gap:14px">
       <label class="af">Name<input id="f-name" autocomplete="name" maxlength="80" value="${esc(f.name)}" required></label>
@@ -184,13 +189,14 @@ function render(){
   const max=V.maxParty,opts=[];for(let n=1;n<=max;n++)opts.push(`<option value="${n}" ${n===U.size?"selected":""}>${guests(n)}</option>`);
   const last=addD(V.today,V.ahead),days=[];for(let i=0;i<14&&addD(V.today,i)<=last;i++){const d=addD(V.today,i),p=dParts(d);days.push(`<button type="button" data-a="day" data-d="${d}" class="${d===U.date?"on":""}" aria-pressed="${d===U.date}"><small>${i===0?"Today":p.dn}</small><b>${p.day}</b><small>${p.mn}</small></button>`)}
   let tm="";
-  if(U.times===null)tm=`<p class="muted">Checking times…</p>`;
+  if(needRoom())tm=`<p class="muted">Choose an area to see the times.</p>`;
+  else if(U.times===null)tm=`<p class="muted">Checking times…</p>`;
   else if(U.why&&!U.times.length)tm=`<div class="notice">${esc(U.why)}</div>${nextHtml()}`;
   else tm=timesHtml();
   page(`${head(esc(V.label||"Book a table"))}${amBan()}${U.err?`<div class="notice bad">${esc(U.err)}</div>`:""}
     <div class="row"><label class="af">Guests<select id="p-size">${opts.join("")}</select></label>
     <label class="af">Date<input id="p-date" type="date" min="${V.today}" max="${last}" value="${U.date}"></label></div>
-    <div class="days" role="group" aria-label="Choose a day">${days.join("")}</div>
+    ${roomHtml()}<div class="days" role="group" aria-label="Choose a day">${days.join("")}</div>
     <div><h2>${esc(fmtD(U.date))}</h2>${tm}</div>
     <p class="muted small">For more than ${max} guests please contact ${esc(V.name)} directly.</p>${findLink()}`);
   $("#p-size").addEventListener("change",e=>{U.size=+e.target.value;loadTimes()});
@@ -203,11 +209,12 @@ function pickEg(){const max=V.maxParty,last=addD(V.today,V.ahead);if(!U.cm)U.cm=
   let c=["Mo","Tu","We","Th","Fr","Sa","Su"].map(d=>`<span class="dw">${d}</span>`).join("")+"<span></span>".repeat(lead);
   for(let d=1;d<=dim;d++){const iso=U.cm+"-"+pad(d),ok=iso>=V.today&&iso<=last;c+=`<button type="button" ${ok?`data-a="day" data-d="${iso}"`:"disabled"} class="${iso===U.date?"on":""} ${iso===V.today?"t":""}" aria-pressed="${iso===U.date}">${d}</button>`}
   let tm="";
-  if(U.times===null)tm=`<p class="muted">Checking times\u2026</p>`;
+  if(needRoom())tm=`<p class="muted">Choose an area to see the times.</p>`;
+  else if(U.times===null)tm=`<p class="muted">Checking times\u2026</p>`;
   else if(U.why&&!U.times.length)tm=`<div class="notice">${esc(U.why)}</div>${nextHtml()}`;
   else tm=timesHtml();
   page(`${head("")}${amBan()}${U.err?`<div class="notice bad">${esc(U.err)}</div>`:""}
-    <div class="eg-g"><div class="eg-p"><div><h2 class="eg-l">Guests</h2><div class="eg-sz" role="group" aria-label="Number of guests">${sz.join("")}</div><p class="muted small" style="margin-top:8px">More than ${max}? Please contact ${esc(V.name)} directly.</p></div>
+    <div class="eg-g"><div class="eg-p"><div><h2 class="eg-l">Guests</h2><div class="eg-sz" role="group" aria-label="Number of guests">${sz.join("")}</div><p class="muted small" style="margin-top:8px">More than ${max}? Please contact ${esc(V.name)} directly.</p>${roomHtml()}</div>
     ${innerWidth<640&&!U.calOpen?`<div><h2 class="eg-l">Date</h2><button type="button" class="eg-ds" data-a="calopen" aria-expanded="false"><b>${esc(fmtD(U.date))}</b><span>Change date</span></button></div>`:`<div><h2 class="eg-l">Date</h2><div class="eg-m"><button type="button" data-a="mon" data-v="-1" aria-label="Previous month" ${U.cm<=V.today.slice(0,7)?"disabled":""}>\u2039</button><span>${MNL[mo-1]} ${y}</span><button type="button" data-a="mon" data-v="1" aria-label="Next month" ${U.cm>=last.slice(0,7)?"disabled":""}>\u203a</button></div><div class="eg-c">${c}</div></div>`}</div>
     <div class="eg-p"><div><h2 class="eg-l">${innerWidth<640&&!U.calOpen?"Choose a time":esc(fmtD(U.date))}</h2>${tm}</div></div></div>${findLink()}`)}
 let seq=0;
@@ -219,9 +226,9 @@ function timesHtml(){const T=U.times||[],btn=t=>`<button type="button" data-a="t
 /* when a day has nothing free, look ahead and offer the next day that does */
 function nextHtml(){const n=U.next;if(n===undefined||n===null)return"";if(n==="look")return`<p class="muted small" style="margin:10px 0 0">Looking for the next free day\u2026</p>`;if(n==="none")return`<p class="muted small" style="margin:10px 0 0">Nothing free online in the next two weeks. Please contact us directly.</p>`;
   return`<div class="nxt"><b>Next available: ${esc(fmtD(n.date))}</b><div class="times">${n.times.slice(0,4).map(t=>`<button type="button" data-a="nxt" data-d="${n.date}" data-t="${t}">${t12(t)}</button>`).join("")}</div>${n.times.length>4?`<button type="button" class="link" data-a="day" data-d="${n.date}">See all ${n.times.length} times that day</button>`:""}</div>`}
-async function findNext(my){const last=addD(V.today,V.ahead);U.next="look";render();for(let i=1;i<=14;i++){const d=addD(U.date,i);if(d>last)break;try{const r=await call("slots",{date:d,size:U.size});if(my!==seq)return;if(r.on===false)break;if(r.times&&r.times.length){U.next={date:d,times:r.times};render();return}}catch(e){if(my!==seq)return;break}}if(my===seq){U.next="none";render()}}
-async function loadTimes(){const my=++seq;U.times=null;U.why="";U.err="";U.next=null;render();
-  try{const r=await call("slots",{date:U.date,size:U.size});if(my!==seq)return;if(r.on===false){V.on=false;fail("Online booking is not available",r.message||"");return}U.times=r.times||[];U.why=r.why||""}
+async function findNext(my){const last=addD(V.today,V.ahead);U.next="look";render();for(let i=1;i<=14;i++){const d=addD(U.date,i);if(d>last)break;try{const r=await call("slots",rq({date:d,size:U.size}));if(my!==seq)return;if(r.on===false)break;if(r.times&&r.times.length){U.next={date:d,times:r.times};render();return}}catch(e){if(my!==seq)return;break}}if(my===seq){U.next="none";render()}}
+async function loadTimes(){const my=++seq;U.times=null;U.why="";U.err="";U.next=null;if(needRoom()){U.times=[];U.why="";render();return}render();
+  try{const r=await call("slots",rq({date:U.date,size:U.size}));if(my!==seq)return;if(r.on===false){V.on=false;fail("Online booking is not available",r.message||"");return}U.times=r.times||[];U.why=r.why||""}
   catch(e){if(my!==seq)return;U.times=[];U.why=e.message;render();return}render();if(!U.times.length&&U.why)findNext(my)}
 async function submit(e){e.preventDefault();if(U.busy)return;const f=U.f;
   f.name=$("#f-name").value.trim();f.phone=$("#f-phone").value.trim();f.email=$("#f-email").value.trim();f.notes=$("#f-notes").value.trim();f.mk=$("#f-mk").checked;const web=$("#f-web").value;
@@ -230,19 +237,20 @@ async function submit(e){e.preventDefault();if(U.busy)return;const f=U.f;
   if(!f.email){U.err="Please enter your email address so we can send your confirmation.";render();$("#f-email").focus();return}
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)){U.err="That email address does not look right.";render();$("#f-email").focus();return}
   U.busy=true;U.err="";render();
-  try{const r=await call("book",{},{date:U.date,time:U.time,size:U.size,name:f.name,phone:f.phone,email:f.email,notes:f.notes,mk:!!(f.email&&f.mk),website:web});U.busy=false;U.done=r;U.step="done";render();scrollTo(0,0)}
+  try{const r=await call("book",{},{date:U.date,time:U.time,size:U.size,room:rq({}).room||"",name:f.name,phone:f.phone,email:f.email,notes:f.notes,mk:!!(f.email&&f.mk),website:web});U.busy=false;U.done=r;U.step="done";render();scrollTo(0,0)}
   catch(err){U.busy=false;if(err.code==="gone"){U.step="pick";U.err=err.message;loadTimes();return}U.err=err.message;render()}}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;
   if(a==="per"){U.per=b.dataset.v;render();return}
-  if(a==="nxt"){const t=b.dataset.t;U.date=b.dataset.d;U.cm=U.date.slice(0,7);U.times=(U.next&&U.next.times)||[t];U.why="";U.next=null;U.time=t;if(U.am){doAmend("change",{date:U.date,time:U.time,size:U.size})}else{U.step="form";U.err="";render();scrollTo(0,0);const n=$("#f-name");if(n&&!n.value)try{n.focus()}catch(x){}}}
+  if(a==="nxt"){const t=b.dataset.t;U.date=b.dataset.d;U.cm=U.date.slice(0,7);U.times=(U.next&&U.next.times)||[t];U.why="";U.next=null;U.time=t;if(U.am){doAmend("change",rq({date:U.date,time:U.time,size:U.size}))}else{U.step="form";U.err="";render();scrollTo(0,0);const n=$("#f-name");if(n&&!n.value)try{n.focus()}catch(x){}}}
   else if(a==="calopen"){U.calOpen=true;U.cm=U.date.slice(0,7);render()}
   else if(a==="day"){U.date=b.dataset.d;U.cm=U.date.slice(0,7);U.calOpen=false;loadTimes()}
   else if(a==="size"){U.size=+b.dataset.n;loadTimes()}
+  else if(a==="room"){U.room=b.dataset.v;loadTimes()}
   else if(a==="mon"){const y=+U.cm.slice(0,4),m=+U.cm.slice(5,7)-1+(+b.dataset.v),d=new Date(Date.UTC(y,m,1,12));U.cm=d.getUTCFullYear()+"-"+pad(d.getUTCMonth()+1);render()}
-  else if(a==="time"&&U.am){U.time=b.dataset.t;doAmend("change",{date:U.date,time:U.time,size:U.size})}
+  else if(a==="time"&&U.am){U.time=b.dataset.t;doAmend("change",rq({date:U.date,time:U.time,size:U.size}))}
   else if(a==="find"){U.step="find";U.err="";render();scrollTo(0,0)}
   else if(a==="amback"){U.am=null;U.step="pick";U.err="";loadTimes()}
-  else if(a==="amchange"){const x=U.am.b;U.size=Math.min(x.size,V.maxParty);U.date=x.date<V.today?V.today:x.date;U.cm=U.date.slice(0,7);U.step="pick";U.err="";loadTimes()}
+  else if(a==="amchange"){const x=U.am.b;U.room=RMS().includes(x.room)?x.room:"";U.size=Math.min(x.size,V.maxParty);U.date=x.date<V.today?V.today:x.date;U.cm=U.date.slice(0,7);U.step="pick";U.err="";loadTimes()}
   else if(a==="amask"){U.step="ask";U.err="";render()}
   else if(a==="amcancel"){doAmend("cancel")}
   else if(a==="amkeep"||a==="amkeep2"){U.step="manage";U.err="";render()}
@@ -257,6 +265,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b
   if(!V.on){fail("Online booking is not available",V.message||"Please contact us directly.");return}
   U.f.mk=V.mkTick!==false;U.size=Math.min(2,V.maxParty);U.date=V.today;
   const qd=Q.get("date"),qs=+Q.get("size");if(qd&&/^\d{4}-\d{2}-\d{2}$/.test(qd)&&qd>=V.today&&qd<=addD(V.today,V.ahead))U.date=qd;if(qs>=1&&qs<=V.maxParty)U.size=Math.round(qs);
+  const qm=Q.get("room")||"";if(RMS().includes(qm))U.room=qm;
   const qr=(Q.get("ref")||"").toUpperCase().replace(/[^A-Z0-9]/g,"");if(qr){U.af.ref=qr;U.step="find";render();return}
   loadTimes()})();
 new ResizeObserver(tell).observe(document.body);
