@@ -1062,8 +1062,11 @@ function fitTables(){const sp=document.querySelector("#main .tsplit"),mn=$("#mai
  const aw=pl.clientWidth-px,mh=parseFloat(ps.maxHeight),ah=sp.classList.contains("fx")?pl.clientHeight-py+twh:(isFinite(mh)?mh-py:1e6);
  const zf=Math.max(.15,Math.min(3,Math.floor(Math.min(aw/W,ah/H)*1000)/1000));U.zfit=zf;U.zmax=Math.max(1.2,Math.min(3,+(zf*3).toFixed(2)));
  const Z=U.zauto===false?Math.min(U.zmax,Math.max(zf,U.zoom||zf)):zf;if(Math.abs(Z-(U.zeff||0))>.002)planApply(pl,Z);U.zeff=Z;if(U.zauto===false)U.zoom=Z;const zi=$("#zin");if(zi)zi.value=Math.round(Z*100);
+ /* the plan is redrawn on every tap: put it back where the user had slid it, so tapping a table does not jump the plan to the left */
+ {const k=curRoom(),q=U.pls;if(q&&q.k===k&&(pl.scrollLeft!==q.x||pl.scrollTop!==q.y)){pl.scrollLeft=q.x;pl.scrollTop=q.y}pl.dataset.k=k}
  if(U.selT!==U.selSeen){U.selSeen=U.selT;U.selAt=Date.now()}
  if(tw&&Date.now()-(U.selAt||0)<700){const e=pl.querySelector(".tbl.sel");if(e){const r=e.getBoundingClientRect(),q=pl.getBoundingClientRect();if(r.bottom>q.bottom-8)pl.scrollTop+=r.bottom-q.bottom+14;else if(r.top<q.top+8)pl.scrollTop-=q.top-r.top+14}}}
+document.addEventListener("scroll",e=>{const t=e.target;if(t&&t.classList&&t.classList.contains("plan")&&t.dataset.k&&t.closest("#main .tsp"))U.pls={k:t.dataset.k,x:t.scrollLeft,y:t.scrollTop}},true);
 /* a trackpad pinch (or Ctrl + wheel) never zooms the browser page; over the floor plan it zooms the plan around the pointer */
 addEventListener("wheel",e=>{if(!e.ctrlKey)return;e.preventDefault();const pl=e.target&&e.target.closest?e.target.closest("#main .tsp .card.plan"):null;if(!pl)return;const Z0=U.zeff||U.zoom||1,Z=Math.min(ZMX(),Math.max(ZMN(),+(Z0*Math.exp(-e.deltaY*.01)).toFixed(3)));if(Z===Z0)return;const r=pl.getBoundingClientRect(),cx=e.clientX-r.left-10,cy=e.clientY-r.top-10,px=(pl.scrollLeft+cx)/Z0,py=(pl.scrollTop+cy)/Z0;planApply(pl,Z);pl.scrollLeft=px*Z-cx;pl.scrollTop=py*Z-cy;U.zoom=Z;U.zeff=Z;U.zauto=false;const zi=$("#zin");if(zi)zi.value=Math.round(Z*100);const fb=document.querySelector('[data-act=zfit]');if(fb)fb.classList.remove("pri")},{passive:false});
 function fitSoon(){cancelAnimationFrame(fitSoon.r);fitSoon.r=requestAnimationFrame(()=>{fitV();fitTables()})}
