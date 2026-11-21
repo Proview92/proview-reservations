@@ -99,6 +99,8 @@ html.sh .times{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}html.sh .t
 @media(max-width:560px){html.sh .times{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.sh-bar{border-radius:calc(var(--rad) * 1.6)}.sh-bar label{padding:7px 4px 7px 12px}.sh-bar select,.sh-bar input{font-size:14.5px}}
 .sh-ad{display:flex;align-items:center;gap:5px;margin:6px 0 0;color:var(--mut);font-size:14px}.sh-ad svg{flex:none}
 html.sh .times.tr button{height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.15;padding:0 4px}html.sh .times.tr button b{font-size:15px}html.sh .times.tr button small{font-size:12px;font-weight:500;opacity:.9;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row>label:has(.ph){flex:1 1 250px}
+.ph{position:relative;display:flex;align-items:stretch;border:1px solid var(--line);border-radius:var(--rad);background:var(--card);overflow:hidden}.ph:focus-within{outline:2px solid var(--pri);outline-offset:-1px;border-color:transparent}.ph select{position:absolute;left:0;top:0;width:92px;height:100%;opacity:0;cursor:pointer;border:0;padding:0}.phf{flex:none;width:92px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:15px;font-weight:600;border-right:1px solid var(--line);background:var(--hov);pointer-events:none;white-space:nowrap}.phf::after{content:"\25BE";font-size:11px;color:var(--mut);margin-left:2px}.ph input{border:0!important;border-radius:0!important;outline:0!important;flex:1;min-width:0}
 .tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}.tabs button{border:0;background:none;font:inherit;font-weight:600;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);min-height:48px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}.tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}.tabs i{font-style:normal;font-size:12px;background:var(--hov);border:1px solid var(--line);border-radius:999px;padding:1px 8px;margin-left:4px}
 .evc{border:1px solid var(--line);border-radius:calc(var(--rad) + 2px);overflow:hidden;background:var(--card)}.evc img{display:block;width:100%;aspect-ratio:16/8;object-fit:cover}.evb{padding:14px 16px 16px;display:grid;gap:6px}.evb h2{font-size:18px;margin:0;letter-spacing:.02em}.evd{margin:4px 0 0;line-height:1.45}.evf{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}.evf>div{display:grid;gap:2px;min-width:0}.evf .go{width:auto;padding:0 26px;flex:none}
 .sh-al{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;margin-top:10px;border:1px solid var(--ink);border-radius:var(--rad);background:var(--card);color:var(--ink);font:inherit;font-weight:600;font-size:14.5px;cursor:pointer}.sh-al:hover{background:var(--hov)}
@@ -163,6 +165,12 @@ let LOGO="";
 function tell(){try{if(EMBED&&parent!==window)parent.postMessage({proviewBookingHeight:Math.ceil(document.body.getBoundingClientRect().height)+2},"*")}catch(e){}}
 const EG=()=>document.documentElement.classList.contains("eg"),SH=()=>document.documentElement.classList.contains("sh");
 function page(h){$("#root").innerHTML=EG()?h+"</div>":h;tell()}
+/* Mobile number with a country picker: flag and dialling code first, the United Kingdom to start with */
+const CCS=[["GB","44","United Kingdom"],["IE","353","Ireland"],["FR","33","France"],["DE","49","Germany"],["ES","34","Spain"],["IT","39","Italy"],["PT","351","Portugal"],["NL","31","Netherlands"],["BE","32","Belgium"],["CH","41","Switzerland"],["AT","43","Austria"],["SE","46","Sweden"],["NO","47","Norway"],["DK","45","Denmark"],["PL","48","Poland"],["GR","30","Greece"],["CY","357","Cyprus"],["TR","90","T\u00fcrkiye"],["AE","971","United Arab Emirates"],["SA","966","Saudi Arabia"],["QA","974","Qatar"],["KW","965","Kuwait"],["EG","20","Egypt"],["MA","212","Morocco"],["NG","234","Nigeria"],["GH","233","Ghana"],["ZA","27","South Africa"],["IN","91","India"],["PK","92","Pakistan"],["BD","880","Bangladesh"],["CN","86","China"],["HK","852","Hong Kong"],["JP","81","Japan"],["SG","65","Singapore"],["AU","61","Australia"],["NZ","64","New Zealand"],["US","1","United States"],["CA","1","Canada"],["BR","55","Brazil"],["MX","52","Mexico"]],flag=c=>String.fromCodePoint(...[...c].map(x=>127397+x.charCodeAt(0)));
+function phHtml(lab,req){const f=U.f,cc=f.cc||"GB";return`<label class="af">${lab}<span class="ph"><select id="f-cc" aria-label="Country" autocomplete="tel-country-code">${CCS.map(c=>`<option value="${c[0]}" ${c[0]===cc?"selected":""}>${flag(c[0])} +${c[1]} ${c[2]}</option>`).join("")}</select><span class="phf" aria-hidden="true">${flag(cc)} +${(CCS.find(c=>c[0]===cc)||CCS[0])[1]}</span><input id="f-phone" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="30" value="${esc(f.pn||"")}" ${req?"required":""}></span></label>`}
+/* what is sent: a UK number as typed; any other country with its dialling code in front */
+function phVal(){const f=U.f,e=$("#f-phone"),s=$("#f-cc");if(!e)return f.phone||"";f.pn=e.value.trim();f.cc=s?s.value:"GB";const c=CCS.find(x=>x[0]===f.cc)||CCS[0];if(!f.pn)return"";if(f.pn.startsWith("+")||f.pn.startsWith("00")||f.cc==="GB")return f.pn;return"+"+c[1]+" "+f.pn.replace(/^0+/,"")}
+document.addEventListener("change",e=>{if(e.target&&e.target.id==="f-cc"){const c=CCS.find(x=>x[0]===e.target.value)||CCS[0],l=e.target.parentNode.querySelector(".phf");U.f.cc=c[0];if(l)l.textContent=flag(c[0])+" +"+c[1]}});
 /* Events: a second tab beside "Book a table" when the venue has upcoming events */
 const EVS=()=>(V&&Array.isArray(V.events))?V.events:[],evWhen=e=>fmtD(e.date)+(e.start?" \u00b7 "+t12(e.start)+(e.end?" to "+t12(e.end):""):"");
 function tabsHtml(){if(!EVS().length||U.am||!["pick","events","evform","evdone"].includes(U.step))return"";const ev=U.step!=="pick";return`<div class="tabs" role="tablist"><button type="button" role="tab" data-a="tab" data-v="book" class="${ev?"":"on"}" aria-selected="${!ev}">Book a table</button><button type="button" role="tab" data-a="tab" data-v="events" class="${ev?"on":""}" aria-selected="${ev}">Events <i>${EVS().length}</i></button></div>`}
@@ -214,7 +222,7 @@ function render(){
       <form id="fe" novalidate style="display:flex;flex-direction:column;gap:14px">
       <label class="af">Number of places<select id="e-n">${o.join("")}</select></label>
       <label class="af">Name<input id="f-name" autocomplete="name" maxlength="80" value="${esc(f.name)}" required></label>
-      <div class="row"><label class="af">Mobile number<input id="f-phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" value="${esc(f.phone)}" required></label>
+      <div class="row">${phHtml("Mobile number",true)}
       <label class="af">Email<input id="f-email" type="email" inputmode="email" autocomplete="email" maxlength="120" value="${esc(f.email)}" required></label></div>
       <label class="af">Anything we should know? (optional)<textarea id="f-notes" rows="2" maxlength="300" placeholder="Allergies, accessibility\u2026">${esc(f.notes)}</textarea></label>
       <label class="chk"><input type="checkbox" id="f-mk" ${f.mk?"checked":""}><span>Happy to receive offers by email from ${esc(V.name)}</span></label>
@@ -229,7 +237,7 @@ function render(){
       <form id="fa" novalidate style="display:flex;flex-direction:column;gap:14px">
       <label class="af">Name<input id="f-name" autocomplete="name" maxlength="80" value="${esc(f.name)}" required></label>
       <div class="row"><label class="af">Email<input id="f-email" type="email" inputmode="email" autocomplete="email" maxlength="120" value="${esc(f.email)}" required></label>
-      <label class="af">Mobile number (optional)<input id="f-phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" value="${esc(f.phone)}"></label></div>
+      ${phHtml("Mobile number (optional)",false)}</div>
       <div class="hp" aria-hidden="true"><label>Website<input id="f-web" tabindex="-1" autocomplete="off"></label></div>
       <button class="go" type="submit" ${U.busy?"disabled":""}>${U.busy?"Sending\u2026":"Alert me"}</button></form>
       <button class="link" data-a="back">Back to the times</button>`);
@@ -240,7 +248,7 @@ function render(){
       ${V.msg?`<div class="notice">${esc(V.msg)}</div>`:""}${U.err?`<div class="notice bad">${esc(U.err)}</div>`:""}
       <form id="fm" novalidate style="display:flex;flex-direction:column;gap:14px">
       <label class="af">Name<input id="f-name" autocomplete="name" maxlength="80" value="${esc(f.name)}" required></label>
-      <div class="row"><label class="af">Mobile number<input id="f-phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" value="${esc(f.phone)}" required></label>
+      <div class="row">${phHtml("Mobile number",true)}
       <label class="af">Email<input id="f-email" type="email" inputmode="email" autocomplete="email" maxlength="120" value="${esc(f.email)}" required></label></div>
       <label class="af">Anything we should know? (optional)<textarea id="f-notes" rows="2" maxlength="300" placeholder="Allergies, high chair, occasion…">${esc(f.notes)}</textarea></label>
       <label class="chk"><input type="checkbox" id="f-mk" ${f.mk?"checked":""}><span>Happy to receive offers by email from ${esc(V.name)}</span></label>
@@ -312,21 +320,21 @@ async function loadTimes(){const my=++seq;U.times=null;U.why="";U.err="";U.next=
   try{const r=await call("slots",rq(SH()&&RMS().length?{date:U.date,size:U.size,all:1}:{date:U.date,size:U.size}));if(my!==seq)return;if(r.on===false){V.on=false;fail("Online booking is not available",r.message||"");return}U.times=r.times||[];U.why=r.why||"";U.byRoom=r.byRoom||null}
   catch(e){if(my!==seq)return;U.times=[];U.why=e.message;render();return}render();if(!U.times.length&&U.why)findNext(my)}
 function aboutHtml(){const L=V&&V.look||{},ab=L.about?`<section class="sh-ab"><h2>About ${esc(V.name)}</h2><p>${esc(L.about).replace(/\n/g,"<br>")}</p></section>`:"",mp=L.addr&&L.map!=="off"&&!EMBED?`<section class="sh-ab"><h2>Find us</h2><p class="muted" style="margin:0 0 8px">${esc(L.addr)} \u00b7 <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(V.name+", "+L.addr)}" target="_blank" rel="noopener">Open in Google Maps</a></p><iframe class="sh-map" loading="lazy" referrerpolicy="no-referrer" title="Map" src="https://www.google.com/maps?q=${encodeURIComponent(V.name+", "+L.addr)}&output=embed"></iframe></section>`:"";return ab+mp}
-async function evSend(e){e.preventDefault();if(U.busy)return;const f=U.f;U.evn=+$("#e-n").value;f.name=$("#f-name").value.trim();f.phone=$("#f-phone").value.trim();f.email=$("#f-email").value.trim();f.notes=$("#f-notes").value.trim();f.mk=$("#f-mk").checked;const web=$("#f-web").value;
+async function evSend(e){e.preventDefault();if(U.busy)return;const f=U.f;U.evn=+$("#e-n").value;f.name=$("#f-name").value.trim();f.phone=phVal();f.email=$("#f-email").value.trim();f.notes=$("#f-notes").value.trim();f.mk=$("#f-mk").checked;const web=$("#f-web").value;
   if(f.name.length<2){U.err="Please enter your name.";render();$("#f-name").focus();return}
   if(f.phone.replace(/\D/g,"").length<7){U.err="Please enter a phone number we can reach you on.";render();$("#f-phone").focus();return}
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)){U.err="Please enter your email address so we can send your confirmation.";render();$("#f-email").focus();return}
   U.busy=true;U.err="";render();
   try{const r=await call("evbook",{},{eid:U.ev,n:U.evn,name:f.name,phone:f.phone,email:f.email,notes:f.notes,mk:!!f.mk,website:web});U.busy=false;U.evd=r;const ev=EVS().find(x=>x.id===U.ev);if(ev&&ev.left!==null)ev.left=Math.max(0,ev.left-U.evn);U.step="evdone";render();scrollTo(0,0)}
   catch(err){U.busy=false;U.err=err.message;if(err.code==="gone"||err.code==="full"){try{const i=await call("info");V.events=i.events||[]}catch(x){}}render()}}
-async function alertSend(e){e.preventDefault();if(U.busy)return;const f=U.f;f.name=$("#f-name").value.trim();f.email=$("#f-email").value.trim();f.phone=$("#f-phone").value.trim();const web=$("#f-web").value;
+async function alertSend(e){e.preventDefault();if(U.busy)return;const f=U.f;f.name=$("#f-name").value.trim();f.email=$("#f-email").value.trim();f.phone=phVal();const web=$("#f-web").value;
   if(f.name.length<2){U.err="Please enter your name.";render();$("#f-name").focus();return}
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)){U.err="Please enter your email address so we can tell you.";render();$("#f-email").focus();return}
   U.busy=true;U.err="";render();
   try{await call("alert",{},{date:U.date,size:U.size,room:rq({}).room||"",name:f.name,email:f.email,phone:f.phone,website:web});U.busy=false;U.step="alerted";render();scrollTo(0,0)}
   catch(err){U.busy=false;U.err=err.message;render()}}
 async function submit(e){e.preventDefault();if(U.busy)return;const f=U.f;
-  f.name=$("#f-name").value.trim();f.phone=$("#f-phone").value.trim();f.email=$("#f-email").value.trim();f.notes=$("#f-notes").value.trim();f.mk=$("#f-mk").checked;const web=$("#f-web").value;
+  f.name=$("#f-name").value.trim();f.phone=phVal();f.email=$("#f-email").value.trim();f.notes=$("#f-notes").value.trim();f.mk=$("#f-mk").checked;const web=$("#f-web").value;
   if(f.name.length<2){U.err="Please enter your name.";render();$("#f-name").focus();return}
   if(f.phone.replace(/\D/g,"").length<7){U.err="Please enter a phone number we can reach you on.";render();$("#f-phone").focus();return}
   if(!f.email){U.err="Please enter your email address so we can send your confirmation.";render();$("#f-email").focus();return}
