@@ -211,7 +211,7 @@ function clBookCard(){if(!CL.site||U.view!=="online")return;const main=$("#main"
  const url=clBookUrl(),on=!!OB().on,lab=OB().label||"Book a table";
  const L=clLook(),bc=L.accent||"#3f5fd0",bi=L.accent&&clLum(L.accent)>0.62?"#17171c":"#fff",br=L.corners==="square"?3:L.corners==="pill"?22:10;
  const btn=`<a href="${url}" target="_blank" rel="noopener" style="display:inline-block;padding:12px 22px;border-radius:${br}px;background:${bc};color:${bi};font-family:Arial,sans-serif;font-weight:bold;text-decoration:none">${esc(lab)}</a>`;
- const frame=`<iframe src="${url}&embed=1" title="${esc(lab)}" style="width:100%;max-width:560px;height:760px;border:0" loading="lazy"></iframe>`;
+ const frame=`<iframe id="pvbook" src="${url}&embed=1" title="${esc(lab)}" style="width:100%;max-width:760px;height:620px;border:0" loading="lazy"></iframe>\n<script>addEventListener("message",function(e){var f=document.getElementById("pvbook");if(f&&e.source===f.contentWindow&&e.data&&e.data.proviewBookingHeight)f.style.height=e.data.proviewBookingHeight+"px"})<\/script>`;
  const box=(id,v,rows)=>`<div style="display:flex;gap:8px;align-items:flex-start;margin:6px 0 0">${rows?`<textarea id="${id}" readonly rows="${rows}" style="flex:1;min-width:0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px">${esc(v)}</textarea>`:`<input id="${id}" readonly value="${esc(v)}" style="flex:1;min-width:0">`}<button class="btn" data-act="clBkCopy" data-f="${id}">Copy</button></div>`;
  const d=document.createElement("div");d.id="cl-book";d.className="clbk";
  d.innerHTML=`<div class="clc"><div class="card pad"><h2>Your booking link</h2><p class="mut" style="margin-top:0">Guests book a table themselves from this link. It follows the rules below, only offers times with a free table, and each booking appears here straight away marked Website.</p>
@@ -231,6 +231,7 @@ function clBookCard(){if(!CL.site||U.view!=="online")return;const main=$("#main"
  <div class="bar" style="margin:10px 0 0"><button class="btn" data-act="clBkReset">Use the Proview colours</button></div>
 </div></div>`;
  host.insertBefore(d,host.firstChild);
+ { const ob=host.querySelector(":scope>.card.onb"),lc=d.querySelector(".clc");if(ob&&lc)lc.appendChild(ob) }
  /* each Widget box minimises like the Settings boxes; the booking link starts open, the rest minimised */
  if(!clBookCard.init){clBookCard.init=1;SETO["Your booking link"]=1}
  d.querySelectorAll(".card").forEach(c=>{const h=c.firstElementChild;if(!h||h.tagName!=="H2")return;const t=h.textContent.trim();c.classList.add("sc");h.classList.add("sh");h.dataset.act="setc";h.dataset.t=t;h.setAttribute("role","button");h.setAttribute("tabindex","0");const cl=!SETO[t];c.classList.toggle("cl",cl);h.setAttribute("aria-expanded",cl?"false":"true")});
