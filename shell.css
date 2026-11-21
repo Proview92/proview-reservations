@@ -65,3 +65,5 @@
 @media (max-width:1300px) and (min-width:821px){.pvs-mock{width:300px}}
 @media (max-width:820px){.pvs-auth{grid-template-columns:1fr}.pvs-art{display:none}.pvs-form{padding:24px 14px;align-content:start;min-height:100vh}.pvs-card{padding:26px 20px;border-radius:18px;margin-top:4vh}.pvs-card label.af input{font-size:16px}.pvs-card .pvs-brand .pvword{font-size:17px}}
 @media (max-width:380px){.pvs-card .pvs-brand .pvword{font-size:14px;letter-spacing:.1em}}
+/* Widget page: link, Google and website steps on the left, the look of the booking page on the right (laptop); one column on a phone */
+.clbk{display:grid;gap:14px;grid-template-columns:minmax(0,1fr);align-items:start;margin-bottom:14px}.clc{display:flex;flex-direction:column;gap:14px;min-width:0}.clbk .card{margin:0!important}.sgc.onl>.clbk{grid-column:1/-1}@media(min-width:1000px){.clbk{grid-template-columns:repeat(2,minmax(0,1fr))}}
