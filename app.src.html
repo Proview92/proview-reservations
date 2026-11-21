@@ -423,7 +423,12 @@ button.fd{cursor:pointer}.fd.on{background:var(--pril)}
 .tsplit.ph .tsel .tsh{display:flex;align-items:center;gap:8px;padding:12px 14px 8px;flex:none}.tsplit.ph .tsel .tsh b{font-size:19px}.tsplit.ph .tsel .tsh .sp{flex:1}
 .dsor{display:grid;gap:8px;padding:12px 0;border-top:1px solid var(--line)}.dson{display:grid;gap:2px}.dson b{font-size:17px}.dsob{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.dsob .btn{min-height:46px;padding:8px 4px}
 @media(min-width:640px){#vbox{display:none!important}}
-.dsnt{display:none}@media(min-width:640px){.dsnt{display:flex;margin:0;flex-wrap:nowrap}.dsnr{display:none}.dsta{line-height:2.1;font-size:16px;min-height:300px;padding:12px 14px}}
+.dsnt{display:none}@media(min-width:640px){.dsnt{display:flex;margin:0;flex-wrap:nowrap}.dsnr{display:none}.dsta{line-height:1.75;font-size:15.5px;padding:10px 14px;resize:none}}
+.dsg>.dss{margin-top:14px}
+/* laptop and tablet on its side: Day summary and Outlook fit the screen without the page scrolling */
+@media(min-width:900px) and (orientation:landscape){.content:has(.fitv)>.bar{margin-bottom:8px}.content:has(.fitv) .stats{margin-bottom:10px}.content:has(.fitv) .stat{padding-top:8px;padding-bottom:8px}
+.dsg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:12px;min-height:0}.dsg>.dsl{display:flex;flex-direction:column;gap:12px;min-height:0}.dsg>.dsl>.card{flex:0 1 auto;min-height:0;overflow:auto}.dsg>.dsl>.card:first-child{flex:1 1 auto;min-height:110px}.dsg>.dss{margin-top:0;min-height:0;overflow:auto;display:flex;flex-direction:column}.dsg>.dss .dsta{flex:1 1 auto;min-height:90px}
+.olg{display:grid;grid-template-columns:300px minmax(0,1fr);gap:12px;min-height:0}.olg>.card{margin-top:0!important;min-height:0;overflow:auto}.fitv .card.pad{padding:12px 14px}.fitv .card h2{margin-bottom:6px}}
 @media(min-width:640px){.flx>.flt,.flu.lt{display:none}}
 /* tablet (not phone): floorplan first, allocate list under it */
 @media(min-width:640px) and (max-width:899px),(min-width:900px) and (orientation:portrait){.tv-plan.tsplit:not(.ph) .tsr{order:1;position:static;margin:10px 0 0;padding:0;background:none}.tv-plan.tsplit:not(.ph) .al2 .abk{max-height:none;overflow:visible}}
@@ -825,11 +830,11 @@ function vOutlook(){
  const note=f=>f.src==="prior"?"Typical pattern":f.src==="year"?`${f.n} wks + last year`:`${f.n} wks of history`;
  const tm=days[1],PT=plan(tm,R),tl="";
  return`<div class="stats">${st("Today",days[0].exp+" guests","expected")}${st("Tomorrow",days[1].exp+" guests","expected")}${tl}</div>
- <div class="card pad"><h2>Today and tomorrow</h2><p class="mut" style="margin-top:0">Tap a day for the hour-by-hour plan. Solid is already booked, light is expected walk-ins and later bookings. Forecasts stop at tomorrow because further ahead is mostly guesswork without a lot of history.</p><div class="fc" style="max-width:260px">${bars}</div><div class="bar" style="margin:10px 0 0"><span class="chip blue">Booked</span><span class="chip">Expected on top</span>${S.histSample?'<span class="chip amber">Sample history in use</span>':""}</div></div>
+ <div class="olg fitv"><div class="card pad"><h2>Today and tomorrow</h2><p class="mut" style="margin-top:0">Tap a day for the hour-by-hour plan. Solid is already booked, light is expected walk-ins and later bookings. Forecasts stop at tomorrow because further ahead is mostly guesswork without a lot of history.</p><div class="fc" style="max-width:260px">${bars}</div><div class="bar" style="margin:10px 0 0"><span class="chip blue">Booked</span><span class="chip">Expected on top</span>${S.histSample?'<span class="chip amber">Sample history in use</span>':""}</div></div>
  <div class="card pad" style="margin-top:14px"><div class="bar" style="margin-bottom:4px"><h2 style="margin:0">${fmtD(sel.d)}</h2><span class="chip ${lc[sel.lv]}">${sel.lv}</span><span class="chip src">${note(sel)}</span></div>
  <p class="mut" style="margin:0 0 6px">Guests in the room each hour.</p><div class="fc hrs">${hb}</div>
  <ul class="gdl">${guide(sel,SP).map(x=>`<li>${x}</li>`).join("")}</ul>
- ${mgr()?`<button class="btn sm" data-act="nav" data-v="settings">Change forecast settings</button>`:""}</div>`
+ ${mgr()?`<button class="btn sm" data-act="nav" data-v="settings">Change forecast settings</button>`:""}</div></div>`
 }
 function vHistory(){
  const R=recs(),ds=Object.keys(R).sort(),has=ds.length>0,F=S.fc;
@@ -881,6 +886,8 @@ function sampleHist(){
 }
 
 function brandUp(){const n=((S.venue&&S.venue.name)||"Proview").trim()||"Proview",b=$("#bname"),m=$("#bmono");if(b)b.innerHTML=esc(n)+" <i>Bookings</i>";if(m)m.textContent=n.charAt(0).toUpperCase();document.title=n+" bookings"}
+function fitV(){const e=document.querySelector(".fitv"),mn=$("#main");if(!e||!mn)return;e.style.height="";if(!(innerWidth>=900&&innerWidth>innerHeight))return;mn.scrollTop=0;const cs=getComputedStyle(mn),av=Math.floor(mn.getBoundingClientRect().bottom-parseFloat(cs.paddingBottom)-e.getBoundingClientRect().top-2);if(av>=260)e.style.height=av+"px"}
+addEventListener("resize",()=>{clearTimeout(fitV.t);fitV.t=setTimeout(fitV,80)});
 function render(){
  syncTags();if(U.view==="waitlist"||!navOk(U.view))U.view="bookings";brandUp();
  const nbt=n=>`<button data-act="nav" data-v="${n[0]}" aria-label="${n[1]}" class="${U.view===n[0]?"on":""}">${ICON[n[0]]}<span class="lbl">${n[1]}</span></button>`,mbt=`<button data-act="${mgr()?"mgrout":"mgrin"}" aria-label="${mgr()?"Lock manager access":"Manager sign in"}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span class="lbl">${mgr()?"Lock":"Manager"}</span></button>`,NG=[["Service",["bookings","tables","floor","activity"]],["Grow",["guests","reports","online"]],["Manage",["settings","users"]]];
@@ -890,7 +897,7 @@ function render(){
  $("#top").classList.toggle("hasdn",dv);
  $("#top").innerHTML=`<h1><span class="vsub">${esc(S.venue.name)}</span>${NAV.find(n=>n[0]===U.view)[1]}</h1>`+(dv?`<div class="dn"><button data-act="day" data-d="-1" aria-label="Previous day">‹</button><label class="dpk" title="Pick a date"><span>${fmtD(U.date)}</span><input type="date" id="dpick" value="${U.date}" aria-label="Pick a date"></label><button data-act="day" data-d="1" aria-label="Next day">›</button></div>${U.date!==today()?`<button class="btn" data-act="day" data-d="0">Today</button>`:""}`:"")+`<span class="tbp"><button class="btn" data-act="walkin">Walk-in</button><button class="btn pri" data-act="new" aria-label="New booking"><span class="nl">New booking</span><span class="ns">+ New</span></button></span>`;
  const g0=U.view==="floor"&&$(".gw")?$(".gw").scrollLeft:0;
- $("#main").innerHTML=({bookings:vBookings,tables:vTables,floor:vFloor,waitlist:vWaitlist,guests:vGuests,reports:vReports,settings:vSettings,activity:vAudit,online:vOnline,users:vUsers})[U.view]();if(U.view==="settings")enhSet();else if(U.view==="online")enhOnl();setPlanBtn();bdUp()
+ $("#main").innerHTML=({bookings:vBookings,tables:vTables,floor:vFloor,waitlist:vWaitlist,guests:vGuests,reports:vReports,settings:vSettings,activity:vAudit,online:vOnline,users:vUsers})[U.view]();if(U.view==="settings")enhSet();else if(U.view==="online")enhOnl();setPlanBtn();bdUp();fitV();
  if(U.view==="floor"){const g=$(".gw");if(g){if(!U.fs&&U.date===today()){g.scrollLeft=Math.max(0,(nowMin()-dayRange(U.date).o)/60*96-160);U.fs=true}else g.scrollLeft=g0}}
 }
 function bdUp(){const el=$("#bdm");if(!el)return;const p=U.bdp&&!wideB()&&U.view==="bookings"?S.parties.find(x=>x.id===U.bdp):null;
@@ -1891,9 +1898,9 @@ function vDay(){
  const hk=Object.keys(D.hrs).sort(),mx=Math.max(1,...Object.values(D.hrs).map(x=>x.g)),bars=hk.length?hk.map(h=>`<div style="display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:8px;align-items:center;padding:3px 0"><span class="mut small">${h}:00</span><span style="display:block;height:12px;border-radius:6px;background:var(--pri);width:${Math.max(4,Math.round(D.hrs[h].g/mx*100))}%"></span><span class="small"><b>${D.hrs[h].g}</b> guests · ${D.hrs[h].n} part${D.hrs[h].n===1?"y":"ies"}</span></div>`).join(""):`<p class="mut" style="margin:0">Nobody seated yet.</p>`;
  const nsl=D.ns.length?D.ns.map(p=>`${p.time} ${esc(p.name)} (${p.size})${p.rem||p.conf?"":" · not reminded"}`).join("<br>"):"None",rl=D.rd.length+D.nr.length;
  return nav+`<div class="stats">${st("Parties served",D.srv.length)}${st("Covers",D.cov)}${st("Walk-ins",D.wk.length)}${st("No-shows",D.ns.length)}${st("Cancelled",D.cx.length)}${st("Still open",D.open.length)}</div>
- <div class="two"><div class="card pad"><h2>Busy hours</h2>${D.top?`<p class="mut" style="margin-top:0">Busiest: <b>${D.top[0]}:00</b> with ${D.top[1].g} guests.${D.avg?" Average time on table "+fmtMin(D.avg)+".":""}</p>`:""}${bars}</div>
+ <div class="dsg fitv"><div class="two dsl"><div class="card pad"><h2>Busy hours</h2>${D.top?`<p class="mut" style="margin-top:0">Busiest: <b>${D.top[0]}:00</b> with ${D.top[1].g} guests.${D.avg?" Average time on table "+fmtMin(D.avg)+".":""}</p>`:""}${bars}</div>
  <div class="card pad"><h2>No-shows and reminders</h2><p style="margin-top:0">${nsl}</p>${rl?`<p class="mut">${D.rd.length?`Reminded or confirmed: <b>${D.rd.length}</b> of ${rl} bookings. No-shows: ${D.nsR} of ${D.rd.length} reminded, ${D.nsN} of ${D.nr.length} not reminded.`:`No reminders were sent. No-shows: ${D.nsN} of ${D.nr.length} bookings.`}</p>`:""}${D.open.length?`<p class="over">${D.open.length} booking${D.open.length===1?"":"s"} still open with no action taken.</p><div class="bar" style="margin:0"><button class="btn pri" data-act="dsview">View and resolve</button></div>`:""}${D.loy.length?`<h2 style="margin-top:14px">Loyalty visits</h2><p class="mut" style="margin-top:0">Discount due on the EPOS for: ${D.loy.map(p=>esc(p.name)).join(", ")}</p>`:""}</div></div>
- <div class="card pad"><h2>Copy this summary</h2><p class="mut" style="margin-top:0">Paste it into WhatsApp, or send it by email.</p><textarea id="ds-t" class="dsta" readonly rows="8" style="width:100%">${esc(dsText(d))}</textarea><div class="bar" style="margin-top:8px"><button class="btn pri" data-act="dscopy">Copy</button><button class="btn" data-act="dsmail">Email</button></div></div>`}
+ <div class="card pad dss"><h2>Copy this summary</h2><p class="mut" style="margin-top:0">Paste it into WhatsApp, or send it by email.</p><textarea id="ds-t" class="dsta" readonly rows="${Math.max(6,dsText(d).split("\n").length)}" style="width:100%">${esc(dsText(d))}</textarea><div class="bar" style="margin-top:8px"><button class="btn pri" data-act="dscopy">Copy</button><button class="btn" data-act="dsmail">Email</button></div></div></div>`}
 Object.assign(A,{
  dsd:b=>{const v=+b.dataset.v;if(!v)U.rday=today();else{const x=new Date(dsDate()+"T12:00");x.setDate(x.getDate()+v);U.rday=iso(x)}render()},
  dsview:()=>dsOpenShow(),dsvclose:()=>{closeM();render()},
