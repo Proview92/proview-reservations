@@ -436,6 +436,8 @@ button.fd{cursor:pointer}.fd.on{background:var(--pril)}
 #f-name,#w-name,#wk-name,#g-name{text-transform:uppercase}#f-name::placeholder,#w-name::placeholder,#wk-name::placeholder,#g-name::placeholder{text-transform:none}
 /* split table: each half's line stays inside the table, wrapping onto a second line when the table is narrow */
 .tbl .tpr{width:100%;box-sizing:border-box;min-width:0}.tbl .tpr .tp{white-space:normal;max-width:100%;min-width:0;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow-wrap:anywhere;text-align:center}
+/* phone: the room button sits beside Fit above the plan, so no blank strip is kept for it under the tables */
+.tsplit.ph .planw>.card.plan{padding-bottom:6px!important}.tsplit.ph .rfl{bottom:auto;top:-48px;right:0;flex-direction:column-reverse}.tsplit.ph .rfr button{min-height:40px;font-size:14px;padding:0 10px;max-width:112px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tsplit.ph .rfr .rfi{padding:0 7px}
 /* no progress line inside seated tables: the time alone is clearer on small tables */
 .tbl .tbar{display:none!important}.tbl:has(.tbar){padding-bottom:2px!important}.tbl:has(.tt)>b{line-height:1}.tbl:has(.tt) .tt{line-height:1.05;margin-top:1px}
 /* phone table pop-up, split table: each half on its own line (name on the left, Left button on the right), Merge on a full line */
