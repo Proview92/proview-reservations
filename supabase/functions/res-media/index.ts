@@ -1,7 +1,7 @@
 // Proview Reservations: pictures for a venue's booking page (logo, header photo, background).
 //
 // POST /res-media   headers: Authorization: Bearer <session>, x-site: <location id>
-//   { kind: "logo" | "header" | "bg", data: "data:image/png|jpeg|webp;base64,…" } → { url }
+//   { kind: "logo" | "header" | "bg" | "ev<event id>", data: "data:image/png|jpeg|webp;base64,…" } → { url }
 //   { kind, remove: true } → { ok: true }
 // Only an Admin or Manager login of that location (or the Proview master) may upload. The app shrinks the
 // picture before sending it; anything over 900 KB is refused. Files live in the public bucket "pr-media"
@@ -36,7 +36,8 @@ Deno.serve(async (req) => {
 
     const b = await req.json().catch(() => ({}));
     const kind = String(b.kind || "");
-    if (!KINDS.includes(kind)) return send({ error: "bad", message: "Unknown picture." }, 400);
+    // "ev" + an event's id: the picture of one event
+    if (!KINDS.includes(kind) && !/^ev[a-z0-9]{4,12}$/.test(kind)) return send({ error: "bad", message: "Unknown picture." }, 400);
     const st = db.storage.from(BUCKET);
     const old = async (keep = "") => { const l = await st.list(site, { limit: 100 }); const rm = (l.data || []).filter((f) => f.name.startsWith(kind + "-") && f.name !== keep).map((f) => site + "/" + f.name); if (rm.length) await st.remove(rm); };
     if (b.remove) { await old(); return send({ ok: true }); }

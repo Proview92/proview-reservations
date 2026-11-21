@@ -173,6 +173,20 @@ function bookingMail(kind: string, venue: string, site: string, p: Any, extra: s
   const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#1b1b1b;max-width:520px"><h2 style="margin:0 0 12px">${esc(head)}</h2><p style="margin:0 0 4px"><b>${esc(venue)}</b></p><p style="margin:0">${esc(when)}<br>${esc(who)}${area ? "<br>" + esc(area) : ""}</p><p style="margin:14px 0;padding:10px 14px;background:#f3eee6;border-radius:8px">Your reference: <b style="font-size:20px;letter-spacing:.1em">${ref}</b></p>${extra ? `<p style="margin:0 0 14px">${esc(extra)}</p>` : ""}${kind === "cancelled" ? "<p>We hope to see you another time.</p>" : `<p style="margin:0">Need to change or cancel? <a href="${esc(link)}">Manage your booking</a>. You will be asked for your reference and this email address.</p>`}</div>`;
   return { subject: head + " · " + venue, html, text: lines.join("\n") };
 }
+// ---------- events (set up on the Widget page): what guests see, and the confirmation ----------
+const picUrl = (x: unknown) => (typeof x === "string" && x.length < 300 && x.startsWith((Deno.env.get("SUPABASE_URL") || "") + "/storage/v1/object/public/pr-media/") && /^[\w\-./:]+$/.test(x) ? x : "");
+const evTaken = (S: Any, id: string) => (Array.isArray(S.evb) ? S.evb : []).filter((b: Any) => b && b.eid === id && b.status !== "cancelled").reduce((a: number, b: Any) => a + (+b.n || 0), 0);
+const evGood = (e: Any, today: string) => e && e.id && !e.hide && isDate(String(e.date)) && e.date >= today && clean(e.title, 80);
+function evPublic(S: Any, today: string) {
+  return (Array.isArray(S.events) ? S.events : []).filter((e: Any) => evGood(e, today)).sort((a: Any, b: Any) => (a.date + (a.start || "")).localeCompare(b.date + (b.start || ""))).slice(0, 30)
+    .map((e: Any) => ({ id: String(e.id), title: clean(e.title, 80), date: e.date, start: /^\d{2}:\d{2}$/.test(e.start || "") ? e.start : "", end: /^\d{2}:\d{2}$/.test(e.end || "") ? e.end : "", desc: String(e.desc == null ? "" : e.desc).replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, " ").trim().slice(0, 600), price: clean(e.price, 120), img: picUrl(e.img), left: +e.places > 0 ? Math.max(0, Math.round(+e.places) - evTaken(S, e.id)) : null }));
+}
+function eventMail(venue: string, e: Any, b: Any) {
+  const head = "Your places are booked", when = dayLong(e.date) + (e.start ? " at " + t12(e.start) + (e.end ? " to " + t12(e.end) : "") : ""), who = b.n + (b.n === 1 ? " place" : " places"), ref = refOf(b);
+  const text = [head + " at " + venue + ".", "", e.title, when, who, ...(e.price ? [e.price] : []), "Reference: " + ref, "", "Need to change or cancel? Please contact " + venue + " directly and quote your reference."].join("\n");
+  const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#1b1b1b;max-width:520px"><h2 style="margin:0 0 12px">${esc(head)}</h2><p style="margin:0 0 4px"><b>${esc(venue)}</b></p><p style="margin:0"><b>${esc(e.title)}</b><br>${esc(when)}<br>${esc(who)}${e.price ? "<br>" + esc(e.price) : ""}</p><p style="margin:14px 0;padding:10px 14px;background:#f3eee6;border-radius:8px">Your reference: <b style="font-size:20px;letter-spacing:.1em">${ref}</b></p><p style="margin:0">Need to change or cancel? Please contact ${esc(venue)} directly and quote your reference.</p></div>`;
+  return { subject: head + " \u00b7 " + e.title + " \u00b7 " + venue, html, text };
+}
 // "A table has come free": sent to a guest who pressed Alert me.
 function alertMail(venue: string, site: string, al: Any, first: string) {
   const link = (Deno.env.get("RES_APP_URL") || "https://reservations.proviewcrm.co.uk") + "/book/?v=" + encodeURIComponent(site) + "&date=" + al.date + "&size=" + al.size;
@@ -256,9 +270,46 @@ Deno.serve(async (req) => {
       return send({ error: "busy", message: "We could not save that just now. Please try again." }, 503);
     }
 
+    // a guest books places at an event
+    if (a === "evbook" && req.method === "POST") {
+      if (!on) return send({ error: "off", message: "Online booking is not available at the moment. Please contact us directly." }, 403);
+      const b = await req.json().catch(() => ({}));
+      if (clean(b.website, 200)) return send({ ok: true, ref: uid().slice(0, 6).toUpperCase() });
+      const eid = clean(b.eid, 20), n = Math.round(+b.n || 0), gname = clean(b.name, 80).toUpperCase(), phone = clean(b.phone, 30), email = clean(b.email, 120).toLowerCase(), notes = clean(b.notes, 300);
+      if (!(n >= 1 && n <= 20)) return send({ error: "bad", message: "Please choose how many places." }, 400);
+      if (gname.length < 2) return send({ error: "bad", message: "Please enter your name." }, 400);
+      if (!normPh(phone)) return send({ error: "bad", message: "Please enter a phone number we can reach you on." }, 400);
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return send({ error: "bad", message: "Please enter your email address so we can send your confirmation." }, 400);
+      const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown", key = "book:" + site + ":" + ip;
+      const bl = await db.rpc("pr_pin_blocked", { p_key: key, p_max: 8 });
+      if (bl.data === true) return send({ error: "busy", message: "Too many bookings from this connection. Please wait ten minutes or contact us directly." }, 429);
+      for (let tryN = 0; tryN < 5; tryN++) {
+        const rw = await load(); if (!rw || !rw.data) break;
+        const S = rw.data, ev = (Array.isArray(S.events) ? S.events : []).find((e: Any) => e && String(e.id) === eid);
+        if (!evGood(ev, today)) return send({ error: "gone", message: "Sorry, that event is no longer available." }, 409);
+        const list: Any[] = Array.isArray(S.evb) ? S.evb : [];
+        const same = list.find((x) => x && x.eid === eid && x.email === email && x.n === n && x.status !== "cancelled" && Date.now() - (+x.at || 0) < 120000);
+        if (same) return send({ ok: true, ref: refOf(same), title: ev.title, date: ev.date, start: ev.start || "", n });
+        if (+ev.places > 0) { const left = Math.round(+ev.places) - evTaken(S, eid); if (n > left) return send({ error: "full", message: left > 0 ? "Sorry, only " + left + (left === 1 ? " place is" : " places are") + " left." : "Sorry, this event is now fully booked." }, 409); }
+        const eb: Any = { id: uid(), eid, n, name: gname, phone, email, notes, at: Date.now() };
+        list.push(eb); S.evb = list;
+        const ops: Any[] = [{ k: "evb", up: [eb] }];
+        if (b.mk === false) { const k = gkeyOf(phone, gname); if (!S.mkoff || typeof S.mkoff !== "object" || Array.isArray(S.mkoff)) S.mkoff = {}; S.mkoff[k] = true; ops.push({ k: "mkoff", mp: { [k]: true } }); }
+        const c = await db.rpc("pr_state_commit", { p_site: site, p_rev: rw.rev, p_data: S, p_ops: ops });
+        if (c.error) throw c.error;
+        if (c.data != null) {
+          await db.rpc("pr_pin_failed", { p_key: key });
+          const em = eventMail(name, { ...ev, title: clean(ev.title, 80), price: clean(ev.price, 120) }, eb);
+          const sent = await mail(email, em.subject, em.html, em.text);
+          return send({ ok: true, ref: refOf(eb), title: clean(ev.title, 80), date: ev.date, start: ev.start || "", n, emailed: sent });
+        }
+      }
+      return send({ error: "busy", message: "We could not save your booking just now. Please try again." }, 503);
+    }
+
     if (a === "info") {
       if (!on) return off();
-      return send({ name, on: true, label: o.label || "Book a table", msg: o.msg || "", maxParty: o.maxParty, ahead: o.ahead, confirm: o.confirm, mkTick: row.data.venue.mkTick !== false, today, look: lookOf(o), rooms: R.pickRooms(), pick: R.pickRooms().length ? o.pick : "" });
+      return send({ name, on: true, label: o.label || "Book a table", msg: o.msg || "", maxParty: o.maxParty, ahead: o.ahead, confirm: o.confirm, mkTick: row.data.venue.mkTick !== false, today, look: lookOf(o), rooms: R.pickRooms(), pick: R.pickRooms().length ? o.pick : "", events: evPublic(row.data, today) });
     }
 
     if (a === "slots") {
