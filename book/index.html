@@ -87,8 +87,8 @@ html.sz-s body.embed .card{max-width:480px!important}html.sz-s body.embed .eg-g{
 #f-name{text-transform:uppercase}
 /* Showcase template */
 html.sh #brand,html.sh .card{width:min(760px,100%)}html.sh body.embed .card{max-width:760px}
-html.sh:not(.hasbg) body:not(.embed) .card{background:none;border:0;box-shadow:none;padding:18px 4px 8px}html.sh body.embed .card{border:0;padding:8px 4px}
-html.sh.hashd body:not(.embed) .card{border-radius:calc(var(--rad) * 2);border:1px solid var(--line)}html.sh:not(.hasbg).hashd body:not(.embed) .card{border:0}html.sh.hasbg #brand{margin-bottom:16px}
+html.sh:not(.hasbg) body:not(.embed) .card{background:none;border:0;box-shadow:none;padding:18px 4px 8px}html.sh body.embed .card{border:0;padding:8px 4px}html.sh.hasbg body.embed .card{padding:18px 16px}
+html.sh.hashd .card{border-radius:calc(var(--rad) * 2);border:1px solid var(--line)}html.sh:not(.hasbg).hashd .card{border:0}html.sh body.embed #brand{max-width:760px;margin-bottom:10px}html.sh.hasbg #brand{margin-bottom:16px}
 html.sh .b-hd{border-radius:calc(var(--rad) * 2);aspect-ratio:16/5.6}html.sh .b-logo{margin-bottom:0;max-height:90px}
 .sh-h h1{font-size:24px;letter-spacing:-.01em}.sh-h p{margin-top:4px}
 .sh-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:999px;background:var(--card);box-shadow:0 6px 22px -12px rgba(20,20,30,.35);overflow:hidden}
@@ -103,12 +103,12 @@ html.sh .times.tr button{height:60px;display:flex;flex-direction:column;align-it
 .ph{position:relative;display:flex;align-items:stretch;border:1px solid var(--line);border-radius:var(--rad);background:var(--card);overflow:hidden}.ph:focus-within{outline:2px solid var(--pri);outline-offset:-1px;border-color:transparent}.ph select{position:absolute;left:0;top:0;width:92px;height:100%;opacity:0;cursor:pointer;border:0;padding:0}.phf{flex:none;width:92px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:15px;font-weight:600;border-right:1px solid var(--line);background:var(--hov);pointer-events:none;white-space:nowrap}.phf::after{content:"\25BE";font-size:11px;color:var(--mut);margin-left:2px}.ph input{border:0!important;border-radius:0!important;outline:0!important;flex:1;min-width:0}
 .tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}.tabs button{border:0;background:none;font:inherit;font-weight:600;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);min-height:48px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}.tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}.tabs i{font-style:normal;font-size:12px;background:var(--hov);border:1px solid var(--line);border-radius:999px;padding:1px 8px;margin-left:4px}
 .evc{border:1px solid var(--line);border-radius:calc(var(--rad) + 2px);overflow:hidden;background:var(--card)}.evc img{display:block;width:100%;aspect-ratio:16/8;object-fit:cover}.evb{padding:14px 16px 16px;display:grid;gap:6px}.evb h2{font-size:18px;margin:0;letter-spacing:.02em}.evd{margin:4px 0 0;line-height:1.45}.evf{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}.evf>div{display:grid;gap:2px;min-width:0}.evf .go{width:auto;padding:0 26px;flex:none}
-.sh-al{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;margin-top:10px;border:1px solid var(--ink);border-radius:var(--rad);background:var(--card);color:var(--ink);font:inherit;font-weight:600;font-size:14.5px;cursor:pointer}.sh-al:hover{background:var(--hov)}
+.sh-al{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;margin-top:10px;border:1px solid var(--ink);border-radius:var(--rad);background:var(--card);color:var(--ink);font:inherit;font-weight:600;font-size:14.5px;cursor:pointer}.sh-al:hover{background:var(--hov)}.sh-mo{border-color:var(--line)}
 .sh-ab{border-top:1px solid var(--line);padding-top:16px}.sh-ab h2{font-size:16px;margin:0 0 6px}.sh-ab p{margin:0;line-height:1.5}.sh-map{width:100%;height:260px;border:0;border-radius:var(--rad);display:block}
 /* the venue's pictures: logo and header photo above the form, background photo behind it (booking link only) */
 #brand{width:min(520px,100%);margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:18px}.eg #brand{width:min(760px,100%)}
 .b-logo{max-width:min(300px,70%);max-height:110px;object-fit:contain;display:block;margin-bottom:18px}.b-hd{width:100%;aspect-ratio:16/5;object-fit:cover;border-radius:calc(var(--rad) * 2) calc(var(--rad) * 2) 0 0;display:block}
-html.hashd body:not(.embed) .card{border-top-left-radius:0;border-top-right-radius:0;border-top:0}html.hashd .b-logo{margin-bottom:0}
+html.hashd .card{border-top-left-radius:0;border-top-right-radius:0;border-top:0}body.embed #brand{max-width:560px;width:100%}.eg body.embed #brand{max-width:760px}html.eg.lw body.embed #brand{max-width:1040px}html.sz-s body.embed #brand{max-width:480px!important}html.hasbg body.embed{padding:14px;border-radius:calc(var(--rad) * 2)}html.hashd .b-logo{margin-bottom:0}
 html.hasbg .b-logo{background:var(--card);padding:12px 24px;border-radius:calc(var(--rad) * 1.4);max-height:134px;box-shadow:0 8px 30px -10px rgba(0,0,0,.5)}
 .eg-h.nol{padding-top:6px}.eg-h.nol p{margin:8px 0 10px!important}h1.h-sm{font-size:21px}
 .h-logo{max-width:min(240px,70%);max-height:70px;object-fit:contain;display:block;margin:0 auto 10px}
@@ -158,9 +158,10 @@ function applyLook(L){L=L||{};const r=document.documentElement,st=r.style;r.clas
   if(L.style==="elegant"&&HEX.test(L.accent||"")){st.setProperty("--sand",L.accent);st.setProperty("--sandink",lum(L.accent)>0.62?"#1b1b1b":"#fff")}
   if(L.corners==="square")st.setProperty("--rad","3px");else if(L.corners==="pill")st.setProperty("--rad","22px");
   /* the venue's own pictures. On the booking link (a page of its own): logo on top, header photo, background photo. Inside a website: the logo only. */
-  const P=u=>typeof u==="string"&&/^https:\/\/[\w\-./:]+$/.test(u)?u:"",lg=P(L.logo),hd=EMBED?"":P(L.header),bg=EMBED?"":P(L.bgimg),B=$("#brand");
+  const P=u=>typeof u==="string"&&/^https:\/\/[\w\-./:]+$/.test(u)?u:"",lg=P(L.logo),hd=P(L.header),bg=P(L.bgimg),B=$("#brand");
   LOGO=lg;r.classList.toggle("haslogo",!!lg);r.classList.toggle("hashd",!!hd);r.classList.toggle("hasbg",!!bg);document.body.style.backgroundImage=bg?`url("${bg}")`:"";
-  if(B){B.hidden=EMBED||!(lg||hd);B.innerHTML=EMBED?"":`${lg?`<img class="b-logo" src="${lg}" alt="${esc(V&&V.name||"")}">`:""}${hd?`<img class="b-hd" src="${hd}" alt="">`:""}`}}
+  /* inside a website the logo sits in the form's own heading, so only the photo goes above it */
+  if(B){B.hidden=EMBED?!hd:!(lg||hd);B.innerHTML=`${lg&&!EMBED?`<img class="b-logo" src="${lg}" alt="${esc(V&&V.name||"")}">`:""}${hd?`<img class="b-hd" src="${hd}" alt="">`:""}`;const im=B.querySelector(".b-hd");if(im)im.addEventListener("load",tell)}}
 let LOGO="";
 function tell(){try{if(EMBED&&parent!==window)parent.postMessage({proviewBookingHeight:Math.ceil(document.body.getBoundingClientRect().height)+2},"*")}catch(e){}}
 const EG=()=>document.documentElement.classList.contains("eg"),SH=()=>document.documentElement.classList.contains("sh");
@@ -281,15 +282,15 @@ function pickSh(){const max=V.maxParty,last=addD(V.today,V.ahead),opts=[];for(le
   let tm="";
   if(U.times===null)tm=`<p class="muted">Checking times\u2026</p>`;
   else if(U.why&&!T.length)tm=`<div class="notice">${esc(U.why)}</div>${nextHtml()}`;
-  else if(U.byRoom){const R=RMS();tm=`<div class="times tr">${L.map(t=>R.filter(r=>(U.byRoom[r]||[]).includes(t)).map(r=>`<button type="button" data-a="time" data-t="${t}" data-r="${esc(r)}"><b>${t12(t)}</b><small>${esc(r)}</small></button>`).join("")).join("")}</div>`}
-  else tm=`<div class="times">${L.map(t=>`<button type="button" data-a="time" data-t="${t}">${t12(t)}</button>`).join("")}</div>`;
+  else{const R=RMS(),B=U.byRoom?L.flatMap(t=>R.filter(r=>(U.byRoom[r]||[]).includes(t)).map(r=>`<button type="button" data-a="time" data-t="${t}" data-r="${esc(r)}"><b>${t12(t)}</b><small>${esc(r)}</small></button>`)):L.map(t=>`<button type="button" data-a="time" data-t="${t}">${t12(t)}</button>`),lim=innerWidth<640?9:16,cut=B.length>lim+3&&!U.shAll;
+    tm=`<div class="times${U.byRoom?" tr":""}">${(cut?B.slice(0,lim):B).join("")}</div>${cut?`<button type="button" class="sh-al sh-mo" data-a="shall">Show more times</button>`:""}`}
   page(`${head("")}${amBan()}${U.err?`<div class="notice bad">${esc(U.err)}</div>`:""}
     <div class="sh-bar"><label><span>Guests</span><select id="p-size">${opts.join("")}</select></label><label><span>Date</span><input id="p-date" type="date" min="${V.today}" max="${last}" value="${U.date}"></label><label><span>Time</span><select id="p-per"><option value="">All times</option>${G.map(g=>`<option value="${g.k}" ${cur===g?"selected":""}>${g.n}</option>`).join("")}</select></label></div>
     <div><h2 class="sh-d">${esc(fmtD(U.date))}</h2>${tm}${U.times!==null&&!U.am?`<button type="button" class="sh-al" data-a="alert"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M12 22a2.500 2.500 0 0 0 2.450-2h-4.900A2.500 2.500 0 0 0 12 22zm7-6v-5a7 7 0 0 0-5.500-6.840V3.500a1.500 1.500 0 0 0-3 0v.660A7 7 0 0 0 5 11v5l-2 2v1h18v-1l-2-2z"/></svg>Alert me if a table comes free</button>`:""}</div>
     <p class="muted small">For more than ${max} guests please contact ${esc(V.name)} directly.</p>${findLink()}${aboutHtml()}`);
   $("#p-size").addEventListener("change",e=>{U.size=+e.target.value;loadTimes()});
   $("#p-date").addEventListener("change",e=>{const d=e.target.value;if(d&&d>=V.today&&d<=last){U.date=d;loadTimes()}});
-  $("#p-per").addEventListener("change",e=>{U.shp=e.target.value;render()})}
+  $("#p-per").addEventListener("change",e=>{U.shp=e.target.value;U.shAll=false;render()})}
 const MNL=["January","February","March","April","May","June","July","August","September","October","November","December"];
 function pickEg(){const max=V.maxParty,last=addD(V.today,V.ahead);if(!U.cm)U.cm=U.date.slice(0,7);
   const sz=[];for(let n=1;n<=max;n++)sz.push(`<button type="button" class="eg-n ${n===U.size?"on":""}" data-a="size" data-n="${n}" aria-pressed="${n===U.size}">${n}</button>`);
@@ -316,7 +317,7 @@ function nextHtml(){const n=U.next;if(n===undefined||n===null)return"";if(n==="l
   if(SH()&&RMS().length)return`<div class="nxt"><b>Next available: ${esc(fmtD(n.date))}</b><button type="button" class="go" data-a="day" data-d="${n.date}">See the times that day</button></div>`;
   return`<div class="nxt"><b>Next available: ${esc(fmtD(n.date))}</b><div class="times">${n.times.slice(0,4).map(t=>`<button type="button" data-a="nxt" data-d="${n.date}" data-t="${t}">${t12(t)}</button>`).join("")}</div>${n.times.length>4?`<button type="button" class="link" data-a="day" data-d="${n.date}">See all the times that day</button>`:""}</div>`}
 async function findNext(my){const last=addD(V.today,V.ahead);U.next="look";render();for(let i=1;i<=14;i++){const d=addD(U.date,i);if(d>last)break;try{const r=await call("slots",rq(SH()&&RMS().length?{date:d,size:U.size,all:1}:{date:d,size:U.size}));if(my!==seq)return;if(r.on===false)break;if(r.times&&r.times.length){U.next={date:d,times:r.times};render();return}}catch(e){if(my!==seq)return;break}}if(my===seq){U.next="none";render()}}
-async function loadTimes(){const my=++seq;U.times=null;U.why="";U.err="";U.next=null;U.byRoom=null;if(SH()&&U.step==="pick"&&RMS().length)U.room="";if(needRoom()&&!SH()){U.times=[];U.why="";render();return}render();
+async function loadTimes(){const my=++seq;U.times=null;U.why="";U.err="";U.next=null;U.byRoom=null;U.shAll=false;if(SH()&&U.step==="pick"&&RMS().length)U.room="";if(needRoom()&&!SH()){U.times=[];U.why="";render();return}render();
   try{const r=await call("slots",rq(SH()&&RMS().length?{date:U.date,size:U.size,all:1}:{date:U.date,size:U.size}));if(my!==seq)return;if(r.on===false){V.on=false;fail("Online booking is not available",r.message||"");return}U.times=r.times||[];U.why=r.why||"";U.byRoom=r.byRoom||null}
   catch(e){if(my!==seq)return;U.times=[];U.why=e.message;render();return}render();if(!U.times.length&&U.why)findNext(my)}
 function aboutHtml(){const L=V&&V.look||{},ab=L.about?`<section class="sh-ab"><h2>About ${esc(V.name)}</h2><p>${esc(L.about).replace(/\n/g,"<br>")}</p></section>`:"",mp=L.addr&&L.map!=="off"&&!EMBED?`<section class="sh-ab"><h2>Find us</h2><p class="muted" style="margin:0 0 8px">${esc(L.addr)} \u00b7 <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(V.name+", "+L.addr)}" target="_blank" rel="noopener">Open in Google Maps</a></p><iframe class="sh-map" loading="lazy" referrerpolicy="no-referrer" title="Map" src="https://www.google.com/maps?q=${encodeURIComponent(V.name+", "+L.addr)}&output=embed"></iframe></section>`:"";return ab+mp}
@@ -346,6 +347,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b
   if(a==="per"){U.per=b.dataset.v;render();return}
   if(a==="tab"){U.err="";if(b.dataset.v==="events"){U.step="events";render()}else{U.step="pick";loadTimes()}scrollTo(0,0);return}
   if(a==="evpick"){U.ev=b.dataset.id;U.step="evform";U.err="";render();scrollTo(0,0);return}
+  if(a==="shall"){U.shAll=true;render();return}
   if(a==="alert"){U.step="alert";U.err="";render();scrollTo(0,0);return}
   if(a==="time"&&b.dataset.r!=null)U.room=b.dataset.r;
   if(a==="nxt"){const t=b.dataset.t;U.date=b.dataset.d;U.cm=U.date.slice(0,7);U.times=(U.next&&U.next.times)||[t];U.why="";U.next=null;U.time=t;if(U.am){doAmend("change",rq({date:U.date,time:U.time,size:U.size}))}else{U.step="form";U.err="";render();scrollTo(0,0);const n=$("#f-name");if(n&&!n.value)try{n.focus()}catch(x){}}}
