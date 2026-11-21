@@ -173,6 +173,14 @@ function bookingMail(kind: string, venue: string, site: string, p: Any, extra: s
   const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#1b1b1b;max-width:520px"><h2 style="margin:0 0 12px">${esc(head)}</h2><p style="margin:0 0 4px"><b>${esc(venue)}</b></p><p style="margin:0">${esc(when)}<br>${esc(who)}${area ? "<br>" + esc(area) : ""}</p><p style="margin:14px 0;padding:10px 14px;background:#f3eee6;border-radius:8px">Your reference: <b style="font-size:20px;letter-spacing:.1em">${ref}</b></p>${extra ? `<p style="margin:0 0 14px">${esc(extra)}</p>` : ""}${kind === "cancelled" ? "<p>We hope to see you another time.</p>" : `<p style="margin:0">Need to change or cancel? <a href="${esc(link)}">Manage your booking</a>. You will be asked for your reference and this email address.</p>`}</div>`;
   return { subject: head + " · " + venue, html, text: lines.join("\n") };
 }
+// "A table has come free": sent to a guest who pressed Alert me.
+function alertMail(venue: string, site: string, al: Any, first: string) {
+  const link = (Deno.env.get("RES_APP_URL") || "https://reservations.proviewcrm.co.uk") + "/book/?v=" + encodeURIComponent(site) + "&date=" + al.date + "&size=" + al.size;
+  const head = "A table has come free", when = dayLong(al.date), who = al.size + (al.size === 1 ? " guest" : " guests");
+  const text = [head + " at " + venue + ".", "", when + ", " + who + (al.room ? ", " + al.room : ""), "Earliest time free: " + t12(first), "", "Book it here before it goes: " + link, "", "Tables are first come, first served, so it may be taken by the time you look."].join("\n");
+  const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#1b1b1b;max-width:520px"><h2 style="margin:0 0 12px">${esc(head)}</h2><p style="margin:0 0 4px"><b>${esc(venue)}</b></p><p style="margin:0">${esc(when)}<br>${esc(who)}${al.room ? "<br>" + esc(al.room) : ""}<br>Earliest time free: <b>${esc(t12(first))}</b></p><p style="margin:16px 0"><a href="${esc(link)}" style="display:inline-block;padding:12px 22px;border-radius:8px;background:#1b1b1b;color:#fff;text-decoration:none;font-weight:bold">Book this table</a></p><p style="margin:0;color:#555;font-size:14px">Tables are first come, first served, so it may be taken by the time you look.</p></div>`;
+  return { subject: head + " \u00b7 " + venue, html, text };
+}
 const isDate = (d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d) && !isNaN(new Date(d + "T12:00:00Z").getTime());
 
 Deno.serve(async (req) => {
@@ -196,6 +204,57 @@ Deno.serve(async (req) => {
     let R = rules(row.data, today, nowMin), o = R.OB();
     const featOff = row.data.venue && row.data.venue.feat && row.data.venue.feat.online === false;
     const on = !!o.on && !featOff;
+
+    // Guests who pressed "Alert me": when a table is free for their day and party, email them once. At most 5 emails a run.
+    const runAlerts = async () => {
+      for (let tryN = 0; tryN < 2; tryN++) {
+        const rw = await load(); if (!rw || !rw.data) return;
+        const S = rw.data, list: Any[] = Array.isArray(S.alerts) ? S.alerts : []; if (!list.length) return;
+        const RR = rules(S, today, nowMin), oo = RR.OB(); if (!oo.on) return;
+        const prs = RR.pickRooms(), up: Any[] = [], del: string[] = [], mails: { al: Any; first: string }[] = [];
+        for (const al of list) {
+          if (!al || !isDate(String(al.date)) || al.date < today) { if (al && al.id) del.push(al.id); continue; }
+          if (al.sent || mails.length >= 5) continue;
+          const room = prs.includes(al.room) ? al.room : "";
+          const free = (room || !prs.length ? RR.availSlots(al.date, al.size, room).slots : prs.flatMap((pr) => RR.availSlots(al.date, al.size, pr).slots)).filter((x) => x.ok).map((x) => x.t).sort();
+          if (free.length) { al.sent = Date.now(); up.push(al); mails.push({ al, first: free[0] }); }
+        }
+        if (!up.length && !del.length) return;
+        S.alerts = list.filter((x) => x && !del.includes(x.id));
+        const c = await db.rpc("pr_state_commit", { p_site: site, p_rev: rw.rev, p_data: S, p_ops: [{ k: "alerts", up, del }] });
+        if (c.error) throw c.error;
+        if (c.data != null) { for (const mm of mails) { const e = alertMail(name, site, mm.al, mm.first); await mail(mm.al.email, e.subject, e.html, e.text); } return; }
+      }
+    };
+    // the app calls this every few minutes while a guest is waiting, so a table freed by staff is noticed too
+    if (a === "tick") { if (on) await runAlerts(); return send({ ok: true }); }
+
+    if (a === "alert" && req.method === "POST") {
+      if (!on) return send({ error: "off", message: "Online booking is not available at the moment. Please contact us directly." }, 403);
+      const b = await req.json().catch(() => ({}));
+      if (clean(b.website, 200)) return send({ ok: true });
+      const date = String(b.date || ""), size = Math.round(+b.size || 0), gname = clean(b.name, 80).toUpperCase(), email = clean(b.email, 120).toLowerCase(), phone = clean(b.phone, 30);
+      if (!isDate(date) || date < today || date > addD(today, o.ahead)) return send({ error: "bad", message: "Please choose a date." }, 400);
+      if (!(size >= 1 && size <= o.maxParty)) return send({ error: "bad", message: "Please choose how many guests." }, 400);
+      if (gname.length < 2) return send({ error: "bad", message: "Please enter your name." }, 400);
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return send({ error: "bad", message: "Please enter your email address so we can tell you." }, 400);
+      const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown", key = "alert:" + site + ":" + ip;
+      const bl = await db.rpc("pr_pin_blocked", { p_key: key, p_max: 6 });
+      if (bl.data === true) return send({ error: "busy", message: "Too many requests from this connection. Please wait ten minutes." }, 429);
+      await db.rpc("pr_pin_failed", { p_key: key });
+      for (let tryN = 0; tryN < 4; tryN++) {
+        const rw = await load(); if (!rw || !rw.data) break;
+        const S = rw.data, list: Any[] = Array.isArray(S.alerts) ? S.alerts : [], RR = rules(S, today, nowMin), prs = RR.pickRooms(), room = prs.includes(String(b.room || "")) ? String(b.room) : "";
+        if (list.some((x) => x && x.date === date && x.size === size && x.email === email && !x.sent)) return send({ ok: true });
+        if (list.filter((x) => x && x.date === date).length >= 40) return send({ error: "full", message: "The alert list for that day is full. Please contact us directly." }, 409);
+        const al = { id: uid(), date, size, room, name: gname, email, phone, at: Date.now() };
+        list.push(al); S.alerts = list;
+        const c = await db.rpc("pr_state_commit", { p_site: site, p_rev: rw.rev, p_data: S, p_ops: [{ k: "alerts", up: [al] }] });
+        if (c.error) throw c.error;
+        if (c.data != null) return send({ ok: true });
+      }
+      return send({ error: "busy", message: "We could not save that just now. Please try again." }, 503);
+    }
 
     if (a === "info") {
       if (!on) return off();
@@ -330,6 +389,7 @@ Deno.serve(async (req) => {
         if (c.data != null) {
           const e = bookingMail(act === "cancel" ? "cancelled" : "changed", name, site, p, act === "cancel" ? "" : o.msg || "", act === "cancel" ? "" : mk(p).room);
           const sent = await mail(em, e.subject, e.html, e.text);
+          try { await runAlerts(); } catch (x) { console.error("alerts", x); }
           return send({ ...mk(p), emailed: sent });
         }
       }
