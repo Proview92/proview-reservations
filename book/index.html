@@ -84,6 +84,8 @@ html.eg body{font-family:"Jost","Futura","Century Gothic","Avenir Next",system-u
 /* inside a wide website embed: three across (guests, calendar, times) and a slim title, so it fits under the site header without scrolling */
 @media(min-width:900px){html.eg.lw body.embed .card{max-width:1040px}html.eg.lw body.embed .eg-h{padding:4px 16px 0}html.eg.lw body.embed .eg-h h1,html.eg.lw body.embed .eg-h p{display:none}html.eg.lw body.embed .eg-tab{padding:6px 4px 8px}html.eg.lw body.embed .eg-b{padding:12px 22px 12px;gap:8px}html.eg.lw body.embed .eg-g{grid-template-columns:minmax(0,2.1fr) minmax(0,1fr)}html.eg.lw body.embed .eg-g>.eg-p:first-child{flex-direction:row;gap:26px}html.eg.lw body.embed .eg-g>.eg-p:first-child>div:first-child{flex:0 0 190px}html.eg.lw body.embed .eg-g>.eg-p:first-child>div:last-child{flex:1 1 auto;min-width:0}html.eg.lw body.embed .eg-c button{height:32px}html.eg.lw body.embed #foot{margin:4px auto!important}}
 html.sz-s body.embed .card{max-width:480px!important}html.sz-s body.embed .eg-g{grid-template-columns:minmax(0,1fr)!important}html.sz-l body.embed .card{max-width:760px}html.eg.sz-l body.embed .card{max-width:1040px}
+.pers{display:flex;gap:6px;margin:0 0 8px}.pers button{flex:1 1 0;min-width:0;height:38px;border:1px solid var(--line);border-radius:var(--rad);background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer}.pers button.on{background:var(--btn);color:var(--btnink);border-color:transparent}.eg .pers button{border-radius:999px;font-weight:500}.eg .pers button.on{background:var(--sand);border-color:var(--sandd);color:var(--sandink)}
+@media(min-width:900px){html.eg.lw body.embed .times{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 5px}html.eg.lw body.embed .times button{height:34px;font-size:13px;padding:0;white-space:nowrap}html.eg.lw body.embed .pers button{height:34px}}
 .nxt{margin:10px 0 0;display:grid;gap:8px}.nxt b{font-size:15px}.nxt .link{justify-self:start;padding:0}
 @media (max-width:520px){.eg-h h1{font-size:21px;letter-spacing:.2em;padding-left:.2em}.eg-b{padding:14px 14px 16px}.eg-n{width:34px;height:34px;font-size:15px}.eg-sz{gap:6px}.eg-c button{height:34px}.eg .times{grid-template-columns:repeat(auto-fill,minmax(70px,1fr))}}
 @media (max-width:520px){body{padding:14px 10px}.card{padding:22px 18px;border-radius:18px}h1{font-size:23px}}
@@ -183,7 +185,7 @@ function render(){
   let tm="";
   if(U.times===null)tm=`<p class="muted">Checking times…</p>`;
   else if(U.why&&!U.times.length)tm=`<div class="notice">${esc(U.why)}</div>${nextHtml()}`;
-  else tm=`<div class="times">${U.times.map(t=>`<button type="button" data-a="time" data-t="${t}">${t12(t)}</button>`).join("")}</div>`;
+  else tm=timesHtml();
   page(`${head(esc(V.label||"Book a table"))}${amBan()}${U.err?`<div class="notice bad">${esc(U.err)}</div>`:""}
     <div class="row"><label class="af">Guests<select id="p-size">${opts.join("")}</select></label>
     <label class="af">Date<input id="p-date" type="date" min="${V.today}" max="${last}" value="${U.date}"></label></div>
@@ -202,12 +204,17 @@ function pickEg(){const max=V.maxParty,last=addD(V.today,V.ahead);if(!U.cm)U.cm=
   let tm="";
   if(U.times===null)tm=`<p class="muted">Checking times\u2026</p>`;
   else if(U.why&&!U.times.length)tm=`<div class="notice">${esc(U.why)}</div>${nextHtml()}`;
-  else tm=`<div class="times">${U.times.map(t=>`<button type="button" data-a="time" data-t="${t}">${t12(t)}</button>`).join("")}</div>`;
+  else tm=timesHtml();
   page(`${head("")}${amBan()}${U.err?`<div class="notice bad">${esc(U.err)}</div>`:""}
     <div class="eg-g"><div class="eg-p"><div><h2 class="eg-l">Guests</h2><div class="eg-sz" role="group" aria-label="Number of guests">${sz.join("")}</div><p class="muted small" style="margin-top:8px">More than ${max}? Please contact ${esc(V.name)} directly.</p></div>
     <div><h2 class="eg-l">Date</h2><div class="eg-m"><button type="button" data-a="mon" data-v="-1" aria-label="Previous month" ${U.cm<=V.today.slice(0,7)?"disabled":""}>\u2039</button><span>${MNL[mo-1]} ${y}</span><button type="button" data-a="mon" data-v="1" aria-label="Next month" ${U.cm>=last.slice(0,7)?"disabled":""}>\u203a</button></div><div class="eg-c">${c}</div></div></div>
     <div class="eg-p"><div><h2 class="eg-l">${esc(fmtD(U.date))}</h2>${tm}</div></div></div>${findLink()}`)}
 let seq=0;
+/* a long day of times is shown one part of the day at a time, so the list stays short */
+const PERS=[["m","Morning",0,720],["a","Afternoon",720,1020],["e","Evening",1020,1441]],tmin=t=>(+t.slice(0,2))*60+(+t.slice(3,5));
+function timesHtml(){const T=U.times||[],btn=t=>`<button type="button" data-a="time" data-t="${t}">${t12(t)}</button>`;if(T.length<=12)return`<div class="times">${T.map(btn).join("")}</div>`;
+  const G=PERS.map(p=>({k:p[0],n:p[1],L:T.filter(t=>tmin(t)>=p[2]&&tmin(t)<p[3])})).filter(g=>g.L.length);if(G.length<2)return`<div class="times">${T.map(btn).join("")}</div>`;
+  const cur=G.find(g=>g.k===U.per)||G[0];return`<div class="pers" role="group" aria-label="Part of the day">${G.map(g=>`<button type="button" data-a="per" data-v="${g.k}" class="${g===cur?"on":""}" aria-pressed="${g===cur}">${g.n}</button>`).join("")}</div><div class="times">${cur.L.map(btn).join("")}</div>`}
 /* when a day has nothing free, look ahead and offer the next day that does */
 function nextHtml(){const n=U.next;if(n===undefined||n===null)return"";if(n==="look")return`<p class="muted small" style="margin:10px 0 0">Looking for the next free day\u2026</p>`;if(n==="none")return`<p class="muted small" style="margin:10px 0 0">Nothing free online in the next two weeks. Please contact us directly.</p>`;
   return`<div class="nxt"><b>Next available: ${esc(fmtD(n.date))}</b><div class="times">${n.times.slice(0,4).map(t=>`<button type="button" data-a="nxt" data-d="${n.date}" data-t="${t}">${t12(t)}</button>`).join("")}</div>${n.times.length>4?`<button type="button" class="link" data-a="day" data-d="${n.date}">See all ${n.times.length} times that day</button>`:""}</div>`}
@@ -225,6 +232,7 @@ async function submit(e){e.preventDefault();if(U.busy)return;const f=U.f;
   try{const r=await call("book",{},{date:U.date,time:U.time,size:U.size,name:f.name,phone:f.phone,email:f.email,notes:f.notes,mk:!!(f.email&&f.mk),website:web});U.busy=false;U.done=r;U.step="done";render();scrollTo(0,0)}
   catch(err){U.busy=false;if(err.code==="gone"){U.step="pick";U.err=err.message;loadTimes();return}U.err=err.message;render()}}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;
+  if(a==="per"){U.per=b.dataset.v;render();return}
   if(a==="nxt"){const t=b.dataset.t;U.date=b.dataset.d;U.cm=U.date.slice(0,7);U.times=(U.next&&U.next.times)||[t];U.why="";U.next=null;U.time=t;if(U.am){doAmend("change",{date:U.date,time:U.time,size:U.size})}else{U.step="form";U.err="";render();scrollTo(0,0);const n=$("#f-name");if(n&&!n.value)try{n.focus()}catch(x){}}}
   else if(a==="day"){U.date=b.dataset.d;U.cm=U.date.slice(0,7);loadTimes()}
   else if(a==="size"){U.size=+b.dataset.n;loadTimes()}
