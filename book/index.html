@@ -154,6 +154,8 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b
   const qd=Q.get("date"),qs=+Q.get("size");if(qd&&/^\d{4}-\d{2}-\d{2}$/.test(qd)&&qd>=V.today&&qd<=addD(V.today,V.ahead))U.date=qd;if(qs>=1&&qs<=V.maxParty)U.size=Math.round(qs);
   loadTimes()})();
 new ResizeObserver(tell).observe(document.documentElement);
+
+document.addEventListener("input",e=>{const t=e.target;if(!t||(t.id!=="f-phone"&&t.id!=="g-phone"))return;const v=t.value,c=v.replace(/[^\d+ ]/g,"").replace(/(?!^)\+/g,"");if(c!==v){const p=Math.max(0,(t.selectionStart||c.length)-(v.length-c.length));t.value=c;try{t.setSelectionRange(p,p)}catch(_){}}});
 </script>
 </body>
 </html>
