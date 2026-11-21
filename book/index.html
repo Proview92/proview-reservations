@@ -6,6 +6,7 @@
 <title>Book a table</title>
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/svg+xml" href="../icon-app.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f4f3ef;--card:#fff;--ink:#17171c;--line:#e4e2dc;--mut:#55555f;--lab:#3d3d46;--pri:#4a6cd0;--btn:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);--btnink:#fff;--hov:#f4f3ef;--rad:10px;color-scheme:light}
 :root.dark{--bg:#0e0e11;--card:#17171c;--ink:#ececf1;--line:#2a2a32;--mut:#9a9aa5;--lab:#c9c9d1;--hov:#22222a;color-scheme:dark}
@@ -55,6 +56,31 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);outline-off
 .splash{width:56px;height:56px;border-radius:22%;margin:40px auto;background:url(../icon-app.svg) center/contain no-repeat;opacity:.9;animation:bp 1.2s ease-in-out infinite}
 @keyframes bp{50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.splash{animation:none}}
+/* Elegant template: sand header with the venue name, guests as circles, a month calendar (chosen on the Widget page) */
+html.eg{--sand:#ddc9b0;--sandd:#b9a48a;--sandink:#1b1b1b;--bg:#f3f1ec;--line:#e6e2da;--mut:#6b675f}
+html.eg body{font-family:"Jost","Futura","Century Gothic","Avenir Next",system-ui,-apple-system,"Segoe UI",sans-serif}
+.eg .card{padding:0;gap:0;overflow:hidden;width:min(560px,100%)}
+.eg-h{background:var(--sand);color:var(--sandink);text-align:center;padding:30px 16px 0;border-bottom:1px solid var(--sandd)}
+.eg-h h1{font-size:30px;letter-spacing:.3em;padding-left:.3em;text-transform:uppercase;font-weight:500;line-height:1.25}
+.eg-h p{letter-spacing:.1em;margin:10px 0 20px;font-size:16px;opacity:.8}
+.eg-tab{display:inline-block;padding:10px 4px 14px;letter-spacing:.2em;text-transform:uppercase;font-size:13px;font-weight:500;border-bottom:3px solid var(--sandink);margin-bottom:-1px}
+.eg-b{padding:26px 26px 30px;display:flex;flex-direction:column;gap:22px}
+.eg-l{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);font-weight:500;margin:0 0 12px}
+.eg-sz{display:flex;flex-wrap:wrap;gap:10px}
+.eg-n{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--card);font:inherit;font-size:18px;cursor:pointer;color:var(--ink);padding:0}
+.eg-n.on,.eg-c button.on{background:var(--sand);border-color:var(--sandd);color:var(--sandink)}
+.eg-m{display:flex;align-items:center;justify-content:space-between;margin:0 0 8px;font-size:21px;font-weight:500}
+.eg-m button{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);font:inherit;font-size:18px;cursor:pointer;color:var(--ink);padding:0}
+.eg-m button:disabled{opacity:.35;cursor:default}
+.eg-c{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px 4px;text-align:center}
+.eg-c .dw{font-size:13px;color:var(--mut);font-weight:500;padding:8px 0}
+.eg-c button{height:46px;border:1px solid transparent;border-radius:10px;background:none;font:inherit;font-size:18px;color:var(--ink);cursor:pointer;padding:0}
+.eg-c button:disabled{color:#cfc9bf;cursor:default}
+.eg-c button.t:not(.on){border-color:var(--line);background:var(--card)}
+.eg .times button{border-radius:999px;font-weight:500}.eg .times button:hover{background:var(--sand);border-color:var(--sandd)}
+.eg .go{background:#1b1b1b;color:#fff;letter-spacing:.06em}
+.eg .link{margin-left:0}
+@media (max-width:520px){.eg-h h1{font-size:23px;letter-spacing:.22em;padding-left:.22em}.eg-b{padding:22px 16px 26px}.eg-n{width:42px;height:42px}}
 @media (max-width:520px){body{padding:14px 10px}.card{padding:22px 18px;border-radius:18px}h1{font-size:23px}}
 </style>
 </head>
@@ -82,13 +108,15 @@ async function call(a,params,body){const u=new URL(API);u.searchParams.set("v",S
 /* The venue's own look (Widget page, "Look of the booking page"): light or dark, button colour, background, corners. */
 const HEX=/^#[0-9a-f]{6}$/i,lum=h=>{const c=parseInt(h.slice(1),16);return(0.299*(c>>16)+0.587*((c>>8)&255)+0.114*(c&255))/255};
 function applyLook(L){L=L||{};const r=document.documentElement,st=r.style;r.classList.toggle("dark",L.mode==="dark");
-  ["--pri","--btn","--btnink","--bg","--hov","--rad"].forEach(k=>st.removeProperty(k));
+  r.classList.toggle("eg",L.style==="elegant");["--pri","--btn","--btnink","--bg","--hov","--rad","--sand","--sandink"].forEach(k=>st.removeProperty(k));
   if(HEX.test(L.accent||"")){st.setProperty("--pri",L.accent);st.setProperty("--btn",L.accent);st.setProperty("--btnink",lum(L.accent)>0.62?"#17171c":"#fff")}
   if(HEX.test(L.bg||""))st.setProperty("--bg",L.bg);
+  if(L.style==="elegant"&&HEX.test(L.accent||"")){st.setProperty("--sand",L.accent);st.setProperty("--sandink",lum(L.accent)>0.62?"#1b1b1b":"#fff")}
   if(L.corners==="square")st.setProperty("--rad","3px");else if(L.corners==="pill")st.setProperty("--rad","22px")}
 function tell(){try{if(EMBED&&parent!==window)parent.postMessage({proviewBookingHeight:document.documentElement.scrollHeight},"*")}catch(e){}}
-function page(h){$("#root").innerHTML=h;tell()}
-function head(sub){return`<div><h1>${esc(V&&V.name||"Book a table")}</h1>${sub?`<p class="muted" style="margin-top:6px">${sub}</p>`:""}</div>`}
+const EG=()=>document.documentElement.classList.contains("eg");
+function page(h){$("#root").innerHTML=EG()?h+"</div>":h;tell()}
+function head(sub){if(EG()){const p=String(V&&V.name||"Book a table").split(/\s+[-\u2013\u2014]\s+/),tg=V&&V.label&&V.label!=="Book a table"?V.label:"";return`<div class="eg-h"><h1>${esc(p[0])}</h1>${tg?`<p>${esc(tg)}</p>`:`<p style="margin-bottom:14px"></p>`}${p.length>1?`<div class="eg-tab">${esc(p.slice(1).join(" \u2013 "))}</div>`:""}</div><div class="eg-b">`}return`<div><h1>${esc(V&&V.name||"Book a table")}</h1>${sub?`<p class="muted" style="margin-top:6px">${sub}</p>`:""}</div>`}
 function fail(title,msg){page(`${head("")}<div class="notice bad"><b>${esc(title)}</b><br>${esc(msg)}</div>`)}
 
 function render(){
@@ -110,6 +138,7 @@ function render(){
       <button class="go" type="submit" ${U.busy?"disabled":""}>${U.busy?"Sending…":V.confirm==="request"?"Request this table":"Confirm booking"}</button></form>
       <button class="link" data-a="back">Change date or time</button>`);
     $("#fm").addEventListener("submit",submit);return}
+  if(EG()&&V.maxParty<=12)return pickEg();
   // pick guests, date and time
   const max=V.maxParty,opts=[];for(let n=1;n<=max;n++)opts.push(`<option value="${n}" ${n===U.size?"selected":""}>${guests(n)}</option>`);
   const last=addD(V.today,V.ahead),days=[];for(let i=0;i<14&&addD(V.today,i)<=last;i++){const d=addD(V.today,i),p=dParts(d);days.push(`<button type="button" data-a="day" data-d="${d}" class="${d===U.date?"on":""}" aria-pressed="${d===U.date}"><small>${i===0?"Today":p.dn}</small><b>${p.day}</b><small>${p.mn}</small></button>`)}
@@ -126,6 +155,20 @@ function render(){
   $("#p-size").addEventListener("change",e=>{U.size=+e.target.value;loadTimes()});
   $("#p-date").addEventListener("change",e=>{const d=e.target.value;if(d&&d>=V.today&&d<=last){U.date=d;loadTimes()}});
   const on=document.querySelector(".days .on");if(on&&on.scrollIntoView)try{on.scrollIntoView({block:"nearest",inline:"nearest"})}catch(e){}}
+const MNL=["January","February","March","April","May","June","July","August","September","October","November","December"];
+function pickEg(){const max=V.maxParty,last=addD(V.today,V.ahead);if(!U.cm)U.cm=U.date.slice(0,7);
+  const sz=[];for(let n=1;n<=max;n++)sz.push(`<button type="button" class="eg-n ${n===U.size?"on":""}" data-a="size" data-n="${n}" aria-pressed="${n===U.size}">${n}</button>`);
+  const y=+U.cm.slice(0,4),mo=+U.cm.slice(5,7),dim=new Date(Date.UTC(y,mo,0,12)).getUTCDate(),lead=(new Date(Date.UTC(y,mo-1,1,12)).getUTCDay()+6)%7;
+  let c=["Mo","Tu","We","Th","Fr","Sa","Su"].map(d=>`<span class="dw">${d}</span>`).join("")+"<span></span>".repeat(lead);
+  for(let d=1;d<=dim;d++){const iso=U.cm+"-"+pad(d),ok=iso>=V.today&&iso<=last;c+=`<button type="button" ${ok?`data-a="day" data-d="${iso}"`:"disabled"} class="${iso===U.date?"on":""} ${iso===V.today?"t":""}" aria-pressed="${iso===U.date}">${d}</button>`}
+  let tm="";
+  if(U.times===null)tm=`<p class="muted">Checking times\u2026</p>`;
+  else if(U.why&&!U.times.length)tm=`<div class="notice">${esc(U.why)}</div>`;
+  else tm=`<div class="times">${U.times.map(t=>`<button type="button" data-a="time" data-t="${t}">${t12(t)}</button>`).join("")}</div>`;
+  page(`${head("")}${U.err?`<div class="notice bad">${esc(U.err)}</div>`:""}
+    <div><h2 class="eg-l">Guests</h2><div class="eg-sz" role="group" aria-label="Number of guests">${sz.join("")}</div><p class="muted small" style="margin-top:12px">More than ${max}? Please contact ${esc(V.name)} directly.</p></div>
+    <div><h2 class="eg-l">Date</h2><div class="eg-m"><button type="button" data-a="mon" data-v="-1" aria-label="Previous month" ${U.cm<=V.today.slice(0,7)?"disabled":""}>\u2039</button><span>${MNL[mo-1]} ${y}</span><button type="button" data-a="mon" data-v="1" aria-label="Next month" ${U.cm>=last.slice(0,7)?"disabled":""}>\u203a</button></div><div class="eg-c">${c}</div></div>
+    <div><h2 class="eg-l">${esc(fmtD(U.date))}</h2>${tm}</div>`)}
 let seq=0;
 async function loadTimes(){const my=++seq;U.times=null;U.why="";U.err="";render();
   try{const r=await call("slots",{date:U.date,size:U.size});if(my!==seq)return;if(r.on===false){V.on=false;fail("Online booking is not available",r.message||"");return}U.times=r.times||[];U.why=r.why||""}
@@ -140,7 +183,9 @@ async function submit(e){e.preventDefault();if(U.busy)return;const f=U.f;
   try{const r=await call("book",{},{date:U.date,time:U.time,size:U.size,name:f.name,phone:f.phone,email:f.email,notes:f.notes,mk:!!(f.email&&f.mk),website:web});U.busy=false;U.done=r;U.step="done";render();scrollTo(0,0)}
   catch(err){U.busy=false;if(err.code==="gone"){U.step="pick";U.err=err.message;loadTimes();return}U.err=err.message;render()}}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;
-  if(a==="day"){U.date=b.dataset.d;loadTimes()}
+  if(a==="day"){U.date=b.dataset.d;U.cm=U.date.slice(0,7);loadTimes()}
+  else if(a==="size"){U.size=+b.dataset.n;loadTimes()}
+  else if(a==="mon"){const y=+U.cm.slice(0,4),m=+U.cm.slice(5,7)-1+(+b.dataset.v),d=new Date(Date.UTC(y,m,1,12));U.cm=d.getUTCFullYear()+"-"+pad(d.getUTCMonth()+1);render()}
   else if(a==="time"){U.time=b.dataset.t;U.step="form";U.err="";render();scrollTo(0,0);const n=$("#f-name");if(n&&!n.value)try{n.focus()}catch(x){}}
   else if(a==="back"){U.step="pick";U.err="";loadTimes()}
   else if(a==="again"){U.step="pick";U.done=null;U.time="";U.f.notes="";loadTimes()}});
