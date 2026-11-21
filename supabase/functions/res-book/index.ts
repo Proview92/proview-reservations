@@ -147,7 +147,7 @@ function lookOf(o: Any) {
   const L = (o && o.look) || {}, hex = (x: unknown) => (typeof x === "string" && /^#[0-9a-f]{6}$/i.test(x) ? x.toLowerCase() : "");
   // pictures uploaded on the Widget page: only addresses in this project's own public bucket are passed on
   const pic = (x: unknown) => (typeof x === "string" && x.length < 300 && x.startsWith((Deno.env.get("SUPABASE_URL") || "") + "/storage/v1/object/public/pr-media/") && /^[\w\-./:]+$/.test(x) ? x : "");
-  return { logo: pic(L.logo), header: pic(L.header), bgimg: pic(L.bgimg), mode: L.mode === "dark" ? "dark" : "light", accent: hex(L.accent), bg: hex(L.bg), corners: L.corners === "square" || L.corners === "pill" ? L.corners : "round", style: L.style === "elegant" || L.style === "show" ? L.style : "", layout: L.layout === "wide" || L.layout === "stack" ? L.layout : "", size: L.size === "s" || L.size === "l" ? L.size : "" };
+  return { logo: pic(L.logo), header: pic(L.header), bgimg: pic(L.bgimg), addr: clean(L.addr, 160), about: String(L.about == null ? "" : L.about).replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, " ").trim().slice(0, 700), map: L.map === "off" ? "off" : "", mode: L.mode === "dark" ? "dark" : "light", accent: hex(L.accent), bg: hex(L.bg), corners: L.corners === "square" || L.corners === "pill" ? L.corners : "round", style: L.style === "elegant" || L.style === "show" ? L.style : "", layout: L.layout === "wide" || L.layout === "stack" ? L.layout : "", size: L.size === "s" || L.size === "l" ? L.size : "" };
 }
 const esc = (s: unknown) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
 const t12 = (t: string) => { const h = +t.slice(0, 2); return ((h + 11) % 12 + 1) + ":" + t.slice(3) + (h < 12 ? "am" : "pm"); };
@@ -207,11 +207,26 @@ Deno.serve(async (req) => {
       const date = String(q.get("date") || ""), size = Math.round(+(q.get("size") || 0));
       if (!isDate(date)) return send({ error: "bad", message: "Please choose a date." }, 400);
       const prs = R.pickRooms(), room = prs.includes(String(q.get("room") || "")) ? String(q.get("room")) : "";
-      if (prs.length && o.pick === "must" && !room) return send({ date, size, times: [], why: "Please choose an area first.", room: "" });
+      // all=1 (Showcase template): the free times of every area at once, so each time button can name its area
+      const all = q.get("all") === "1" && prs.length > 0 && !room;
+      if (prs.length && o.pick === "must" && !room && !all) return send({ date, size, times: [], why: "Please choose an area first.", room: "" });
       const r = R.availSlots(date, size, room);
-      const times = r.slots.filter((s) => s.ok).map((s) => s.t);
+      let times = r.slots.filter((s) => s.ok).map((s) => s.t);
+      const byRoom: Record<string, string[]> = {};
+      if (all) { prs.forEach((pr) => { byRoom[pr] = R.availSlots(date, size, pr).slots.filter((s) => s.ok).map((s) => s.t); }); times = [...new Set(prs.flatMap((pr) => byRoom[pr]))].sort(); }
       const why = guestWhy(r, o) || (times.length ? "" : "Sorry, there are no tables free online that day for " + size + (size === 1 ? " guest" : " guests") + (room ? " in " + room : "") + ". Please try another date" + (room ? ", another area" : "") + " or contact us directly.");
-      return send({ date, size, times, why, room });
+      return send({ date, size, times, why, room, ...(all ? { byRoom } : {}) });
+    }
+
+    // the next days that still have a table: for "Other dates with availability"
+    if (a === "days") {
+      if (!on) return off();
+      const from = String(q.get("date") || ""), size = Math.round(+(q.get("size") || 0));
+      if (!isDate(from)) return send({ error: "bad", message: "Please choose a date." }, 400);
+      const prs = R.pickRooms(), room = prs.includes(String(q.get("room") || "")) ? String(q.get("room")) : "", last = addD(today, o.ahead), days: Any[] = [];
+      const free = (d: string) => (room || !prs.length ? R.availSlots(d, size, room).slots.filter((s) => s.ok).length : new Set(prs.flatMap((pr) => R.availSlots(d, size, pr).slots.filter((s) => s.ok).map((s) => s.t))).size);
+      for (let i = 1; i <= 21 && days.length < 6; i++) { const d = addD(from < today ? today : from, i); if (d > last) break; const n = free(d); if (n) days.push({ date: d, count: n }); }
+      return send({ days });
     }
 
     if (a === "book" && req.method === "POST") {

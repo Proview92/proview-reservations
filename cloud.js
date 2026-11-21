@@ -195,7 +195,7 @@ function clUsersHtml(){if(!CL.site||!clBoss())return"";const many=(CL.who.sites|
 /* ---------- Widget page: the booking link for Google and the venue's website ---------- */
 const clBookUrl=()=>location.origin+location.pathname.replace(/[^/]*$/,"")+"book/?v="+encodeURIComponent(CL.site.id);
 // The look of the booking page (kept with the online rules in venue.ob.look): theme, button colour, background, corners.
-const CL_LOOK={mode:"light",accent:"",bg:"",corners:"round",style:"",layout:"",size:"",logo:"",header:"",bgimg:""};
+const CL_LOOK={mode:"light",accent:"",bg:"",corners:"round",style:"",layout:"",size:"",logo:"",header:"",bgimg:"",addr:"",about:"",map:""};
 const clLook=()=>Object.assign({},CL_LOOK,(OB().look)||{});
 const clLum=h=>{const c=parseInt(h.slice(1),16);return(0.299*(c>>16)+0.587*((c>>8)&255)+0.114*(c&255))/255};
 function clLookPrev(){const L=clLook(),dk=L.mode==="dark",bg=L.bg||(dk?"#0e0e11":"#f4f3ef"),card=dk?"#17171c":"#fff",ink=dk?"#ececf1":"#17171c",mut=dk?"#9a9aa5":"#55555f",line=dk?"#2a2a32":"#e4e2dc";
@@ -240,6 +240,10 @@ function clBookCard(){if(!CL.site||U.view!=="online")return;const main=$("#main"
  <label class="of"><span class="ot">Page background</span><input type="color" data-bkl="bg" value="${L.bg||(L.mode==="dark"?"#0e0e11":"#f4f3ef")}" style="height:44px;padding:4px"><small class="mut">${L.bg?"Your colour "+esc(L.bg):"Standard for the theme"}. Inside your own website the page behind shows through.</small></label></div>
  <div class="clpx"><span class="ot">Your pictures</span><p class="mut small" style="margin:2px 0 8px">Shown on your booking link, which fills the whole page. Inside your own website only the logo shows, as your site has its own design around the form.</p>
  ${[["logo","Logo","Replaces your name at the top. A PNG with a see-through background looks best."],["header","Header photo","A wide photo of your venue across the top."],["bgimg","Background photo","Fills the page behind the booking form."]].map(x=>`<div class="clpr"><div class="clpt ${x[0]}"${L[x[0]]?` style="background-image:url('${esc(L[x[0]])}')"`:""}>${L[x[0]]?"":"None"}</div><div class="clpi"><b>${x[1]}</b><small class="mut">${x[2]}</small></div><div class="clpb"><button class="btn sm pri" data-act="clPicUp" data-k="${x[0]}">${L[x[0]]?"Change":"Upload"}</button>${L[x[0]]?`<button class="btn sm" data-act="clPicRm" data-k="${x[0]}">Remove</button>`:""}</div></div>`).join("")}</div>
+ <div class="clpx"><span class="ot">About your venue</span><p class="mut small" style="margin:2px 0 8px">Shown with the Showcase template. Leave a box empty to leave it out.</p>
+ <label class="of"><span class="ot">Address</span><input data-bkl="addr" maxlength="160" value="${esc(L.addr||"")}" placeholder="For example 12 High Street, London N16 9PX"></label>
+ <label class="of"><span class="ot">About text</span><textarea data-bkl="about" rows="3" maxlength="700" placeholder="A few lines about your venue">${esc(L.about||"")}</textarea></label>
+ <div class="g2"><label class="of"><span class="ot">Map at the bottom of your booking link</span><select data-bkl="map"><option value="" ${L.map!=="off"?"selected":""}>Show (needs an address)</option><option value="off" ${L.map==="off"?"selected":""}>Hide</option></select></label></div></div>
  <div id="cl-bk-pv" style="margin:10px 0 0">${clLookPrev()}</div>
  <div class="bar" style="margin:10px 0 0"><button class="btn" data-act="clBkReset">Use the Proview colours</button></div>
 </div></div>`;
@@ -253,7 +257,7 @@ function clBookCard(){if(!CL.site||U.view!=="online")return;const main=$("#main"
  main.querySelectorAll(".swt small").forEach(x=>{if(/widget is connected/.test(x.textContent))x.textContent="Guests can book from your link while this is on"})}
 Object.assign(A,{
  clPicUp:b=>clPicUp(b.dataset.k),clPicRm:b=>clPicRm(b.dataset.k),
- clBkReset:()=>{if(!can("settings")){toast("Staff cannot change this. Ask a manager to sign in.");return}const o=OB(),k=o.look||{};delete o.look;if(k.logo||k.header||k.bgimg)o.look=Object.assign({},CL_LOOK,{logo:k.logo||"",header:k.header||"",bgimg:k.bgimg||""});save();clBookRe();toast("Back to the Proview colours")},
+ clBkReset:()=>{if(!can("settings")){toast("Staff cannot change this. Ask a manager to sign in.");return}const o=OB(),k=o.look||{};delete o.look;if(k.logo||k.header||k.bgimg||k.addr||k.about||k.map)o.look=Object.assign({},CL_LOOK,{logo:k.logo||"",header:k.header||"",bgimg:k.bgimg||"",addr:k.addr||"",about:k.about||"",map:k.map||""});save();clBookRe();toast("Back to the Proview colours")},
  clBkCopy:b=>{const f=document.getElementById(b.dataset.f);if(!f)return;f.focus();f.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}const bad=()=>toast("Could not copy by button. The text is selected: press Cmd+C.");if(ok){toast("Copied");return}try{navigator.clipboard.writeText(f.value).then(()=>toast("Copied"),bad)}catch(e){bad()}},
  clMemAdd:async()=>{const e=(($("#cl-me")||{}).value||"").trim().toLowerCase(),role=($("#cl-mr")||{}).value||"Staff";if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast("Enter a valid email address");return}
   const r=await CL.sb.rpc("pr_save_member",{p_business:CL.site.business_id,p_email:e,p_role:role});if(r.error){toast(clErr(r.error));return}toast("User added");await clMembers();render()},
