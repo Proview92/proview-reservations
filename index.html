@@ -1846,16 +1846,16 @@ Object.assign(A,{
 const seatedOn=id=>S.parties.find(p=>onT(p,id)&&p.date===today()&&p.status==="seated");
 function leftP(p){const t=p.table,ts=ptabs(p);if(loyDueP(p)){const k=gkey(p),g=loyGifts(k)[0],L=LOY();L.gifts[k]=(L.gifts[k]||[]).filter(x=>x.id!==g.id);p.gift=g;p.disc=g.pct}p.status="done";p.left=Date.now();ts.forEach(id=>{if(!S.parties.some(q=>q.id!==p.id&&onT(q,id)&&q.date===today()&&q.status==="seated"))S.ts[id]="clearing"});splAuto();save();render();toast(p.name+" has left."+(t?" "+ts.map(tname).join(" + ")+" need"+(ts.length>1?"":"s")+" resetting.":""))}
 function unseatP(p){const t=p.table;p.status="booked";p.arr=true;p.resolved=false;ptabs(p).forEach(id=>{if(!seatedOn(id))S.ts[id]="free"});save();render();toast(p.name+" is unseated. Still booked on "+(t?tname(t):"their table")+", not sat yet.")}
-/* Status buttons for one table, by what can happen next:
-   free: seat someone. Occupied: move the meal on, or Left (the table then needs a reset). Needs reset: Reset done. */
+/* Status buttons for one table.
+   Free: nothing to mark, only Seat guests. Occupied: Seated, Dessert, Paying, Needs reset (each changes the colour),
+   then Left or Unseat. Empty and waiting for a reset: Reset done. */
 function tsBtns(t){const st=tst(t),sp=seatedOn(t.id),B=(v,l,pri,ti)=>`<button class="btn sm ${pri?"pri":""}" data-act="tstat" data-id="${t.id}" data-v="${v}"${ti?` title="${ti}"`:""}>${l}</button>`;
- if(st==="clearing"&&!sp)return B("free","Reset done",1,"The table is cleared and laid, ready for the next guests")+B("seated","Seated")+B("dessert","Dessert")+B("paying","Paying");
- const live=st==="clearing"?"seated":st;
- return["seated","dessert","paying"].map(k=>B(k,TS[k][0],live===k)).join("")+(sp||st!=="free"?B("left","Left",0,"Guests have left. The table then shows as Needs reset")+B("unseat","Unseat",0,"Put the guests back to booked, not seated"):"")}
+ if(!sp&&st==="clearing")return B("free","Reset done",1,"The table is cleared and laid, ready for the next guests");
+ if(!sp&&st==="free")return B("seated","Seat guests",1,"Seat a walk-in, or the booking due on this table");
+ return["seated","dessert","paying","clearing"].map(k=>B(k,TS[k][0],st===k,k==="clearing"?"Guests have gone and the table needs a reset. Press Left once it is done":"")).join("")+B("left","Left",0,st==="clearing"?"Reset is done: the table becomes free":"Guests have left: the table then shows as Needs reset")+B("unseat","Unseat",0,"Put the guests back to booked, not seated")}
 function setTS(id,v){
  const sp=seatedOn(id);
- if(v==="clearing"&&sp){leftP(sp);return}
- if(v==="left"){if(sp){leftP(sp);return}const ap=S.parties.find(p=>onT(p,id)&&p.date===today()&&p.status==="booked"&&p.arr);if(ap){leftP(ap);return}if((S.ts[id]||"free")==="free"){toast("Nobody is seated at this table");return}S.ts[id]="clearing"}
+ if(v==="left"){if(sp){const wasReset=(S.ts[id]||"free")==="clearing",ids=ptabs(sp);leftP(sp);if(wasReset){ids.forEach(x=>{if(!seatedOn(x))S.ts[x]="free"});save();render();toast(sp.name+" has left. "+ids.map(tname).join(" + ")+(ids.length>1?" are":" is")+" free.")}return}const ap=S.parties.find(p=>onT(p,id)&&p.date===today()&&p.status==="booked"&&p.arr);if(ap){leftP(ap);return}if((S.ts[id]||"free")==="free"){toast("Nobody is seated at this table");return}S.ts[id]="clearing"}
  else if(v==="unseat"){if(sp){unseatP(sp);return}S.ts[id]="free"}
  else if((v==="seated"||v==="dessert"||v==="paying")&&!sp&&!S.parties.some(p=>onT(p,id)&&p.date===today()&&p.status==="booked")){wkAsk(id,v);return}
  else if(v==="seated"){const bp=S.parties.filter(p=>onT(p,id)&&p.date===today()&&p.status==="booked").sort((a,b)=>a.time.localeCompare(b.time))[0];if(bp&&!sp){bp.status="seated";bp.arr=true;ptabs(bp).forEach(x=>{S.ts[x]="seated"})}S.ts[id]="seated"}
