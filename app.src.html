@@ -525,6 +525,7 @@ button.fd{cursor:pointer}.fd.on{background:var(--pril)}
  .bktop .bseg button .nb{background:none!important;border:0!important;padding:0!important;min-width:0!important;height:auto!important;font-size:17px!important;font-weight:800;line-height:1.1}
  .bktop>.bt1:not(.bt1p)>.btn{font-size:12.5px!important}
 }
+@media(max-width:639px){#toast{width:max-content;max-width:calc(100vw - 16px);padding:9px 14px;font-size:14.5px;text-align:center}}
 /* phone: toolbar rows line up, one height and one text size per row */
 @media(max-width:639px){
  .bt1:not(.bt1p){margin:0!important;align-self:stretch}.bt1:not(.bt1p) .btn{min-height:38px!important;height:38px;font-size:13.5px}
@@ -1347,7 +1348,7 @@ function vBookings(){
  U.sz="any";U.srcf="all";const szf=(p,s)=>s==="any"||(s===5?p.size>=5:p.size===s),srcOk=p=>U.srcf==="all"||(U.srcf==="No table"?!p.table:p.src===U.srcf);
  const L=base.filter(p=>by[U.filter](p)&&szf(p,U.sz)&&srcOk(p)&&(!q||(p.name+p.phone).toLowerCase().includes(q)));
  const act=all.filter(p=>p.status!=="cancelled"&&p.status!=="noshow"),seated=all.filter(p=>p.status==="seated");
- const tabs=[["all","All"],["up","Upcoming"],["arrived","Arrived"],["seated","Seated"],["done","Finished"],["cancelled","Cancelled"],["noshow","No-shows"]].concat(UR.length?[["unres","Unresolved"]]:[]);
+ const tabs=[["all","All"],["up","Upcoming"],["arrived","Arrived"],["seated","Seated"],["done","Finished"],["cancelled","Cancelled"],["noshow","No-shows"],["unres","Unresolved"]];
  const URs=UR.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
  const banner=false&&UR.length&&U.filter!=="unres"?unrBan(UR,()=>`<div class="banner"><div class="bhead"><div><b>${UR.length} booking${UR.length>1?"s":""} unresolved</b><p>No action was taken after the booking time. Resolve keeps a booking as it is and clears this warning. Complete or No-show moves it to that tab.</p></div><div class="acts" style="align-self:flex-start"><button class="btn sm" data-act="unr" data-v="min">Minimise</button><button class="btn sm" data-act="unr" data-v="snz">Remind me in 5 min</button></div></div><div class="blist">${URs.map(p=>`<div class="bl"><span>${p.date!==today()?fmtD(p.date)+" ":""}<b>${p.time}</b> <span class="gnm">${esc(p.name)}</span> (${p.size})${p.table?" · "+esc(tnp(p.table,p.part)):""}</span><span class="acts">${rsel(p,"Choose action")}</span></div>`).join("")}</div></div>`):"";
  const bulkBar="";
@@ -1398,7 +1399,7 @@ function openBK(id,pre){
  <label class="c6"><span>Guest note <small class="mut" style="font-weight:500">\u00b7 kept on the guest</small></span><textarea id="f-gnote" rows="2" placeholder="e.g. Manager's friend, regular, likes the window">${esc(e?((S.gnotes||{})[gkey(p)]||""):"")}</textarea></label>
  ${e?bkHist(e):""}
  <div class="r"><button class="btn" data-act="close">Cancel</button>${e?`<button class="btn danger" data-act="del" data-id="${e.id}">Delete</button>`:""}<button class="btn pri" data-act="save" data-id="${e?e.id:""}">Save booking</button></div></div>`;
- $("#modal").hidden=false;$(e?"#f-size":"#f-name").focus()
+ $("#modal").hidden=false;if(innerWidth>=640)$(e?"#f-size":"#f-name").focus()
 }
 function fut(){
  const dd=n=>iso(new Date(Date.now()+n*864e5)),N=["Isabel Moreno","James Okoye","Katya Novak","Liam Foster","Maya Singh","Noah Fischer","Olivia Hart","Pedro Alves","Quinn Murphy","Rosa Delgado","Sean Tran","Tara Lowe","Umar Farouk","Vera Lindqvist","Will Hastings"];
@@ -1462,7 +1463,7 @@ Object.assign(A,{
  seat:b=>{const p=find(b);if(!p||p.status!=="booked")return;if(p.date>today()){toast("Booked for "+fmtD(p.date));return}const late=pastDue(p),date=late?today():p.date,time=late?hm(nowMin()):p.time,st=m(time),sc=date===today()?Math.max(st,nowMin()):st;let tid=p.table,jn=p.join||[],pt=p.part;
   if(tid&&(!ptabs(p).every(id=>free(id,date,sc,p.dur,p.id,p.part))||(date===today()&&busyNow(p,ptabs(p),p.part)))){tid="";jn=[];pt=undefined}
   if(!tid){const t=autoSeat(p,date,sc);if(!t){const mine=ptabs(p),oc=S.parties.find(q=>q.id!==p.id&&q.status==="seated"&&q.date===today()&&ptabs(q).some(id=>mine.includes(id)));toast(oc?tnp(oc.table,oc.part)+" is in use by "+oc.name:"No free table for "+p.size);return}tid=t.id;jn=t.join||[];pt=t.part}
-  p.date=date;p.time=time;place(p,{id:tid,join:jn,part:pt});p.status="seated";p.arr=true;p.resolved=false;ptabs(p).forEach(id=>{S.ts[id]="seated"});save();render();toast(p.name+" seated at "+ptn(p))},
+  if(late&&!p.t0)p.t0={d:p.date,t:p.time};p.date=date;p.time=time;place(p,{id:tid,join:jn,part:pt});p.status="seated";p.arr=true;p.resolved=false;ptabs(p).forEach(id=>{S.ts[id]="seated"});save();render();toast(p.name+" seated at "+ptn(p))},
  done:b=>{const p=find(b),was=p.status;p.status="done";if(was==="seated")ptabs(p).forEach(id=>{if(!S.parties.some(q=>q.id!==p.id&&onT(q,id)&&q.date===today()&&q.status==="seated"))S.ts[id]="free"});save();render()},
  review:()=>{U.filter="unres";render()},print:()=>window.print(),fopen:()=>{U.fopen=!U.fopen;render()},
  size:b=>{U.sz=b.dataset.v==="any"?"any":+b.dataset.v;render()},srcc:b=>{U.srcf=b.dataset.v;render()},fcomp:b=>{U.fcomp=b.checked;render()},fhl:b=>{U.fhl=b.dataset.v;render()},area:b=>{U.area=b.dataset.v;U.rmenu=false;render()},rmenu:()=>{U.rmenu=!U.rmenu;render()},rng:b=>{U.rng=+b.dataset.v;render()},
@@ -1963,7 +1964,7 @@ Object.assign(A,{
 /* ---- Seat, unseat, left ---- */
 const seatedOn=id=>S.parties.find(p=>onT(p,id)&&p.date===today()&&p.status==="seated");
 function leftP(p){const t=p.table,ts=ptabs(p);if(loyDueP(p)){const k=gkey(p),g=loyGifts(k)[0],L=LOY();L.gifts[k]=(L.gifts[k]||[]).filter(x=>x.id!==g.id);p.gift=g;p.disc=g.pct}p.status="done";p.left=Date.now();ts.forEach(id=>{if(!S.parties.some(q=>q.id!==p.id&&onT(q,id)&&q.date===today()&&q.status==="seated"))S.ts[id]="free"});splAuto();save();render();toast(p.name+" has left."+(t?" "+ts.map(tname).join(" + ")+(ts.length>1?" are":" is")+" free.":""))}
-function unseatP(p){const t=p.table;p.status="booked";p.arr=true;p.resolved=false;ptabs(p).forEach(id=>{if(!seatedOn(id))S.ts[id]="free"});save();render();toast(p.name+" unseated, still booked")}
+function unseatP(p){const t=p.table;p.status="booked";p.arr=true;p.resolved=false;if(p.t0){p.date=p.t0.d;p.time=p.t0.t;delete p.t0}ptabs(p).forEach(id=>{if(!seatedOn(id))S.ts[id]="free"});save();render();toast(p.name+" unseated, still booked")}
 /* Status buttons for one table.
    Free: nothing to mark, only Seat guests. Occupied: Seated, Dessert, Paying, Needs reset (each changes the colour),
    then Left or Unseat. Left always means the table is finished and set, so it becomes free.
@@ -2291,8 +2292,9 @@ const LOY=()=>{const L=S.loy||(S.loy={});if(L.on==null)L.on=true;if(!L.n)L.n=3;i
 const loyGifts=k=>((LOY().gifts||{})[k]||[]).filter(g=>!g.until||g.until>=today());
 function loyInfo(k){const L=LOY(),V=S.parties.filter(p=>gkey(p)===k&&p.status==="done"&&p.left).length,tk=S.parties.some(p=>gkey(p)===k&&p.disc&&!p.gift&&(p.status==="booked"||p.status==="seated")),ea=V%L.n===L.n-1&&!tk?1:0,g=loyGifts(k);return{V,avail:ea+g.length,prog:V%L.n,gifts:g.length,gift:ea===0&&g.length?g[0]:null,pct:ea>0||!g.length?L.pct:g[0].pct}}
 const loyChips=p=>{const L=LOY();if(!L.on||!FT("loyalty"))return"";if(p.disc)return`<span class="chip green">${p.disc}% discount given${p.code?" · "+p.code:""}</span>`;if(p.status!=="booked"&&p.status!=="seated")return"";const I=loyInfo(gkey(p));const E=loyEarn(p);if(E)return`<span class="chip amber">${ordN(E.nth)} visit: give ${E.pct}% off on the EPOS</span>`;const G=loyDueP(p)?loyGifts(gkey(p))[0]:null;return G?`<span class="chip amber">Give ${G.pct}% off on the EPOS${G.name&&G.name!=="Manual"?" · "+esc(G.name):""}</span>`:I.V>0?`<span class="chip">Loyalty ${I.prog}/${L.n}</span>`:""};
+const gNote=n=>String(n||"").replace(/\s*Changed online by the guest \(was [^)]*\)\.?/g,"").trim();
 const confMsg=p=>{const L=LOY(),k=gkey(p),first=p.name.split(" ")[0];let l="";if(L.on){const I=loyInfo(k),c=loyAvailCode(k);l=p.disc?`\n\nLoyalty: your ${p.disc}% regulars' discount is applied to this visit.`:loyEarn(p)?`\n\nLoyalty: this is your ${ordN(loyEarn(p).nth)} visit, so as one of our regulars you get ${loyEarn(p).pct}% off. Just mention it when you pay.`:loyDueP(p)?`\n\nLoyalty: you have ${loyGifts(k)[0].pct}% off this visit. Just mention it when you pay.`:I.V>0?`\n\nLoyalty: you have ${I.prog} of ${L.n} visits towards ${L.pct}% off.`:`\n\nLoyalty: every ${ordN(L.n)} visit gets you ${L.pct}% off.`}
- return`Hi ${first},\n\nYour booking at ${S.venue.name} is confirmed.\n\n${dayLong(p.date)}\nTime: ${p.time}\nParty of ${p.size}${p.notes?"\nNote: "+p.notes:""}${l}\n\nIf you need to change or cancel, just reply to this email.\n\nSee you soon,\n${S.venue.name}`};
+ return`Hi ${first},\n\nYour booking at ${S.venue.name} is confirmed.\n\n${dayLong(p.date)}\nTime: ${p.time}\nParty of ${p.size}${gNote(p.notes)?"\nNote: "+gNote(p.notes):""}${l}\n\nIf you need to change or cancel, just reply to this email.\n\nSee you soon,\n${S.venue.name}`};
 const loyNext=p=>{const k=gkey(p),a=S.parties.filter(q=>gkey(q)===k&&(q.status==="booked"||q.status==="seated")).sort((x,y)=>(x.date+x.time).localeCompare(y.date+y.time));return a.length&&a[0].id===p.id};
 const ordN=n=>n+(["th","st","nd","rd"][(n%100>10&&n%100<14)?0:(n%10<4?n%10:0)]);
 const loyEarn=p=>{if(!(LOY().on&&FT("loyalty")&&!p.disc&&(p.status==="booked"||p.status==="seated")&&loyNext(p)))return null;const I=loyInfo(gkey(p)),L=LOY();return I.V%L.n===L.n-1?{pct:L.pct,nth:I.V+1}:null};
@@ -2308,7 +2310,7 @@ Object.assign(A,{
  mkcopy:()=>{const a=mkAud(mkInit()).filter(g=>g.email).map(g=>g.email);if(!a.length){toast("No email addresses for the chosen guests");return}const tx=a.join(", "),ta=document.createElement("textarea");ta.value=tx;ta.style.cssText="position:fixed;opacity:0";document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}ta.remove();const msg=a.length+" email address"+(a.length===1?"":"es")+" copied";if(ok)toast(msg);else if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(tx).then(()=>toast(msg),()=>toast("Could not copy"));else toast("Could not copy")},
  ggrm:b=>{const k=b.dataset.key,L=LOY(),x=(L.gifts[k]||[]).find(y=>y.id===b.dataset.id);if(!x)return;L.gifts[k]=L.gifts[k].filter(y=>y.id!==x.id);save();A.guest({dataset:{key:k}});toast("Removed")},
  ggive:b=>{const k=b.dataset.key,v=Math.round(+(b.dataset.pct||$("#gg-pct").value)),L=LOY();if(!(v>=1&&v<=100)){toast("Type 1 to 100");return}const id=uid();(L.gifts[k]=L.gifts[k]||[]).push({id,pct:v,code:loyCode(k,"g"+id),name:"Manual",until:""});save();A.guest({dataset:{key:k}});toast(v+"% given")},
- cmailed:b=>{const p=find(b);if(!p)return;p.cmail=Date.now();save();setTimeout(render,150)},
+ cmailed:b=>{const p=find(b);if(!p)return;setTimeout(()=>ask("Did you send the email to "+p.name+"?","Yes, sent",()=>{p.cmail=Date.now();save();render();toast("Marked as emailed")}),400)},
  loyal:b=>{const p=find(b),k=gkey(p),L=LOY();if(!loyDueP(p))return;const g=loyGifts(k)[0];L.gifts[k]=(L.gifts[k]||[]).filter(x=>x.id!==g.id);p.gift=g;p.disc=g.pct;save();render();toast(g.pct+"% off for "+p.name)},
  loyund:b=>{const p=find(b),k=gkey(p),L=LOY();if(!p.disc)return;if(p.gift){(L.gifts[k]=L.gifts[k]||[]).unshift(p.gift);delete p.gift}delete p.disc;delete p.code;save();render();toast("Discount removed. It is available again.")}
 });
