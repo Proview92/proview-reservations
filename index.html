@@ -506,6 +506,20 @@ button.fd{cursor:pointer}.fd.on{background:var(--pril)}
 /* phone: the big pop-ups (guest, edit guest, booking form, activity) are all the same full-screen size as Walk-in and Enlarge */
 @media(max-width:639px){#modal .sheet[aria-label="Guest details"],#modal .sheet[aria-label="Edit guest"],#modal .sheet.bkf,#modal .sheet.acp{height:calc(100dvh - 16px)!important;max-height:none!important;margin:8px auto!important;padding:12px 12px 10px!important;align-content:start}
 #modal .sheet[aria-label="Guest details"]>.r,#modal .sheet[aria-label="Edit guest"]>.r{margin-top:auto!important;bottom:-10px}#modal .sheet.bkf>.r{align-self:end;bottom:-10px}}
+/* phone Tables: every control in the two toolbar rows is the same height and text size */
+.tsplit.ph .tbtop{display:grid;gap:6px;margin-bottom:6px}.tsplit.ph .tbtop>.bar.phr,.tsplit.ph .tbtop>.pz{margin:0!important;gap:6px;align-items:center;min-height:0}
+.tsplit.ph .phr>.btn,.tsplit.ph .pz>.btn.sm,.tsplit.ph .rfr button{height:34px!important;min-height:34px!important;padding:0 10px!important;font-size:13.5px!important;font-weight:700;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.tsplit.ph .pz>.btn.sm{min-width:34px}.tsplit.ph .phr>.btn .chip{height:22px;display:inline-flex;align-items:center;padding:0 7px;font-size:12.5px}
+.tsplit.ph .stc .chip{height:34px;display:inline-flex;align-items:center;padding:0 10px;font-size:13.5px!important;font-weight:700;border:1px solid var(--line);box-sizing:border-box}
+.tsplit.ph .zbx input{height:34px!important;min-height:34px!important;width:56px;padding:0 4px!important;font-size:13.5px!important}.tsplit.ph .zbx b{font-size:13.5px}
+.tsplit.ph .rfl{top:-40px!important}.tsplit.ph .rfr{box-shadow:none;border:0;background:none}.tsplit.ph .rfr button{max-width:120px;display:block;line-height:32px;border:1px solid var(--line)!important;background:var(--card)!important;box-sizing:border-box}
+/* phone: toolbar rows line up, one height and one text size per row */
+@media(max-width:639px){
+ .bt1:not(.bt1p){margin:0!important;align-self:stretch}.bt1:not(.bt1p) .btn{min-height:38px!important;height:38px;font-size:13.5px}
+ .fltop{display:grid;gap:6px}.fltop>.bar,.fltop>.fopts{margin:0!important;gap:6px;align-items:center}.fltop .seg,.fltop .seg.sm{min-height:36px}.fltop .seg button,.fltop .seg.sm button{min-height:30px;font-size:13.5px}
+ .fltop .fopts .chip{height:30px;display:inline-flex;align-items:center;padding:0 9px;font-size:13px;font-weight:700}.fltop .fopts .mut.small{font-size:13px}
+ .rtb+* .btn.sm,.dsnr .btn.sm,.dsnr~.btn.sm{height:34px;min-height:34px;font-size:13.5px}.dsnr .btn.sm{min-width:34px}
+}
 /* Walk-in pop-up: colour key, one short message line, tables that can be joined on the spot */
 .wik{display:flex;flex-wrap:wrap;gap:4px 14px;margin:8px 0 0;font-size:12.5px;color:var(--mut)}.wik i{display:inline-block;width:13px;height:13px;border-radius:4px;border:2px solid var(--line);margin-right:5px;vertical-align:-2px}.wik .k1{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,var(--card))}.wik .k2{border-style:dashed;background:color-mix(in srgb,var(--mut) 16%,var(--card))}.wik .k3{border-color:var(--pri);background:color-mix(in srgb,var(--pri) 18%,var(--card));box-shadow:0 0 0 2px color-mix(in srgb,var(--pri) 35%,transparent)}.wik .k4{border-color:var(--warn);border-style:dashed;background:color-mix(in srgb,var(--warn) 18%,var(--card))}
 .wim{margin:8px 0 0;padding:9px 12px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid var(--line);background:color-mix(in srgb,var(--ink) 4%,transparent)}.wim.info{border-color:var(--pri);background:color-mix(in srgb,var(--pri) 12%,var(--card))}.wim.warn{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 16%,var(--card))}
