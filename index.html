@@ -2636,7 +2636,7 @@ function rsIdle(){const a=document.activeElement;return $("#modal").hidden&&!(a&
 function rsRender(){if(!RS.pend)return;if(!rsIdle())return;RS.pend=false;try{render()}catch(e){console.error(e)}}
 function rsRemote(list){const had={};(S.parties||[]).forEach(p=>{had[p.id]=1});list.forEach(ops=>rsApply(ops,S,RS.snap));snapInit();
  // a booking that has just come in from the booking link
- try{const nw=(S.parties||[]).filter(p=>p.web&&!had[p.id]&&Date.now()-p.web<6e5);if(nw.length)setTimeout(()=>toast(nw.length===1?"Online: "+nw[0].name+" \u00b7 "+nw[0].size+" \u00b7 "+fmtD(nw[0].date)+" "+nw[0].time:nw.length+" online bookings"),600)}catch(e){}
+ try{const nw=(S.parties||[]).filter(p=>p.web&&!had[p.id]&&Date.now()-p.web<6e5);if(nw.length)setTimeout(()=>toast(nw.length===1?"New: "+nw[0].name+" \u00b7 "+nw[0].size+" \u00b7 "+fmtD(nw[0].date)+" "+nw[0].time:nw.length+" new bookings"),600)}catch(e){}
  try{localStorage.setItem(SKEY(),JSON.stringify(S))}catch(e){}RS.pend=true;rsRender()}
 function rsMark(){if(!RS.on||RS.hold)return;clearTimeout(RS.t);RS.t=setTimeout(rsPush,350);rsDot()}
 // the server no longer treats this device as unlocked (the manager token ran out): lock the screen too
