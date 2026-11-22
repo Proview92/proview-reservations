@@ -1855,7 +1855,7 @@ Object.assign(A,{
  rtab:b=>{U.rtab=b.dataset.v;render()},
  rday:b=>{U.rday=b.dataset.d;render()},
  hmode:b=>{U.hmode=b.dataset.v;render()},
- himport:()=>{const r=parseHist($("#h-paste").value);save();render();toast(r.ok?`Added ${r.ok} day${r.ok>1?"s":""}`+(r.bad?`, ${r.bad} skipped`:""):"Nothing added. Use: 2025-12-06, 112, 2650, 790")},
+ himport:()=>{const r=parseHist($("#h-paste").value);save();render();toast(r.ok?`Added ${r.ok} day${r.ok>1?"s":""}`+(r.bad?`, ${r.bad} skipped`:""):"Nothing added")},
  hsample:()=>{sampleHist();save();render();toast("Sample history loaded")},
  hclear:()=>ask(S.histSample?"Remove the sample history?":"Clear all imported history? Your bookings are not affected.","Clear",()=>{S.hist={};S.histSample=false;save();render()})
 });
@@ -2097,7 +2097,7 @@ Object.assign(A,{
   if(seatedOn(t.id)){toast(t.name+" is not free now");return}
   const np={id:uid(),name:n,phone:"",size:z,date:today(),time:hm(nowMin()),dur:durFor(z),table:t.id,status:"seated",notes:"",tags:[],src:"Walk-in",arr:true};place(np,t);S.parties.push(np);
   ptabs(np).forEach(x=>{S.ts[x]=k.v});U.wk=null;closeM();save();render();toast(n+" seated at "+t.name)},
- wkalloc:()=>{const k=U.wk;U.wk=null;closeM();U.pmode="alloc";U.tv="plan";U.edit=false;if(PHP())U.pbk=true;render();toast("Pick a booking in the list, then tap "+(k?tname(k.id):"the table"))}
+ wkalloc:()=>{const k=U.wk;U.wk=null;closeM();U.pmode="alloc";U.tv="plan";U.edit=false;if(PHP())U.pbk=true;render();toast("Pick a booking, then tap table")}
 });
 /* ---- Reminders: one-tap WhatsApp, text or email the day before, to cut no-shows ---- */
 const tmrw=()=>iso(new Date(Date.now()+864e5));
@@ -2412,7 +2412,7 @@ function splReflow(tid,from,to){let moved=0,lost=0;const sp=(S.splits||[]);
 Object.assign(A,{
  spnew:()=>{const t=S.tables.slice().sort((a,b)=>b.seats-a.seats)[0];if(!t){toast("Add a table first");return}U.spm={id:null,tid:t.id,from:addD(today(),1),to:addD(today(),1),parts:t.seats>=12?[4,4,4,2,2].filter((n,i,a)=>a.slice(0,i+1).reduce((x,y)=>x+y,0)<=t.seats):[Math.ceil(t.seats/2),Math.floor(t.seats/2)]};spShow()},
  spedit:b=>{const x=(S.splits||[]).find(y=>y.id===b.dataset.id);if(!x)return;U.spm={id:x.id,tid:x.tid,from:x.from,to:x.to,parts:x.parts.slice()};spShow()},
- spdel:b=>{const x=(S.splits||[]).find(y=>y.id===b.dataset.id);if(!x)return;const t=S.tables.find(y=>y.id===x.tid);if(x.from<=today()&&x.to>=today()&&S.parties.filter(p=>p.date===today()&&p.status==="seated"&&p.table===x.tid&&p.part!=null).length>1){toast("Parts in use: wait for one to leave");return}ask("Remove the split on "+(t?tdisp(t.name):"this table")+"? It becomes one table again on those days. Bookings on its parts stay on the table if they do not overlap; any that overlap lose their table.","Remove split",()=>{S.parties.forEach(p=>{if(p.date===today()&&p.table===x.tid&&p.status==="seated")delete p.part});S.splits=(S.splits||[]).filter(y=>y.id!==x.id);const r=splReflowOff(x);save();closeM();render();toast("Split removed"+(r?" · "+r+" booking"+(r===1?" has":"s have")+" no table now":""))})},
+ spdel:b=>{const x=(S.splits||[]).find(y=>y.id===b.dataset.id);if(!x)return;const t=S.tables.find(y=>y.id===x.tid);if(x.from<=today()&&x.to>=today()&&S.parties.filter(p=>p.date===today()&&p.status==="seated"&&p.table===x.tid&&p.part!=null).length>1){toast("Parts in use: wait for one to leave");return}ask("Remove the split on "+(t?tdisp(t.name):"this table")+"? It becomes one table again on those days. Bookings on its parts stay on the table if they do not overlap; any that overlap lose their table.","Remove split",()=>{S.parties.forEach(p=>{if(p.date===today()&&p.table===x.tid&&p.status==="seated")delete p.part});S.splits=(S.splits||[]).filter(y=>y.id!==x.id);const r=splReflowOff(x);save();closeM();render();toast("Merged"+(r?" · "+r+" need"+(r===1?"s":"")+" a table":""))})},
  splitnow:b=>{const t=TB(b.dataset.id);if(!t)return;if(splitOf(t.id,today())){toast(tdisp(t.name)+" is already split today");return}
   const sp=S.parties.filter(p=>p.date===today()&&p.status==="seated"&&ptabs(p).includes(t.id));
   if(sp.some(p=>(p.join||[]).length)){toast("In use: split after they leave");return}
@@ -2420,7 +2420,7 @@ Object.assign(A,{
   if(parts.some(n=>n<1)){toast(tdisp(t.name)+" is too small to split");return}
   U.spm={id:null,tid:t.id,from:today(),to:today(),parts,live:true};spShow()},
  spmerge:b=>{const x=splitOf(b.dataset.id,today());if(!x)return;const sp=S.parties.filter(p=>p.date===today()&&p.status==="seated"&&p.table===x.tid&&p.part!=null);if(sp.length>1){toast("Parts in use: wait for one to leave");return}
-  S.splits=S.splits.filter(y=>y.id!==x.id);const r=splReflowOff(x);sp.forEach(p=>{delete p.part});save();render();toast("One table again"+(r?" \u00b7 "+r+" booking"+(r===1?" has":"s have")+" no table now":""))},
+  S.splits=S.splits.filter(y=>y.id!==x.id);const r=splReflowOff(x);sp.forEach(p=>{delete p.part});save();render();toast("Merged"+(r?" \u00b7 "+r+" need"+(r===1?"s":"")+" a table":""))},
  spdec:b=>{const k=U.spm;if(!k)return;const i=+b.dataset.i;if(k.parts[i]>1)k.parts[i]--;spShow()},
  spinc:b=>{const k=U.spm;if(!k)return;const i=+b.dataset.i;if(k.parts[i]<40)k.parts[i]++;spShow()},
  sprm:b=>{const k=U.spm;if(!k||k.parts.length<=2)return;k.parts.splice(+b.dataset.i,1);spShow()},
@@ -2439,7 +2439,7 @@ Object.assign(A,{
   const go=()=>{const old=k.id?(S.splits||[]).find(y=>y.id===k.id):null;const o=old||{id:uid()};const was=old?{tid:old.tid,from:old.from,to:old.to}:null;o.tid=k.tid;o.from=k.from;o.to=k.to;o.parts=k.parts.slice();if(k.live)o.live=true;if(!old)(S.splits=S.splits||[]).push(o);asg.forEach(([p,i])=>{p.part=i});
    if(was&&(was.tid!==o.tid||was.from<o.from||was.to>o.to)){}
    const r=splReflow(o.tid,o.from,o.to);let back=0;if(was){if(was.tid!==o.tid){back=splReflowOff({tid:was.tid,from:was.from,to:was.to})}else{if(was.from<o.from)back+=splReflowOff({tid:was.tid,from:was.from,to:addDs(o.from,-1)});if(was.to>o.to)back+=splReflowOff({tid:was.tid,from:addDs(o.to,1),to:was.to})}}
-   U.spm=null;save();closeM();render();toast(tdisp(t.name)+" split into "+o.parts.join(" + ")+(r.lost||back?" · "+(r.lost+back)+" booking"+(r.lost+back===1?" needs":"s need")+" a new table":"")+(r.moved?" · "+r.moved+" moved to a part":""))};
+   U.spm=null;save();closeM();render();toast("Split"+(r.lost||back?" · "+(r.lost+back)+" need"+(r.lost+back===1?"s":"")+" a table":"")+(r.moved?" · "+r.moved+" moved":""))};
   if(cb)ask(tdisp(t.name)+" is part of a table combination. On those days the combination is switched off. Continue?","Split",go);else go()},
 });
 const addDs=addD;
@@ -2636,7 +2636,7 @@ function rsIdle(){const a=document.activeElement;return $("#modal").hidden&&!(a&
 function rsRender(){if(!RS.pend)return;if(!rsIdle())return;RS.pend=false;try{render()}catch(e){console.error(e)}}
 function rsRemote(list){const had={};(S.parties||[]).forEach(p=>{had[p.id]=1});list.forEach(ops=>rsApply(ops,S,RS.snap));snapInit();
  // a booking that has just come in from the booking link
- try{const nw=(S.parties||[]).filter(p=>p.web&&!had[p.id]&&Date.now()-p.web<6e5);if(nw.length)setTimeout(()=>toast(nw.length===1?"New online booking: "+nw[0].name+", "+nw[0].size+(nw[0].size===1?" guest, ":" guests, ")+fmtD(nw[0].date)+" "+nw[0].time:nw.length+" new online bookings"),600)}catch(e){}
+ try{const nw=(S.parties||[]).filter(p=>p.web&&!had[p.id]&&Date.now()-p.web<6e5);if(nw.length)setTimeout(()=>toast(nw.length===1?"Online: "+nw[0].name+" \u00b7 "+nw[0].size+" \u00b7 "+fmtD(nw[0].date)+" "+nw[0].time:nw.length+" online bookings"),600)}catch(e){}
  try{localStorage.setItem(SKEY(),JSON.stringify(S))}catch(e){}RS.pend=true;rsRender()}
 function rsMark(){if(!RS.on||RS.hold)return;clearTimeout(RS.t);RS.t=setTimeout(rsPush,350);rsDot()}
 // the server no longer treats this device as unlocked (the manager token ran out): lock the screen too
