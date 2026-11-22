@@ -799,10 +799,17 @@ function auditDiff(){
  if(ev.length){S.audit.push(...ev);if(S.audit.length>2500)S.audit.splice(0,S.audit.length-2500)}
  U.snap={};S.parties.forEach(p=>{U.snap[p.id]=snapOf(p)});U.tsn=Object.assign({},ts)}
 function autoRun(){U.sys=1;try{return autoRun0()}finally{U.sys=0}}
+const xs=x=>{x=String(x||"");let m;
+ if(m=x.match(/^Seated at (.+?)\. .* after the booked time, so (.+?) left of the .* slot/))return"Seated \u00b7 "+m[1]+" \u00b7 "+m[2]+" left";
+ if(m=x.match(/^Seated at (.+?) \(time moved to .*$/))return"Seated \u00b7 "+m[1];
+ if(m=x.match(/^Seated at (.+)$/))return"Seated \u00b7 "+m[1];
+ if(m=x.match(/^Booked for (\d\d:\d\d) on (\w{3} \d+ \w{3}), \d+ guests?(?:, (.+?))?(?: \((.+)\))?$/))return"Booked "+m[1]+" \u00b7 "+m[2].replace(/^\w{3} /,"")+(m[3]&&m[3]!=="no table"?" \u00b7 "+m[3]:"")+(m[4]?" \u00b7 "+m[4]:"");
+ if(m=x.match(/^Left after (.+?) on the table(?: \((.+)\))?$/))return"Left \u00b7 "+m[1]+(m[2]?" \u00b7 "+m[2]:"");
+ return x};
 const sD=d=>new Date(d+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});
 const visitTimes=x=>{const b=[];if(x.arrAt)b.push("Arr "+clk(x.arrAt));if(x.seatedAt&&(x.status==="seated"||x.status==="done"))b.push("Seat "+clk(x.seatedAt));if(x.left&&x.seatedAt&&x.status==="done")b.push("Left "+clk(x.left)+" \u00b7 "+fmtMin(onTable(x)));else if(x.status==="seated"&&x.seatedAt)b.push("Now "+fmtMin(onTable(x)));return b.length?`<small class="mut gn2">${b.join(" · ")}</small>`:""};
-const evRows2=E=>E.map(e=>`<div class="gl2 ga"><span class="mut">${evWhen(e.t)}</span><span>${esc(e.x)}</span></div>`).join("");
-const evRows=E=>E.map(e=>`<div class="gl2"><span>${evWhen(e.t)}</span><span class="mut">${esc(e.x)}</span><span class="chip">${esc(e.w)}</span></div>`).join("");
+const evRows2=E=>E.map(e=>`<div class="gl2 ga"><span class="mut">${evWhen(e.t)}</span><span>${esc(xs(e.x))}</span></div>`).join("");
+const evRows=E=>E.map(e=>`<div class="gl2"><span>${evWhen(e.t)}</span><span class="mut">${esc(xs(e.x))}</span><span class="chip">${esc(e.w)}</span></div>`).join("");
 function guestHist(k,L){
  const sl=L.filter(x=>x.status==="done"&&x.seatedAt&&x.left),avgT=sl.length?Math.round(sl.reduce((a,x)=>a+onTable(x),0)/sl.length):0,cc=L.filter(x=>x.status==="cancelled").length,first=L.slice().sort((a,b)=>a.date.localeCompare(b.date))[0],avgP=L.length?Math.round(L.reduce((a,x)=>a+x.size,0)/L.length*10)/10:0,E=(S.audit||[]).filter(e=>e.g===k).slice(-8).reverse();
  return`<div class="gst"><div><b>${avgP}</b><small>Party</small></div><div><b>${avgT?fmtMin(avgT):"-"}</b><small>Stay</small></div><div><b>${cc}</b><small>Cancels</small></div><div><b>${first?sD(first.date):"-"}</b><small>First</small></div></div>
@@ -830,7 +837,7 @@ function vAudit(){
  /* one line per booking (not per name: every walk-in is called WALK-IN), changes in time order */
  const G=new Map();E.slice().sort((a,b)=>a.t-b.t).forEach(e=>{const k=(e.g?e.id||e.g:"~tables")+"|"+dOf(e.t);if(!G.has(k))G.set(k,[]);G.get(k).push(e)});const nb=new Set(E.filter(e=>e.g).map(e=>e.id||e.g)).size;
  const gs=[...G.entries()].sort((a,b)=>b[1][b[1].length-1].t-a[1][a[1].length-1].t),shown=gs.slice(0,150);
- const line=(e,o)=>{const tb=!e.g,nm=tb?"Table change":e.n+(e.z?" · "+e.z:"");return`<div class="ae${e.w==="Auto"?" auto":""}${o.sub?" sub":""}${o.multi?" mu":""}"><span class="at">${clk(e.t)}</span><span class="aet ${AKC[e.k]||"ca"}">${AKL[e.k]||"Change"}</span><div class="aei">${o.sub?"":`<b>${esc(nm)}</b>`}<small>${esc(e.x)}</small></div>${o.multi?`<button class="aem" data-act="agpop" data-k="${esc(o.k)}" aria-label="Show all ${o.multi} changes"><span class="lg">${o.multi} changes</span><span class="sm">+${o.multi-1}</span> \u25b8</button>`:`<span class="aew">${esc(e.w)}</span>`}</div>`};
+ const line=(e,o)=>{const tb=!e.g,nm=tb?"Table change":e.n+(e.z?" · "+e.z:"");return`<div class="ae${e.w==="Auto"?" auto":""}${o.sub?" sub":""}${o.multi?" mu":""}"><span class="at">${clk(e.t)}</span><span class="aet ${AKC[e.k]||"ca"}">${AKL[e.k]||"Change"}</span><div class="aei">${o.sub?"":`<b>${esc(nm)}</b>`}<small>${esc(xs(e.x))}</small></div>${o.multi?`<button class="aem" data-act="agpop" data-k="${esc(o.k)}" aria-label="Show all ${o.multi} changes"><span class="lg">${o.multi} changes</span><span class="sm">+${o.multi-1}</span> \u25b8</button>`:`<span class="aew">${esc(e.w)}</span>`}</div>`};
  let cur="";const rows=shown.map(([k,L])=>{const last=L[L.length-1],d=dOf(last.t),hd=q&&d!==cur?`<div class="aed">${dl(d)}${d===tdy||d===yd?" · "+fmtD(d):""}</div>`:"";cur=d;return hd+line(last,L.length===1?{}:{multi:L.length,k})}).join("");U.actG=G;U.actLine=line;
  return`<div class="bar actb"><button class="btn actn" data-act="actday" data-v="-1" aria-label="Earlier day"${hasPrev?"":" disabled"}>‹</button><div class="actdl"><b>${q?"All days":dl(day)}</b><small>${q?"search results":fmtD(day)}</small></div><button class="btn actn" data-act="actday" data-v="1" aria-label="Later day"${hasNext?"":" disabled"}>›</button><button class="btn actmb${U.actM?" pri":""}" data-act="actmore" aria-label="More" title="Search, export">⋯</button><input id="act-q" class="${U.actM||q?"on":""}" placeholder="Search every day" value="${esc(U.actQ||"")}" aria-label="Search activity"><div class="actm${U.actM?" on":""}">${hasNext?`<button class="btn" data-act="actday" data-v="0">Back to today</button>`:""}<button class="btn" data-act="actexp">Export</button></div></div>
  <div class="fch"><div class="seg sm actp">${seg("all","All")+seg("arrivals","Arrivals")+seg("tables","Tables")+seg("changes","Changes")+seg("stops","Cancelled")+seg("new","New")}</div></div>
