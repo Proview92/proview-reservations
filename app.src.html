@@ -1092,9 +1092,10 @@ function render(){
  const dv=U.view==="bookings"||U.view==="floor";
  $("#top").classList.toggle("hasdn",dv);
  $("#top").innerHTML=`<h1><span class="vsub">${esc(S.venue.name)}</span>${NAV.find(n=>n[0]===U.view)[1]}</h1>`+(dv?`<div class="dn"><button data-act="day" data-d="-1" aria-label="Previous day">‹</button><label class="dpk" title="Pick a date"><span>${fmtD(U.date)}</span><input type="date" id="dpick" value="${U.date}" aria-label="Pick a date"></label><button data-act="day" data-d="1" aria-label="Next day">›</button></div>${U.date!==today()?`<button class="btn" data-act="day" data-d="0">Today</button>`:""}`:"")+`<span class="tbp"><button class="btn" data-act="walkin">Walk-in</button><button class="btn pri" data-act="new" aria-label="New booking"><span class="nl">New booking</span><span class="ns">+ New</span></button></span>`;
- const g0=U.view==="floor"&&$(".gw")?$(".gw").scrollLeft:0;
+ const g0=U.view==="floor"&&$(".gw")?$(".gw").scrollLeft:0;const fl0=$(".fps")?$(".fps").scrollLeft:0;
  $("#main").innerHTML=({bookings:vBookings,tables:vTables,floor:vFloor,waitlist:vWaitlist,guests:vGuests,reports:vReports,settings:vSettings,activity:vAudit,online:vOnline,users:vUsers})[U.view]();if(U.view==="settings")enhSet();else if(U.view==="online")enhOnl();setPlanBtn();bdUp();fitV();fitTables();fitSoon();{const sg=document.querySelector("#main .bseg"),on=sg&&sg.querySelector(".on");if(on&&sg.scrollWidth>sg.clientWidth){const l=on.offsetLeft-sg.offsetLeft;sg.scrollLeft=l+on.offsetWidth>sg.clientWidth?Math.max(0,l-4):0}}
  if(U.view==="floor"){const g=$(".gw");if(g){if(!U.fs&&U.date===today()){g.scrollLeft=Math.max(0,(nowMin()-dayRange(U.date).o)/60*96-160);U.fs=true}else g.scrollLeft=g0}}
+ {const f=$(".fps");if(f){const k=U.date+"|"+(typeof FPD!=="undefined"&&FPD?FPD.cur:0);if(U.fpk!==k){U.fpk=k;const q=f.querySelector(".fp.cur")||[...f.querySelectorAll(".fp")].find(x=>x.querySelector("b").textContent!=="\u00b7");if(q){const fr=f.getBoundingClientRect(),qr=q.getBoundingClientRect();f.scrollLeft=Math.max(0,f.scrollLeft+qr.left-fr.left-qr.width*1.2)}}else f.scrollLeft=fl0}}
  if(U.dso&&!$("#modal").hidden)dsOpenShow();
 }
 function bdUp(){const el=$("#bdm");if(!el)return;const p=U.bdp&&!wideB()&&U.view==="bookings"?S.parties.find(x=>x.id===U.bdp):null;
