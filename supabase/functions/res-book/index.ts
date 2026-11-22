@@ -216,8 +216,8 @@ Deno.serve(async (req) => {
 
     const { today, nowMin } = nowParts();
     let R = rules(row.data, today, nowMin), o = R.OB();
-    const featOff = row.data.venue && row.data.venue.feat && row.data.venue.feat.online === false;
-    const on = !!o.on && !featOff;
+    // Hiding the Widget page from the menu (Settings, Plan) does not stop online booking: only the "Accept online bookings" switch does.
+    const on = !!o.on;
 
     // Guests who pressed "Alert me": when a table is free for their day and party, email them once. At most 5 emails a run.
     const runAlerts = async () => {
