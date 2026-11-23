@@ -1243,9 +1243,12 @@ function fitSoon(){cancelAnimationFrame(fitSoon.r);fitSoon.r=requestAnimationFra
 try{new ResizeObserver(fitSoon).observe(document.getElementById("top"))}catch(e){}
 function fitV(){const e=document.querySelector(".fitv"),mn=$("#main");if(!e||!mn)return;e.style.height="";if(!(innerWidth>=900&&innerWidth>innerHeight))return;mn.scrollTop=0;const cs=getComputedStyle(mn),av=Math.floor(mn.getBoundingClientRect().bottom-parseFloat(cs.paddingBottom)-e.getBoundingClientRect().top-2);if(av>=260)e.style.height=av+"px"}
 addEventListener("resize",()=>{clearTimeout(fitV.t);fitV.t=setTimeout(()=>{fitV();fitTables()},80)});
+function sweepOld(){const t=today(),lo=iso(new Date(Date.now()-2*864e5)),nm=nowMin();let c=0;S.parties.forEach(p=>{if(p.date<lo||p.date>t)return;if(!(p.date<t||nm>=m(p.time)+180))return;
+ if(p.status==="booked"){p.status=(p.arr||p.arrN||p.seatN)?"done":"noshow";p.resolved=true;delete p.left;c++}
+ else if(p.status==="seated"&&(!p.seatedAt||Date.now()-p.seatedAt>=108e5)){p.status="done";p.resolved=true;c++}});if(c){save();toast(c+" old booking"+(c===1?"":"s")+" closed automatically")}}
 function healTs(){let c=0;Object.keys(S.ts||{}).forEach(id=>{const v=S.ts[id];if((v==="seated"||v==="dessert"||v==="paying")&&!S.parties.some(p=>onT(p,id)&&p.date===today()&&p.status==="seated")){S.ts[id]="free";c++}});if(c)save()}
 function render(){
- healTs();syncTags();if(U.view==="waitlist"||!navOk(U.view))U.view="bookings";brandUp();
+ sweepOld();healTs();syncTags();if(U.view==="waitlist"||!navOk(U.view))U.view="bookings";brandUp();
  const nbt=n=>`<button data-act="nav" data-v="${n[0]}" aria-label="${n[1]}" class="${U.view===n[0]?"on":""}">${ICON[n[0]]}<span class="lbl">${n[1]}</span></button>`,mbt=`<button data-act="${mgr()?"mgrout":"mgrin"}" aria-label="${mgr()?"Lock manager access":"Manager sign in"}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span class="lbl">${mgr()?"Lock":"Manager"}</span></button>`,NG=[["Service",["bookings","tables","floor","activity"]],["Grow",["guests","reports","online"]],["Manage",["settings","users"]]];
  $("#nav").innerHTML=NG.map(g=>{const it=g[1].map(k=>NAV.find(n=>n[0]===k)).filter(n=>n&&navOk(n[0])),ex="";return it.length||ex?`<div class="ngr">${g[0]}</div>`+it.map(nbt).join("")+ex:""}).join("");
  {const vb=$("#vbox");if(vb){const hh=hoursFor(today()),o=m(hh.open),c=m(hh.close),n=nowMin(),op=!hh.closed&&n>=o&&n<c;vb.innerHTML=`<b>${esc(S.venue.name)}</b><small><i class="dot ${op?"on":""}"></i>${op?"Open now":"Closed"} · ${mgr()?"Manager":"Staff"}</small>`}}
