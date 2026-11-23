@@ -675,6 +675,8 @@ html body :is(#sq-all,.tbl.r,.tbl.r .ch,.dc-plant,input[type=radio]){border-radi
 .now{z-index:0;opacity:.7}.gw .gr>[style*="left"]:not(.hc){z-index:3;overflow:hidden;text-overflow:ellipsis}
 .fr2 .fnm small .fsc{display:none}
 .fqb.q-arr{background:#1e9d52}.fqb.q-late{background:#c9302c}.fqb.q-grn{background:#1e9d52;box-shadow:inset 0 -4px 0 rgba(0,0,0,.28)}.fqb.q-amb{background:#e08a00;box-shadow:inset 0 -4px 0 rgba(0,0,0,.28)}.fqb.q-red{background:#c9302c;box-shadow:inset 0 -4px 0 rgba(0,0,0,.28)}.fqb.q-des{background:#7c3fc4}.fqb.q-pay{background:#0b8a96}.fqb.q-clr{background:#d93a2b}.fqb.q-done{background:#8d93a3}.fqb.q-no{background:#8d93a3;text-decoration:line-through}
+#f-name,#f-phone{scroll-margin-top:8px}html.kb .sgh{display:none}html.kb .sgr{padding:6px 10px}.sgr b{font-size:15px}
+@media(max-width:639px){html.kb #modal .sheet[aria-label="Guest details"],html.kb #modal .sheet[aria-label="Edit guest"],html.kb #modal .sheet.bkf,html.kb #modal .sheet.acp{height:calc(100% - 16px)!important;max-height:calc(100% - 16px)!important}html.kb #modal{align-items:flex-start}}
 </style>
 </head>
 <body>
@@ -1151,7 +1153,7 @@ const applyNav=()=>document.body.classList.toggle("navb",NAVP==="b");
 const setBtn=()=>{const nb=$("#navBtn");if(nb){const sv=d=>'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="'+d+'"/></svg>';nb.innerHTML=(NAVP==="b"?sv("M8 4v16"):sv("M3 15h18"))+'<span class="tl"> '+(NAVP==="b"?"Menu at left":"Menu at bottom")+"</span>";nb.setAttribute("aria-label",NAVP==="b"?"Move the menu to the left":"Move the menu to the bottom")}$("#themeBtn").innerHTML=(isDark()?"☀":"☾")+'<span class="tl"> '+(isDark()?"Light mode":"Dark mode")+"</span>"};
 const setTheme=t=>{document.documentElement.dataset.theme=t;try{localStorage.setItem(KEY+"-theme",t)}catch(e){}setBtn()};
 const find=b=>S.parties.find(p=>p.id===b.dataset.id);
-const normPh=x=>{let d=String(x||"").replace(/\D/g,"");if(d.startsWith("0044"))d="0"+d.slice(4);else if(d.startsWith("440"))d=d.slice(2);else if(d.startsWith("44")&&d.length>=11)d="0"+d.slice(2);return d.length>=7?d:""};
+const normPh=x=>{let d=String(x||"").replace(/\D/g,"");if(d.startsWith("0044"))d="0"+d.slice(4);else if(d.startsWith("440"))d=d.slice(2);else if(d.startsWith("44")&&d.length>=11)d="0"+d.slice(2);if(d.length===10&&d[0]==="7")d="0"+d;return d.length>=7?d:""};
 const gkeyOf=(ph,n)=>normPh(ph)||(ph||n).toLowerCase(),gkey=p=>gkeyOf(p.phone,p.name);
 const set=(b,s)=>{find(b).status=s;save();render()};
 let CF=null;
@@ -1287,9 +1289,9 @@ function gShow(sel){const box=$("#f-sug");if(!box)return;
  if(sel){box.innerHTML=sel;box.hidden=false;return}
  const nq=($("#f-name").value||"").trim().toLowerCase(),dg=($("#f-phone").value||"").replace(/\D/g,"");
  if(nq.length<1&&dg.length<3){box.hidden=true;box.innerHTML="";return}
- const L=Object.values(gIdx()).filter(g=>{const nm=g.name.toLowerCase();return (nq&&nm.split(/\s+/).some(w=>w.startsWith(nq))||nq.length>1&&nm.includes(nq))||(dg.length>=3&&g.phone.replace(/\D/g,"").includes(dg))}).filter(g=>!(g.name.toLowerCase()===nq&&g.phone.replace(/\D/g,"")===dg)).sort((a,b)=>(b.name.toLowerCase().startsWith(nq)-a.name.toLowerCase().startsWith(nq))||b.v-a.v).slice(0,5);
+ const L=Object.values(gIdx()).filter(g=>{const nm=g.name.toLowerCase();return (nq&&nm.split(/\s+/).some(w=>w.startsWith(nq))||nq.length>1&&nm.includes(nq))||(dg.length>=3&&g.phone.replace(/\D/g,"").includes(dg))}).filter(g=>!(g.name.toLowerCase()===nq&&g.phone.replace(/\D/g,"")===dg)).sort((a,b)=>(b.name.toLowerCase().startsWith(nq)-a.name.toLowerCase().startsWith(nq))||b.v-a.v).slice(0,3);
  if(!L.length){box.hidden=true;box.innerHTML="";return}
- box.innerHTML=`<div class="sgh">Existing guests. Tap one to fill in their details.</div>`+L.map(g=>`<div class="sgr" role="button" tabindex="0" data-act="gpick" data-key="${esc(g.key)}"><b>${esc(g.name)}</b><span>${esc(g.phone||"no phone")}</span><small>${g.v} visit${g.v===1?"":"s"}${g.last?" \u00b7 last "+fmtD(g.last):""}${g.n?" \u00b7 "+g.n+" no-show"+(g.n===1?"":"s"):""}</small>${g.tags.map(t=>`<em class="${t==="Allergy"?"al":""}">${esc(t)}</em>`).join("")}</div>`).join("");box.hidden=false}
+ box.innerHTML=`<div class="sgh">Tap a guest to fill in details</div>`+L.map(g=>`<div class="sgr" role="button" tabindex="0" data-act="gpick" data-key="${esc(g.key)}"><b>${esc(g.name)}</b><span>${esc(g.phone||"no phone")}</span><small>${g.v} visit${g.v===1?"":"s"}${g.last?" \u00b7 last "+fmtD(g.last):""}${g.n?" \u00b7 "+g.n+" no-show"+(g.n===1?"":"s"):""}</small>${g.tags.map(t=>`<em class="${t==="Allergy"?"al":""}">${esc(t)}</em>`).join("")}</div>`).join("");box.hidden=false;const ae=document.activeElement;if(ae&&(ae.id==="f-name"||ae.id==="f-phone"))requestAnimationFrame(()=>{try{ae.scrollIntoView({block:"start"})}catch(e){}})}
 const sugT=p=>{if(p.table||p.status!=="booked")return null;try{const t=auto(p.size,p.date,m(p.time),p.dur,p.id);return t?{id:t.id,name:tdisp(t.name)}:null}catch(e){return null}};
 const asgBtn=(p,cls)=>{const g=sugT(p);return g?`<button class="chip amber asg ${cls||""}" data-act="asg" data-id="${p.id}" title="Suggested table: ${esc(g.name)}. Tap to assign."><span class="asw">Assign</span> <span class="asn">${TNM(g.name)}</span></button>`:`<button class="chip red asg ${cls||""}" data-act="alloc" data-id="${p.id}" title="Choose a table">Assign<span class="tbw"> table</span></button>`};
 const tnum=id=>{const n=tname(id),x=String(n).match(/^(?:T|Table)\s?(\d+)$/i);return x?x[1]:String(n)};
@@ -2477,7 +2479,7 @@ Object.assign(A,{navpos:()=>{NAVP=NAVP==="b"?"l":"b";try{localStorage.setItem(KE
  Object.keys(G).forEach(k=>{const f=A[k];if(!f)return;A[k]=b=>{if(!can(G[k])){toast("Manager only");return}f(b)}});
  const bf=A.bulk;A.bulk=b=>{if(b.dataset.v==="noshow"&&!can("cancelBook")){toast("Manager only");return}bf(b)}}
 
-{const m=$("#modal"),v=window.visualViewport,fit=()=>{if(!v)return;const kb=!m.hidden&&v.height<window.innerHeight-80;if(kb){m.style.top=v.offsetTop+"px";m.style.left=v.offsetLeft+"px";m.style.width=v.width+"px";m.style.height=v.height+"px";m.style.right="auto";m.style.bottom="auto"}else{["top","left","width","height","right","bottom"].forEach(k=>m.style[k]="")}};if(v){v.addEventListener("resize",fit);v.addEventListener("scroll",fit);new MutationObserver(fit).observe(m,{attributes:true,attributeFilter:["hidden"]})}}
+{const m=$("#modal"),v=window.visualViewport,fit=()=>{if(!v)return;const kb=!m.hidden&&v.height<window.innerHeight-80;document.documentElement.classList.toggle("kb",kb);if(kb){const ae=document.activeElement;if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)&&m.contains(ae))setTimeout(()=>{try{ae.scrollIntoView({block:"nearest"})}catch(e){}},50);m.style.top=v.offsetTop+"px";m.style.left=v.offsetLeft+"px";m.style.width=v.width+"px";m.style.height=v.height+"px";m.style.right="auto";m.style.bottom="auto"}else{["top","left","width","height","right","bottom"].forEach(k=>m.style[k]="")}};if(v){v.addEventListener("resize",fit);v.addEventListener("scroll",fit);new MutationObserver(fit).observe(m,{attributes:true,attributeFilter:["hidden"]})}}
 applyTh();applyNav();load();snapInit();autoRun();render();setBtn();
 document.addEventListener("click",e=>{if(e.target&&e.target.id==="bdm"&&$("#modal").hidden)A.bdclose()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&U.bdp&&$("#modal").hidden)A.bdclose()});
