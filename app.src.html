@@ -1172,6 +1172,7 @@ const A={
  save:b=>{
   const id=b.dataset.id,old=id?S.parties.find(x=>x.id===id):null,v=k=>$("#f-"+k).value,name=old?old.name:v("name").trim(),size=+v("size"),dur=+v("dur"),date=v("date"),time=v("time");
   if(!name||!(size>0)||!(dur>0)||!date||!time){toast("Add a name, party size, date and time");return}
+  if(!id&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(($("#f-email").value||"").trim())){toast("Add the guest's email address");$("#f-email").focus();return}
   const status=id?v("status"):"booked",st=m(time);let table=v("table");const noT=table==="none";if(noT)table="";
   if(!noT&&(status==="booked"||status==="seated")){
    if(table){if(!free(table,date,st,dur,id)){toast(tname(table)+" is booked then");return}}
@@ -1439,7 +1440,7 @@ function openBK(id,pre){
  <div id="f-oh" class="small" style="color:var(--bad)">${esc(ohText(p.date,p.time))}</div>
  <label class="${e?"c4":"c6 h6"} ctb">Table<select id="f-table"><option value="">Auto-assign</option><option value="none" ${e&&!p.table&&p.status==="booked"?"selected":""}>No table</option>${unitsFor(p.date).map(u=>`<option value="${u.key}" ${((e||pre.table)&&p.table&&u.ids[0]===p.table&&u.ids.length===1+(p.join||[]).length&&u.ids.every(id=>onT(p,id))&&(u.part==null?p.part==null:p.part===u.part))?"selected":""}>${esc(u.name)} (${u.seats} seats${u.max>u.seats?", up to "+u.max:""}${u.combo?", joined":""})</option>`).join("")}</select></label><label class="${e?"c4":"c6 h6"}">Booked by<select id="f-src">${SRC.map(s=>`<option ${s===p.src?"selected":""}>${s}</option>`).join("")}</select></label>
  ${e?`<label class="c4">Status<select id="f-status">${Object.keys(ST).map(k=>`<option value="${k}" ${k===p.status?"selected":""}>${ST[k][0]}</option>`).join("")}</select></label>`:""}
- <div class="emw"><label>Email<input id="f-email" type="email" inputmode="email" autocomplete="off" value="${esc(p.email||"")}" placeholder="Optional"></label><label class="chk mkc" title="Tick only if the guest has said yes to offers by email or text"><input type="checkbox" id="f-mk" style="width:auto" ${(e?mkIn(gkey(e)):MKDEF())?"checked":""}> Guest agreed to offers</label></div>
+ <div class="emw"><label>Email<input id="f-email" type="email" inputmode="email" autocomplete="off" value="${esc(p.email||"")}" placeholder="${e?"Optional":"Required"}"${e?"":" required"}></label><label class="chk mkc" title="Tick only if the guest has said yes to offers by email or text"><input type="checkbox" id="f-mk" style="width:auto" ${(e?mkIn(gkey(e)):MKDEF())?"checked":""}> Guest agreed to offers</label></div>
  <label class="c3">Occasion<select id="f-occ"><option value="">None</option>${(p.occ&&!OCC.includes(p.occ)?[p.occ]:[]).concat(OCC).map(o=>`<option ${p.occ===o?"selected":""}>${esc(o)}</option>`).join("")}</select></label><label class="c4">Pre-ordered dessert<input id="f-dsrt" maxlength="60" value="${esc(p.dsrt&&p.dsrt!=="Yes"?p.dsrt:"")}" placeholder="Optional, e.g. cake with a candle"></label>
  <div class="tags">${TAGS.map(t=>`<label><input type="checkbox" value="${t}" ${p.tags.includes(t)?"checked":""}>${t}</label>`).join("")}</div>
  <label class="c6"><span>Booking note <small class="mut" style="font-weight:500">\u00b7 this visit only</small></span><textarea id="f-notes" rows="2" placeholder="Allergies, occasion, requests for this visit">${esc(p.notes)}</textarea></label>
@@ -1523,6 +1524,7 @@ Object.assign(A,{
  save:b=>{
   const id=b.dataset.id,old=id?S.parties.find(x=>x.id===id):null,v=k=>$("#f-"+k).value,name=old?old.name:v("name").trim(),size=+v("size"),dur2=+v("dur"),date=v("date"),time=v("time");
   if(!name||!(size>0)||!(dur2>0)||!date||!time){toast("Add a name, party size, date and time");return}
+  if(!id&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(($("#f-email").value||"").trim())){toast("Add the guest's email address");$("#f-email").focus();return}
   if(!Number.isInteger(size)||size>99){toast("Guests must be a whole number from 1 to 99");return}
   if(dur2<15||dur2>480){toast("Stay: 15 min to 8 hours");return}
   if(!old){const ph=v("phone").trim();if(ph&&(!/^[+\d\s().-]+$/.test(ph)||ph.replace(/\D/g,"").length<7||ph.replace(/\D/g,"").length>15)){toast("Check the phone number");const pe=$("#f-phone");pe&&pe.focus();return}}
