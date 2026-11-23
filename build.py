@@ -22,6 +22,8 @@ i=s.index('</style>'); s=s[:i]+open(os.path.join(here,'header.css')).read()+s[i:
 # the loading page is in the page itself, so it shows before any script runs
 once('<body>','<body><div id="cl-root" class="pvs-wait"><div class="pvs-splash" role="status" aria-label="Loading Proview Reservations"></div></div>')
 i=s.index('<link rel="icon"'); j=s.index('>',i)+1; s=s[:i]+'<link rel="icon" type="image/svg+xml" href="icon-app.svg">'+s[j:]
+# 1e. the font is served by this site (no connection to Google when the app opens)
+once('<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">','<style>'+open(os.path.join(here,'fonts','plus-jakarta-sans.css')).read()+'</style>')
 # 2. the saved data lives under a per-business key in cloud mode (display preferences stay per device)
 once('KEY="proview-bookings-v1",APPV="v222";','KEY="proview-bookings-v1",APPV="v222";let CLK="";const SKEY=()=>CLK||KEY;')
 n1=s.count('localStorage.setItem(KEY,'); n2=s.count('localStorage.getItem(KEY)'); n3=s.count('KEY+"-vid"')

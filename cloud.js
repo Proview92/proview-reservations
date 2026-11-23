@@ -9,14 +9,14 @@
    Without cloud.json the app works as before: on this device only. */
 const CL={cfg:null,sb:null,who:null,user:null,site:null,scr:"",err:"",note:"",email:"",busy:false,go:null,locked:null,kicked:false,base:true,tok:"",mem:null,memErr:""};
 const RS={on:false,rev:0,snap:null,busy:false,dirty:false,err:false,pend:false,hold:false,t:null,lastRs:0};
-const CL_SDK="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js";
+const CL_SDK="vendor/supabase.js"; // the Supabase library, served by this site (version in vendor/README.md)
 const CL_PORTAL="https://license.proviewcrm.co.uk",CL_PHONE="020 8935 5495",CL_APP="reservations";
 const clGet=k=>{try{return localStorage.getItem(k)||""}catch(e){return ""}};
 const clSet=(k,v)=>{try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k)}catch(e){}};
 const clSS=(k,v)=>{try{if(v===undefined)return sessionStorage.getItem(k)||"";if(v)sessionStorage.setItem(k,v);else sessionStorage.removeItem(k)}catch(e){return ""}};
 function clLoad(src){return new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
 async function clCfg(){try{const r=await fetch("cloud.json",{cache:"no-store"});if(!r.ok)return null;const j=await r.json();return j&&j.url&&j.key?j:null}catch(e){return null}}
-function clErr(e){const m=String((e&&e.message)||e||"");if(/Invalid login/i.test(m))return "Wrong email or password.";if(/not confirmed/i.test(m))return "Please confirm your email first: open the link we emailed you.";if(/already registered/i.test(m))return "This email already has an account. Sign in instead.";if(/at least 6|password should/i.test(m))return "The password needs at least 6 characters.";if(/rate limit|too many/i.test(m))return "Too many tries. Please wait a few minutes.";if(/fetch|network/i.test(m))return "Cannot reach the server. Check the internet.";return m||"Something went wrong. Try again."}
+function clErr(e){const m=String((e&&e.message)||e||"");if(/Invalid login/i.test(m))return "Wrong email or password.";if(/not confirmed/i.test(m))return "Please confirm your email first: open the link we emailed you.";if(/already registered/i.test(m))return "This email already has an account. Sign in instead.";if(/at least \d+|password should/i.test(m))return "The password needs at least 8 characters.";if(/rate limit|too many/i.test(m))return "Too many tries. Please wait a few minutes.";if(/fetch|network/i.test(m))return "Cannot reach the server. Check the internet.";return m||"Something went wrong. Try again."}
 function clLic(s){if(s.suspended)return "This business is paused.";if(!s.license_type)return "This business has no licence yet.";return s.license_type==="trial"?"The free trial has ended.":"The licence has ended."}
 // A new business starts with the sample floor plan only: no sample bookings, guests, staff or history.
 function blankState(name){const s=seed();s.parties=[];s.waiting=[];s.staff=[];s.punches=[];s.hist={};s.histSample=false;s.gnotes={};s.ts={};s.rotaSh=[];s.demoY=s.demoU=s.demoB=s.demoP=1;s.venue.name=name||"My venue";delete s.venue.id;return s}
@@ -37,16 +37,16 @@ function clShow(){const r=clRoot(),m=CL.scr,em=esc(CL.email||"");
  const out=lnk("clOut","Sign out"),links=h=>`<div class="alinks">${h}</div>`;
  let b="",split=false,wide=false;
  if(m==="in"){split=true;b=`<h1>Sign in</h1><p class="muted">Manage your reservations, tables and guests.</p>${msg}${fEm}${fPw("clpw","Password","current-password","••••••••")}${go("clIn","Sign in")}${CL.cfg.sso?`<div class="or-line">or</div>${alt("clSso","Sign in with Proview account")}`:""}${links(lnk("clScr","Create an account",'data-s="up"')+lnk("clScr","Forgot password?",'data-s="reset"'))}`}
- else if(m==="up"){split=true;b=`<h1>Create your account</h1><p class="muted">Use the email address your manager added for you, or your own if you are setting up a new business. Choose a password of at least 6 characters.</p>${msg}${fEm}${fPw("clpw","Password","new-password","At least 6 characters")}${fPw("clpw2","Confirm password","new-password","Type it again")}${go("clUp","Create account")}${links(lnk("clScr","I already have an account",'data-s="in"'))}`}
+ else if(m==="up"){split=true;b=`<h1>Create your account</h1><p class="muted">Use the email address your manager added for you, or your own if you are setting up a new business. Choose a password of at least 8 characters.</p>${msg}${fEm}${fPw("clpw","Password","new-password","At least 8 characters")}${fPw("clpw2","Confirm password","new-password","Type it again")}${go("clUp","Create account")}${links(lnk("clScr","I already have an account",'data-s="in"'))}`}
  else if(m==="reset"){split=true;b=`<h1>Forgot password</h1><p class="muted">We will email you a link to choose a new one. Your password is the same on all Proview sites.</p>${msg}${fEm}${go("clReset","Send the link")}${links(lnk("clScr","Back to sign in",'data-s="in"'))}`}
- else if(m==="newpw")b=`<h1>Choose a new password</h1><p class="muted">At least 6 characters. Your password is the same on all Proview sites, so this changes it everywhere.</p>${msg}${fPw("clpw","New password","new-password","At least 6 characters")}${go("clNewPw","Save and continue")}`;
+ else if(m==="newpw")b=`<h1>Choose a new password</h1><p class="muted">At least 8 characters. Your password is the same on all Proview sites, so this changes it everywhere.</p>${msg}${fPw("clpw","New password","new-password","At least 8 characters")}${go("clNewPw","Save and continue")}`;
  else if(m==="setup")b=`<h1>Set up your business</h1><p class="muted">Signed in as ${esc(CL.who.email)}. This login is not part of a business yet.</p><p class="muted">Staff: ask your manager to add this email under Settings, Logins, then press Check again.</p>${msg}<label class="af">Business name<input id="clbn" type="text" maxlength="80" placeholder="e.g. Bella Pizza" autocomplete="organization"></label>${go("clMake","Create my business")}${links(lnk("clAgain","Check again")+out)}`;
  else if(m==="empty")b=`<h1>No businesses yet</h1><p class="muted">Add the first one in the licence portal (New business).</p>${msg}${portal}${links(lnk("clAgain","Check again")+out)}`;
  else if(m==="pick"){wide=true;const ss=CL.who.sites||[];b=`<h1>Which business?</h1><p class="muted">Signed in as ${esc(CL.who.email||"")}.</p>${msg}<div class="pvs-pick">${ss.map(s=>`<button type="button" data-act="clPick" data-id="${esc(s.id)}"><b>${esc(s.name)}</b><span>${esc(s.business&&s.business!==s.name?s.business+" · ":"")}${s.ok?esc(s.role||""):esc(clLic(s))}</span></button>`).join("")}</div>${links(out)}`}
  else if(m==="lock"){const s=CL.locked;b=`<h1>${esc(s.name)}</h1><div class="notice bad">${esc(clLic(s))}</div><p class="muted">${s.suspended?"Call Proview on "+CL_PHONE+".":"Buy or renew a licence in the licence portal, or call Proview on "+CL_PHONE+"."}</p>${s.suspended?"":portal}${links(lnk("clAgain","Check again")+((CL.who.sites||[]).length>1?lnk("clScr","Another business",'data-s="pick"'):"")+out)}`}
  else if(m==="fail")b=`<h1>Cannot connect</h1><p class="muted">${esc(CL.err||"Check the internet and try again.")}</p>${go("clReload","Try again").replace(" disabled","")}${CL.who?links(out):""}`;
  r.className="";
- r.innerHTML=`<div class="pvs-auth${split?"":" solo"}">${split?CL_ART:""}<div class="pvs-form"><form class="pvs-card${wide?" wide":""}" novalidate onsubmit="return false">${CL_BRAND}${b}</form></div></div>`;
+ r.innerHTML=`<div class="pvs-auth${split?"":" solo"}">${split?CL_ART:""}<div class="pvs-form"><form class="pvs-card${wide?" wide":""}" novalidate onsubmit="return false">${CL_BRAND}${b}<p class="pvs-legal"><a href="privacy.html" target="_blank" rel="noopener">Privacy</a> \u00b7 Proview \u00b7 ${CL_PHONE}</p></form></div></div>`;
  const f=$("#clem")&&!$("#clem").value?$("#clem"):($("#clpw")||$("#clbn")||$("#clem"));if(f)setTimeout(()=>{try{f.focus()}catch(e){}},50);
  r.querySelectorAll("input").forEach(i=>i.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();const k={in:"clIn",up:"clUp",reset:"clReset",newpw:"clNewPw",setup:"clMake"}[CL.scr];if(k)A[k]()}}))}
 function clScreen(s,o){CL.scr=s;CL.err=(o&&o.err)||"";CL.note=(o&&o.note)||"";CL.busy=false;clShow()}
@@ -57,11 +57,11 @@ Object.assign(A,{
  clEye:b=>{const i=document.getElementById(b.dataset.f);if(!i)return;const on=i.type==="password";i.type=on?"text":"password";b.classList.toggle("on",on);b.title=on?"Hide password":"Show password";b.setAttribute("aria-label",b.title)},
  clReload:()=>location.reload(),
  clIn:()=>clTry(async()=>{const v=clVals();if(!v.email||!v.pw)throw new Error("Enter your email and password.");const r=await CL.sb.auth.signInWithPassword({email:v.email,password:v.pw});if(r.error)throw r.error;await clAfter()}),
- clUp:()=>clTry(async()=>{const v=clVals();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email))throw new Error("Enter a valid email address.");if(v.pw.length<6)throw new Error("The password needs at least 6 characters.");const p2=$("#clpw2");if(p2&&p2.value!==v.pw)throw new Error("The two passwords do not match.");
+ clUp:()=>clTry(async()=>{const v=clVals();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email))throw new Error("Enter a valid email address.");if(v.pw.length<8)throw new Error("The password needs at least 8 characters.");const p2=$("#clpw2");if(p2&&p2.value!==v.pw)throw new Error("The two passwords do not match.");
   const r=await CL.sb.auth.signUp({email:v.email,password:v.pw,options:{emailRedirectTo:location.origin+location.pathname}});if(r.error)throw r.error;
   if(r.data&&r.data.session){await clAfter();return}clScreen("in",{note:"Almost there: open the link we just emailed you, then sign in here."})}),
  clReset:()=>clTry(async()=>{const v=clVals();if(!v.email)throw new Error("Enter your email.");const r=await CL.sb.auth.resetPasswordForEmail(v.email,{redirectTo:location.origin+location.pathname});if(r.error)throw r.error;clScreen("in",{note:"If that email has an account, a link is on its way."})}),
- clNewPw:()=>clTry(async()=>{const p=($("#clpw")||{}).value||"";if(p.length<6)throw new Error("The password needs at least 6 characters.");const r=await CL.sb.auth.updateUser({password:p});if(r.error)throw r.error;await clAfter()}),
+ clNewPw:()=>clTry(async()=>{const p=($("#clpw")||{}).value||"";if(p.length<8)throw new Error("The password needs at least 8 characters.");const r=await CL.sb.auth.updateUser({password:p});if(r.error)throw r.error;await clAfter()}),
  clSso:()=>{location.href="https://dashboard.proviewcrm.co.uk/?app="+CL_APP+"&return="+encodeURIComponent(location.origin+location.pathname)},
  clOut:async()=>{try{await rsFlush()}catch(e){}try{await CL.sb.auth.signOut()}catch(e){}clSet("pr-site","");try{if(CLK)localStorage.removeItem(CLK)}catch(e){}location.reload()},
  clAgain:()=>clTry(clAfter),
@@ -185,7 +185,40 @@ async function clRelock(){if(!CL.tok)return;const t=CL.tok;U.mgr=false;try{await
 /* ---------- Settings: who is signed in, and the logins of this business ---------- */
 const clBoss=()=>!!CL.site&&(CL.who.is_master||CL.site.role==="Admin");
 async function clMembers(){try{const r=await CL.sb.rpc("pr_list_members",{p_business:CL.site.business_id});if(r.error)throw r.error;CL.mem=r.data.members||[];CL.memErr=""}catch(e){CL.mem=CL.mem||[];CL.memErr=clErr(e)}if(U.view==="users"&&rsIdle())render()}
-function clSettings(){} // the Account and Logins cards moved to the Users page (side menu, under Settings)
+/* ---------- Settings: Guest privacy ----------
+   - what the booking page tells guests (the venue's own policy link and a contact email), kept in venue.ob.priv
+   - how long guest details are kept (venue.keep, months; 0 = until deleted by hand)
+   When a period is set, guests whose last booking is older than that have their name, phone, email, notes and tags
+   removed. The bookings themselves stay (marked anon) so covers and reports do not change. */
+const CL_KEEP=[[0,"Until I delete them"],[12,"12 months after their last booking"],[24,"24 months after their last booking"],[36,"3 years after their last booking"],[60,"5 years after their last booking"]];
+const clPriv=()=>Object.assign({url:"",email:""},(OB().priv)||{});
+function clKeepCut(k){const d=new Date();d.setMonth(d.getMonth()-k);return iso(d)}
+function clKeepList(k){k=k==null?(+S.venue.keep||0):k;if(k<6)return[];const cut=clKeepCut(k),last={};(S.parties||[]).forEach(p=>{if(p.anon)return;const g=gkey(p);if(!last[g]||p.date>last[g])last[g]=p.date});return Object.keys(last).filter(g=>last[g]<cut)}
+function clKeepRun(){const k=+S.venue.keep||0,ks=clKeepList(k);const cut=k>=6?clKeepCut(k):"";let ev=0;
+ if(k>=6){const cms=new Date(cut+"T00:00:00").getTime();(S.evb||[]).forEach(b=>{if(!b.anon&&b.at&&b.at<cms){b.name="GUEST REMOVED";b.phone="";b.email="";b.notes="";delete b.mkAt;delete b.mkBy;b.anon=1;ev++}})}
+ if(!ks.length&&!ev)return 0;const gone=new Set(ks);
+ // keys first, because a booking's key is built from the phone and name that are about to be removed
+ const hit=(S.parties||[]).filter(p=>!p.anon&&gone.has(gkey(p)));
+ hit.forEach(p=>{p.name="GUEST REMOVED";p.phone="";p.email="";p.notes="";p.tags=[];["occ","dsrt","mkAt","mkBy","cmail","web","req"].forEach(f=>{delete p[f]});p.anon=1});
+ const L=S.loy||{};ks.forEach(g=>{[S.gnotes,S.mkoff,L.used,L.mailed,L.gifts].forEach(o=>{if(o&&typeof o==="object")delete o[g]})});
+ save();return ks.length}
+function clSettings(){if(!CL.site||U.view!=="settings")return;const main=$("#main");if(!main||document.getElementById("cl-priv"))return;const host=main.querySelector(".setcols")||main;
+ const P=clPriv(),k=+S.venue.keep||0,ed=can("settings"),due=clKeepList().length,dis=ed?"":"disabled";
+ const d=document.createElement("div");d.id="cl-priv";d.className="card pad";
+ d.innerHTML=`<h2>Guest privacy</h2><p class="mut" style="margin-top:0">You are responsible for your guests' details. Proview stores them for you in the UK. Guests see a short notice on your booking page saying how their details are used.</p>
+ <label class="of" style="display:block"><span class="ot">Keep guest details</span><select data-clp="keep" ${dis}>${CL_KEEP.map(x=>`<option value="${x[0]}" ${x[0]===k?"selected":""}>${x[1]}</option>`).join("")}</select><small class="mut" style="display:block">${k?`Names, phone numbers, emails and notes are removed ${k} months after a guest's last booking. The bookings stay in your reports without the guest's details.`:"Nothing is removed automatically. UK rules say details should not be kept longer than you need them, so choose a period."}</small></label>
+ ${due?`<p style="margin:8px 0 0;color:var(--warn);font-weight:600">${due} guest${due===1?" is":"s are"} past this period.</p><div class="bar" style="margin:8px 0 0"><button class="btn" data-act="clKeepNow" ${dis}>Remove their details now</button></div>`:""}
+ <label class="of" style="display:block;margin-top:12px"><span class="ot">Email guests can use to ask about their details</span><input type="email" data-clp="email" maxlength="120" placeholder="for example info@yourvenue.co.uk" value="${esc(P.email)}" ${dis}></label>
+ <label class="of" style="display:block;margin-top:12px"><span class="ot">Link to your own privacy policy (optional)</span><input type="url" data-clp="url" maxlength="300" placeholder="https://" value="${esc(P.url)}" ${dis}><small class="mut" style="display:block">Shown under the notice on your booking page. To delete one guest, open them in Guests and press Delete guest.</small></label>`;
+ host.appendChild(d)}
+document.addEventListener("change",e=>{const t=e.target;if(!t||!t.dataset||!t.dataset.clp)return;if(!can("settings")){toast("Staff cannot change this. Ask a manager to sign in.");render();return}const k=t.dataset.clp;
+ if(k==="keep"){const v=+t.value||0,n=clKeepList(v).length;const set=()=>{S.venue.keep=v;if(!v)delete S.venue.keep;save();if(v)clKeepRun();render();toast(v?"Guest details are kept for "+v+" months":"Guest details are kept until you delete them")};
+  if(v&&n){ask("Remove the details of "+n+" guest"+(n===1?"":"s")+" whose last booking was more than "+v+" months ago? Names, phone numbers, emails and notes are removed for good. Their bookings stay in your reports.","Remove details",set);t.value=String(+S.venue.keep||0)}else set();return}
+ const pv=clPriv(),o=OB();o.priv=pv;let v=String(t.value||"").trim();
+ if(k==="url"&&v&&!/^https:\/\/\S+\.\S+/i.test(v)){toast("The link must start with https://");t.value=o.priv.url;return}
+ if(k==="email"&&v&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)){toast("That email address does not look right");t.value=o.priv.email;return}
+ o.priv[k]=v;save();toast("Saved")});
+
 function clUsersHtml(){if(!CL.site||!clBoss())return"";const many=(CL.who.sites||[]).length>1;if(!CL.mem){CL.mem=[];clMembers()}
  return`<div class="sgc usr" style="max-width:820px"><div class="card pad"><h2>Signed in on this device</h2><p style="margin-top:0"><b>${esc(CL.who.email)}</b><br><span class="mut">${esc(CL.who.is_master?"Proview":CL.site.role||"")} \u00b7 ${esc(CL.site.name)}</span></p><div class="bar" style="margin:0"><button class="btn pri" data-act="clOut">Switch user</button>${many?`<button class="btn" data-act="clSwitch">Switch business</button>`:""}</div></div>
  <div class="card pad"><h2>Users</h2>${CL.memErr?`<p style="color:var(--bad)">${esc(CL.memErr)}</p>`:""}
@@ -291,6 +324,7 @@ function clBookCard(){if(!CL.site||U.view!=="online")return;const main=$("#main"
 Object.assign(A,{
  clPicUp:b=>clPicUp(b.dataset.k),clPicRm:b=>clPicRm(b.dataset.k),
  clBkReset:()=>{if(!can("settings")){toast("Manager only");return}const o=OB(),k=o.look||{};delete o.look;if(k.logo||k.header||k.bgimg||k.addr||k.about||k.map)o.look=Object.assign({},CL_LOOK,{logo:k.logo||"",header:k.header||"",bgimg:k.bgimg||"",addr:k.addr||"",about:k.about||"",map:k.map||""});save();clBookRe();toast("Back to the Proview colours")},
+ clKeepNow:()=>{if(!can("settings")){toast("Staff cannot change this. Ask a manager to sign in.");return}const n=clKeepList().length;if(!n)return;ask("Remove the details of "+n+" guest"+(n===1?"":"s")+" past your keeping period? This cannot be undone.","Remove details",()=>{const c=clKeepRun();render();toast("Details removed for "+c+" guest"+(c===1?"":"s"))})},
  clBkCopy:b=>{const f=document.getElementById(b.dataset.f);if(!f)return;f.focus();f.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}const bad=()=>toast("Selected: press Cmd+C");if(ok){toast("Copied");return}try{navigator.clipboard.writeText(f.value).then(()=>toast("Copied"),bad)}catch(e){bad()}},
  clMemAdd:async()=>{const e=(($("#cl-me")||{}).value||"").trim().toLowerCase(),role=($("#cl-mr")||{}).value||"Staff";if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast("Enter a valid email address");return}
   const r=await CL.sb.rpc("pr_save_member",{p_business:CL.site.business_id,p_email:e,p_role:role});if(r.error){toast(clErr(r.error));return}toast("User added");await clMembers();render()},
@@ -320,5 +354,6 @@ async function cloudStart(){
   const render0=render;render=function(){render0();try{clSettings();clBookCard()}catch(e){console.error(e)}};
   RS.on=true;RS.hold=false;clHide();
   autoRun();render();setBtn();rsTimers();rsDot();
+  try{if(CL.base&&clBoss()&&(+S.venue.keep||0)>=6)setTimeout(()=>{try{if(clKeepRun())render()}catch(e){console.error(e)}},4000)}catch(e){}
   document.title=(S.venue&&S.venue.name?S.venue.name+" · ":"")+"Proview Reservations";
  }catch(e){if(CL.kicked)return;console.error(e);clScreen("fail",{err:"Could not load the data. Check the internet and try again."})}}

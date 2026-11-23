@@ -121,6 +121,17 @@ async function commit(db: SupabaseClient, site: string, rev: number, state: Any,
   if (r.error) throw r.error;
   return r.data == null ? null : Number(r.data);
 }
+// Data kept no longer than needed: the change log is only used to catch a device up (a device further behind
+// gets a full copy), and the sign-in and booking limiters only look back ten minutes.
+async function tidy(db: SupabaseClient) {
+  const ago = (days: number) => new Date(Date.now() - days * 864e5).toISOString();
+  try {
+    await db.from("pr_site_log").delete().lt("at", ago(30));
+    await db.from("pr_pin_fails").delete().lt("t", ago(1));
+    await db.from("sso_used").delete().lt("at", ago(30));
+    await db.from("pr_site_sessions").delete().lt("exp", ago(1));
+  } catch (e) { console.error("tidy", e); }
+}
 async function logSince(db: SupabaseClient, site: string, since: number, rev: number): Promise<Op[][] | null> {
   if (since >= rev) return [];
   const r = await db.from("pr_site_log").select("rev,ops").eq("site", site).gt("rev", since).order("rev");
@@ -211,6 +222,7 @@ Deno.serve(async (req) => {
         applyOps(state, ops);
         const nr = await commit(db, site, rev, state, ops);
         if (!nr) continue;                                // someone else saved first: read again and retry
+        if (Math.random() < 0.03) await tidy(db);         // now and then: clear out old records nobody needs
         return send({ rev: nr, missed, dropped: chk.dropped + (stale ? 1 : 0), full });
       }
       return send({ error: "busy" }, 503);

@@ -6,7 +6,7 @@
 <title>Book a table</title>
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/svg+xml" href="../icon-app.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>@font-face{font-family:"Jost";font-style:normal;font-weight:400;font-display:swap;src:url(../fonts/jost-latin-ext-400-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:"Jost";font-style:normal;font-weight:400;font-display:swap;src:url(../fonts/jost-latin-400-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"Jost";font-style:normal;font-weight:500;font-display:swap;src:url(../fonts/jost-latin-ext-500-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:"Jost";font-style:normal;font-weight:500;font-display:swap;src:url(../fonts/jost-latin-500-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:"Jost";font-style:normal;font-weight:600;font-display:swap;src:url(../fonts/jost-latin-ext-600-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:"Jost";font-style:normal;font-weight:600;font-display:swap;src:url(../fonts/jost-latin-600-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}</style>
 <style>
 :root{--bg:#f4f3ef;--card:#fff;--ink:#17171c;--line:#e4e2dc;--mut:#55555f;--lab:#3d3d46;--pri:#4a6cd0;--btn:linear-gradient(135deg,#2f84d4 0%,#5a5fbb 100%);--btnink:#fff;--hov:#f4f3ef;--rad:10px;color-scheme:light}
 :root.dark{--bg:#0e0e11;--card:#17171c;--ink:#ececf1;--line:#2a2a32;--mut:#9a9aa5;--lab:#c9c9d1;--hov:#22222a;color-scheme:dark}
@@ -50,6 +50,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);outline-off
 .sum span{display:block;color:var(--mut);font-weight:400;font-size:13px}
 .chk{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--mut);cursor:pointer}
 .chk input{width:18px;height:18px;flex:none;margin-top:2px;accent-color:var(--pri)}
+.priv{font-size:13px;color:var(--mut)}.priv summary{cursor:pointer;font-weight:600;color:var(--ink);padding:4px 0}.priv p{margin:8px 0 0;line-height:1.45}.priv a{color:inherit}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin:14px auto 0}
 .foot a{color:inherit}
@@ -146,7 +147,7 @@ const RMS=()=>(V&&Array.isArray(V.rooms)&&V.rooms.length>1)?V.rooms:[],needRoom=
 function roomHtml(){const R=RMS();if(!R.length)return"";const b=(v,l)=>`<button type="button" data-a="room" data-v="${esc(v)}" class="${U.room===v?"on":""}" aria-pressed="${U.room===v}">${esc(l)}</button>`;
   return`<div class="rmw"><h2 class="${EG()?"eg-l":""}">Area</h2><div class="rms" role="group" aria-label="Area">${V.pick==="must"?"":b("","No preference")}${R.map(r=>b(r,r)).join("")}</div></div>`}
 let API="",KEY="",V=null;                                       // V = what the venue allows
-const U={step:"pick",room:"",size:2,date:"",times:null,why:"",time:"",busy:false,err:"",done:null,am:null,af:{ref:"",email:""},f:{name:"",phone:"",email:"",notes:"",mk:true}};
+const U={step:"pick",room:"",size:2,date:"",times:null,why:"",time:"",busy:false,err:"",done:null,am:null,af:{ref:"",email:""},f:{name:"",phone:"",email:"",notes:"",mk:false}};
 async function call(a,params,body){const u=new URL(API);u.searchParams.set("v",SITE);u.searchParams.set("a",a);Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
   const r=await fetch(u,{method:body?"POST":"GET",headers:Object.assign({apikey:KEY,Authorization:"Bearer "+KEY},body?{"content-type":"application/json"}:{}),body:body?JSON.stringify(body):undefined});
   let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw Object.assign(new Error(j.message||"Something went wrong. Please try again."),{code:j.error||"",status:r.status});return j}
@@ -180,6 +181,18 @@ function head(sub){const tb=tabsHtml(),lg=LOGO&&EMBED?`<img class="h-logo" src="
 function fail(title,msg){page(`${head("")}<div class="notice bad"><b>${esc(title)}</b><br>${esc(msg)}</div>`)}
 
 const amBan=()=>U.am&&U.am.b?`<div class="notice">Changing booking <b>${esc(U.am.ref)}</b> (${esc(fmtD(U.am.b.date))} at ${esc(t12(U.am.b.time))}, ${esc(guests(U.am.b.size))}). Choose a new date, guests and time below.<br><button class="link" data-a="amkeep" style="margin:4px 0 0">Keep my booking as it is</button></div>`:"";
+/* What the guest is told when they give their details (UK GDPR: privacy information at the point of collection).
+   The venue is responsible for the guest's data; Proview runs the booking system for the venue. */
+const noteConsent=()=>`<p class="muted small" style="margin:-8px 0 0">If you tell us about allergies or access needs, you agree to ${esc(V.name)} using that information to look after you on your visit.</p>`;
+function privHtml(){const P=V.priv||{},n=esc(V.name),k=+P.keep||0,em=P.email?` at <a href="mailto:${esc(P.email)}">${esc(P.email)}</a>`:"";
+  return`<details class="priv"><summary>How ${n} uses your details</summary><div>
+  <p>${n} uses your name, phone number and email address to make and manage your booking and to contact you about it. They are needed to provide the booking you have asked for.</p>
+  <p>Anything you write in the notes, including allergies or access needs, is used only to look after you on your visit.</p>
+  <p>Offers and news are only sent if you tick the box. You can stop them at any time by replying STOP or by contacting ${n}.</p>
+  <p>${k?`Your details are removed ${k} months after your last booking.`:`Your details are kept while ${n} needs them for its bookings and records. You can ask for them to be deleted at any time.`}</p>
+  <p>The booking system is provided by Proview, which stores this information in the United Kingdom on behalf of ${n}. Confirmation emails are sent through an email delivery service. Your details are not sold or passed to anyone else for their own marketing.</p>
+  <p>You can ask ${n}${em} for a copy of your details, or to have them corrected or deleted. If you are not happy with how your details are used, you can complain to the Information Commissioner\u2019s Office at ico.org.uk.</p>
+  ${P.url?`<p><a href="${esc(P.url)}" target="_blank" rel="noopener">${n} privacy policy</a></p>`:""}</div></details>`}
 const findLink=()=>U.am?"":`<button class="link" data-a="find" style="margin-top:6px">Already booked? Change or cancel it</button>`;
 function renderAm(){
   if(U.step==="find"){page(`${head("")}<div><h2>Change or cancel your booking</h2><p class="muted small">Enter the reference from your confirmation email and the email address you booked with.</p></div>${U.err?`<div class="notice bad">${esc(U.err)}</div>`:""}
@@ -227,7 +240,7 @@ function render(){
       <div class="row">${phHtml("Mobile number",true)}
       <label class="af">Email<input id="f-email" type="email" inputmode="email" autocomplete="email" maxlength="120" value="${esc(f.email)}" required></label></div>
       <label class="af">Anything we should know? (optional)<textarea id="f-notes" rows="2" maxlength="300" placeholder="Allergies, accessibility\u2026">${esc(f.notes)}</textarea></label>
-      <label class="chk"><input type="checkbox" id="f-mk" ${f.mk?"checked":""}><span>Happy to receive offers by email from ${esc(V.name)}</span></label>
+      ${noteConsent()}<label class="chk"><input type="checkbox" id="f-mk" ${f.mk?"checked":""}><span>Send me offers and news from ${esc(V.name)} by email or text message. You can stop them at any time.</span></label>${privHtml()}
       <div class="hp" aria-hidden="true"><label>Website<input id="f-web" tabindex="-1" autocomplete="off"></label></div>
       <button class="go" type="submit" ${U.busy?"disabled":""}>${U.busy?"Sending\u2026":"Book places"}</button></form>
       <button class="link" data-a="tab" data-v="events">Back to events</button>`);
@@ -240,6 +253,7 @@ function render(){
       <label class="af">Name<input id="f-name" autocomplete="name" maxlength="80" value="${esc(f.name)}" required></label>
       <div class="row"><label class="af">Email<input id="f-email" type="email" inputmode="email" autocomplete="email" maxlength="120" value="${esc(f.email)}" required></label>
       ${phHtml("Mobile number (optional)",false)}</div>
+      ${privHtml()}
       <div class="hp" aria-hidden="true"><label>Website<input id="f-web" tabindex="-1" autocomplete="off"></label></div>
       <button class="go" type="submit" ${U.busy?"disabled":""}>${U.busy?"Sending\u2026":"Alert me"}</button></form>
       <button class="link" data-a="back">Back to the times</button>`);
@@ -253,7 +267,7 @@ function render(){
       <div class="row">${phHtml("Mobile number",true)}
       <label class="af">Email<input id="f-email" type="email" inputmode="email" autocomplete="email" maxlength="120" value="${esc(f.email)}" required></label></div>
       <label class="af">Anything we should know? (optional)<textarea id="f-notes" rows="2" maxlength="300" placeholder="Allergies, high chair, occasion…">${esc(f.notes)}</textarea></label>
-      <label class="chk"><input type="checkbox" id="f-mk" ${f.mk?"checked":""}><span>Happy to receive offers by email from ${esc(V.name)}</span></label>
+      ${noteConsent()}<label class="chk"><input type="checkbox" id="f-mk" ${f.mk?"checked":""}><span>Send me offers and news from ${esc(V.name)} by email or text message. You can stop them at any time.</span></label>${privHtml()}
       <div class="hp" aria-hidden="true"><label>Website<input id="f-web" tabindex="-1" autocomplete="off"></label></div>
       <button class="go" type="submit" ${U.busy?"disabled":""}>${U.busy?"Sending…":V.confirm==="request"?"Request this table":"Confirm booking"}</button></form>
       <button class="link" data-a="back">Change date or time</button>`);
@@ -323,7 +337,7 @@ async function findNext(my){const last=addD(V.today,V.ahead);U.next="look";rende
 async function loadTimes(){const my=++seq;U.times=null;U.why="";U.err="";U.next=null;U.byRoom=null;U.shAll=!!U.shNext;U.shNext=false;if(SH()&&U.step==="pick"&&RMS().length)U.room="";if(needRoom()&&!SH()){U.times=[];U.why="";render();return}render();
   try{const r=await call("slots",rq(SH()&&RMS().length?{date:U.date,size:U.size,all:1}:{date:U.date,size:U.size}));if(my!==seq)return;if(r.on===false){V.on=false;fail("Online booking is not available",r.message||"");return}U.times=r.times||[];U.why=r.why||"";U.byRoom=r.byRoom||null}
   catch(e){if(my!==seq)return;U.times=[];U.why=e.message;render();return}render();if(!U.times.length&&U.why)findNext(my)}
-function aboutHtml(){const L=V&&V.look||{},ab=L.about?`<section class="sh-ab"><h2>About ${esc(V.name)}</h2><p>${esc(L.about).replace(/\n/g,"<br>")}</p></section>`:"",mp=L.addr&&L.map!=="off"?`<section class="sh-ab"><h2>Find us</h2><p class="muted" style="margin:0 0 8px">${esc(L.addr)} \u00b7 <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(V.name+", "+L.addr)}" target="_blank" rel="noopener">Open in Google Maps</a></p><iframe class="sh-map" loading="lazy" referrerpolicy="no-referrer" title="Map" src="https://www.google.com/maps?q=${encodeURIComponent(V.name+", "+L.addr)}&output=embed"></iframe></section>`:"";return ab+mp}
+function aboutHtml(){const L=V&&V.look||{},ab=L.about?`<section class="sh-ab"><h2>About ${esc(V.name)}</h2><p>${esc(L.about).replace(/\n/g,"<br>")}</p></section>`:"",mp=L.addr&&L.map!=="off"?`<section class="sh-ab"><h2>Find us</h2><p class="muted" style="margin:0 0 8px">${esc(L.addr)} \u00b7 <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(V.name+", "+L.addr)}" target="_blank" rel="noopener">Open in Google Maps</a></p>${U.mapOn?`<iframe class="sh-map" loading="lazy" referrerpolicy="no-referrer" title="Map" src="https://www.google.com/maps?q=${encodeURIComponent(V.name+", "+L.addr)}&output=embed"></iframe>`:`<button type="button" class="link" data-a="showmap" style="margin-left:0">Show the map here (loads Google Maps)</button>`}</section>`:"";return ab+mp}
 async function evSend(e){e.preventDefault();if(U.busy)return;const f=U.f;U.evn=+$("#e-n").value;f.name=$("#f-name").value.trim();f.phone=phVal();f.email=$("#f-email").value.trim();f.notes=$("#f-notes").value.trim();f.mk=$("#f-mk").checked;const web=$("#f-web").value;
   if(f.name.length<2){U.err="Please enter your name.";render();$("#f-name").focus();return}
   if(f.phone.replace(/\D/g,"").length<7){U.err="Please enter a phone number we can reach you on.";render();$("#f-phone").focus();return}
@@ -354,6 +368,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b
   if(a==="alert"){U.step="alert";U.err="";render();scrollTo(0,0);return}
   if(a==="time"&&b.dataset.r!=null)U.room=b.dataset.r;
   if(a==="nxt"){const t=b.dataset.t;U.date=b.dataset.d;U.cm=U.date.slice(0,7);U.times=(U.next&&U.next.times)||[t];U.why="";U.next=null;U.time=t;if(U.am){doAmend("change",rq({date:U.date,time:U.time,size:U.size}))}else{U.step="form";U.err="";render();scrollTo(0,0);const n=$("#f-name");if(n&&!n.value)try{n.focus()}catch(x){}}}
+  else if(a==="showmap"){U.mapOn=true;render()}
   else if(a==="calopen"){U.calOpen=true;U.cm=U.date.slice(0,7);render()}
   else if(a==="day"){U.date=b.dataset.d;U.cm=U.date.slice(0,7);U.calOpen=false;U.shNext=!!b.dataset.all;loadTimes()}
   else if(a==="size"){U.size=+b.dataset.n;loadTimes()}
@@ -375,7 +390,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b
   try{V=await call("info")}catch(e){V={name:"Book a table"};fail(e.status===404?"Booking link not found":"Cannot connect",e.message);return}
   document.title=(V.label||"Book a table")+" · "+V.name;applyLook(V.look);
   if(!V.on){fail("Online booking is not available",V.message||"Please contact us directly.");return}
-  U.f.mk=V.mkTick!==false;U.size=Math.min(2,V.maxParty);U.date=V.today;
+  U.f.mk=false;U.size=Math.min(2,V.maxParty);U.date=V.today;
   const qd=Q.get("date"),qs=+Q.get("size");if(qd&&/^\d{4}-\d{2}-\d{2}$/.test(qd)&&qd>=V.today&&qd<=addD(V.today,V.ahead))U.date=qd;if(qs>=1&&qs<=V.maxParty)U.size=Math.round(qs);
   if(Q.get("events")==="1"&&EVS().length){U.step="events";render();return}
   const qm=Q.get("room")||"";if(RMS().includes(qm))U.room=qm;

@@ -5,7 +5,7 @@
 // which times are free.
 //
 // Routes (all under /res-book, ?v=<location id>):
-//   GET  ?v=…&a=info                       → { name, on, label, msg, maxParty, ahead, mkTick, today, look }
+//   GET  ?v=…&a=info                       → { name, on, label, msg, maxParty, ahead, mkTick (always false: the offers box is never pre-ticked), priv, today, look }
 //   GET  ?v=…&a=slots&date=YYYY-MM-DD&size=N → { date, size, why, times: ["18:00", …] }
 //   POST ?v=…&a=book  { date, time, size, name, phone, email, notes, mk } → { ok, ref, confirm, name, date, time, size }
 //   POST ?v=…&a=find  { ref, email }   → the guest's own booking (needs the reference AND the email it was made with)
@@ -143,6 +143,12 @@ const clean = (v: unknown, max: number) => String(v == null ? "" : v).replace(/[
 const normPh = (x: string) => { let d = String(x || "").replace(/\D/g, ""); if (d.startsWith("0044")) d = "0" + d.slice(4); else if (d.startsWith("440")) d = d.slice(2); else if (d.startsWith("44") && d.length >= 11) d = "0" + d.slice(2); return d.length >= 7 ? d : ""; };
 const gkeyOf = (ph: string, n: string) => normPh(ph) || (ph || n).toLowerCase();
 // The venue's look for the booking page: only known values are passed on.
+// What the booking page tells guests about their details: the venue's own policy link and contact email
+// (Widget page), and how long guest details are kept (Settings, 0 = until deleted).
+function privOf(S: Any) {
+  const v = (S && S.venue) || {}, P = (v.ob && v.ob.priv) || {}, url = clean(P.url, 300), email = clean(P.email, 120).toLowerCase(), k = Math.round(+v.keep || 0);
+  return { url: /^https:\/\/[^\s"'<>]+$/i.test(url) ? url : "", email: /^[^@\s"'<>]+@[^@\s"'<>]+\.[^@\s"'<>]+$/.test(email) ? email : "", keep: k >= 6 && k <= 120 ? k : 0 };
+}
 function lookOf(o: Any) {
   const L = (o && o.look) || {}, hex = (x: unknown) => (typeof x === "string" && /^#[0-9a-f]{6}$/i.test(x) ? x.toLowerCase() : "");
   // pictures uploaded on the Widget page: only addresses in this project's own public bucket are passed on
@@ -292,6 +298,7 @@ Deno.serve(async (req) => {
         if (same) return send({ ok: true, ref: refOf(same), title: ev.title, date: ev.date, start: ev.start || "", n });
         if (+ev.places > 0) { const left = Math.round(+ev.places) - evTaken(S, eid); if (n > left) return send({ error: "full", message: left > 0 ? "Sorry, only " + left + (left === 1 ? " place is" : " places are") + " left." : "Sorry, this event is now fully booked." }, 409); }
         const eb: Any = { id: uid(), eid, n, name: gname, phone, email, notes, at: Date.now() };
+        if (b.mk === true) { eb.mkAt = Date.now(); eb.mkBy = "web"; }
         list.push(eb); S.evb = list;
         const ops: Any[] = [{ k: "evb", up: [eb] }];
         if (b.mk === false) { const k = gkeyOf(phone, gname); if (!S.mkoff || typeof S.mkoff !== "object" || Array.isArray(S.mkoff)) S.mkoff = {}; S.mkoff[k] = true; ops.push({ k: "mkoff", mp: { [k]: true } }); }
@@ -309,7 +316,7 @@ Deno.serve(async (req) => {
 
     if (a === "info") {
       if (!on) return off();
-      return send({ name, on: true, label: o.label || "Book a table", msg: o.msg || "", maxParty: o.maxParty, ahead: o.ahead, confirm: o.confirm, mkTick: row.data.venue.mkTick !== false, today, look: lookOf(o), rooms: R.pickRooms(), pick: R.pickRooms().length ? o.pick : "", events: evPublic(row.data, today) });
+      return send({ name, on: true, label: o.label || "Book a table", msg: o.msg || "", maxParty: o.maxParty, ahead: o.ahead, confirm: o.confirm, mkTick: false, priv: privOf(row.data), today, look: lookOf(o), rooms: R.pickRooms(), pick: R.pickRooms().length ? o.pick : "", events: evPublic(row.data, today) });
     }
 
     if (a === "slots") {
@@ -360,6 +367,7 @@ Deno.serve(async (req) => {
         if (u.ids.length > 1) p.join = u.ids.slice(1);
         if (u.part != null) p.part = u.part;
         if (ask) p.req = 1;
+        if (b.mk === true) { p.mkAt = Date.now(); p.mkBy = "web"; }
         const ops: Any[] = [{ k: "parties", up: [p] }];
         parties.push(p); S.parties = parties;
         if (b.mk === false) { // did not tick "offers by email": keep them off the marketing list
@@ -370,6 +378,8 @@ Deno.serve(async (req) => {
         if (c.error) throw c.error;
         if (c.data != null) {
           await db.rpc("pr_pin_failed", { p_key: key });
+          // connection addresses are only needed for ten minutes: clear yesterday's
+          try { await db.from("pr_pin_fails").delete().lt("t", new Date(Date.now() - 864e5).toISOString()); } catch (_e) { /* not important */ }
           const em = bookingMail(ask ? "request" : "new", name, site, p, o.msg || "", room);
           const sent = await mail(email, em.subject, em.html, em.text);
           return send({ ok: true, ref: p.id.slice(0, 6).toUpperCase(), confirm: o.confirm, name, date, time, size, room, emailed: sent });
