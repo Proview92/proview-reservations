@@ -19,7 +19,7 @@ async function clCfg(){try{const r=await fetch("cloud.json",{cache:"no-store"});
 function clErr(e){const m=String((e&&e.message)||e||"");if(/Invalid login/i.test(m))return "Wrong email or password.";if(/not confirmed/i.test(m))return "Please confirm your email first: open the link we emailed you.";if(/already registered/i.test(m))return "This email already has an account. Sign in instead.";if(/at least \d+|password should/i.test(m))return "The password needs at least 8 characters.";if(/rate limit|too many/i.test(m))return "Too many tries. Please wait a few minutes.";if(/fetch|network/i.test(m))return "Cannot reach the server. Check the internet.";return m||"Something went wrong. Try again."}
 function clLic(s){if(s.suspended)return "This business is paused.";if(!s.license_type)return "This business has no licence yet.";return s.license_type==="trial"?"The free trial has ended.":"The licence has ended."}
 // A new business starts with the sample floor plan only: no sample bookings, guests, staff or history.
-function blankState(name){const s=seed();s.parties=[];s.waiting=[];s.staff=[];s.punches=[];s.hist={};s.histSample=false;s.gnotes={};s.ts={};s.rotaSh=[];s.demoY=s.demoU=s.demoB=s.demoP=1;s.venue.name=name||"My venue";delete s.venue.id;return s}
+function blankState(name){const s=seed();s.parties=[];s.waiting=[];s.staff=[];s.punches=[];s.hist={};s.histSample=false;s.gnotes={};s.ts={};s.rotaSh=[];s.tables=[];s.deco=[];s.rooms=["Main room"];s.demoY=s.demoU=s.demoB=s.demoP=1;s.venue.name=name||"My venue";delete s.venue.id;return s}
 
 /* ---------- sign-in screens ---------- */
 function clRoot(){let r=document.getElementById("cl-root");if(!r){r=document.createElement("div");r.id="cl-root";document.body.appendChild(r)}return r}
