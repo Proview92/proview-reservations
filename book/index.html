@@ -101,7 +101,12 @@ html.sh .times{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}html.sh .t
 @media(max-width:560px){.sh-dv{font-size:14.5px}html.sh .times{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.sh-bar{border-radius:calc(var(--rad) * 1.6)}.sh-bar label{padding:7px 4px 7px 12px}.sh-bar select,.sh-bar input{font-size:14.5px}}
 /* Showcase + Wide: the form uses the full width, with more times per row, so the guest scrolls far less */
 @media(min-width:900px){html.sh.lw #brand,html.sh.lw body.embed #brand{width:min(1040px,100%)!important;max-width:1040px!important;gap:8px}html.sh.lw body.embed .card,html.sh.lw .card{width:min(1040px,100%)!important;max-width:1040px!important}html.sh.lw .b-hd{aspect-ratio:16/3.2}html.sh.lw .b-logo{max-height:56px;margin-bottom:6px}html.sh.lw .times{grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}html.sh.lw .times button{height:46px;font-size:14.5px}html.sh.lw .times.tr button{height:54px}}
-.sh-mn{margin-left:auto;flex:none;padding:6px 14px;border:2px solid currentColor;border-radius:999px;color:inherit;font-size:14.5px;font-weight:700;text-decoration:none;white-space:nowrap}.sh-ad{flex-wrap:wrap}.sh-ad{display:flex;align-items:center;gap:5px;margin:6px 0 0;color:var(--mut);font-size:14px}.sh-ad svg{flex:none}
+.pol{border:1px solid var(--line);border-radius:var(--rad);background:var(--hov);padding:14px 16px;display:flex;flex-direction:column;gap:10px}.pol h3{margin:0;font-size:16px}.pol ul{margin:0;padding-left:20px;line-height:1.5;font-size:15.5px;overflow-wrap:anywhere}.pol li{margin:0 0 4px}.pol .chk{font-weight:700;font-size:15.5px}
+.sh-dbtn{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;background:none}
+.sh-cal{margin-top:10px;max-width:380px;border:1px solid var(--line);border-radius:calc(var(--rad) * 1.4);background:var(--card);padding:12px;box-shadow:0 10px 30px -14px rgba(20,20,30,.4)}.sh-cm{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:17px}.sh-cm button{width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-size:22px;cursor:pointer}.sh-cm button:disabled{opacity:.3;cursor:default}
+.sh-cg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}.sh-cg .dw{font-size:12.5px;color:var(--mut);padding:4px 0}.sh-cg button{height:44px;border:1px solid transparent;border-radius:12px;background:none;color:var(--ink);font:inherit;font-size:16px;font-weight:600;cursor:pointer}.sh-cg button:hover:not(:disabled){background:var(--hov)}.sh-cg button.t{border-color:var(--line)}.sh-cg button.on{background:var(--btn);color:var(--btnink)}.sh-cg button:disabled{opacity:.3;cursor:default}
+.sh-mn{margin-left:auto;flex:none;padding:6px 14px;border:2px solid currentColor;border-radius:999px;color:inherit;font-size:14.5px;font-weight:700;text-decoration:none;white-space:nowrap}.sh-ad{flex-wrap:wrap}
+.foot{display:table!important;margin:14px auto!important;padding:8px 18px;background:rgba(255,255,255,.95);color:#222!important;border-radius:999px;font-size:14.5px;box-shadow:0 2px 10px rgba(0,0,0,.18)}.foot a{color:#222!important;font-weight:700}.sh-ad{display:flex;align-items:center;gap:5px;margin:6px 0 0;color:var(--mut);font-size:14px}.sh-ad svg{flex:none}
 html.sh .times.tr button{height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.15;padding:0 4px}html.sh .times.tr button b{font-size:15px}html.sh .times.tr button small{font-size:12px;font-weight:500;opacity:.9;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row>label:has(.ph){flex:1 1 250px}
 .ph{position:relative;display:flex;align-items:stretch;border:1px solid var(--line);border-radius:var(--rad);background:var(--card);overflow:hidden}.ph:focus-within{outline:2px solid var(--pri);outline-offset:-1px;border-color:transparent}.ph select{position:absolute;left:0;top:0;width:92px;height:100%;opacity:0;cursor:pointer;border:0;padding:0}.phf{flex:none;width:92px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:15px;font-weight:600;border-right:1px solid var(--line);background:var(--hov);pointer-events:none;white-space:nowrap}.phf::after{content:"\25BE";font-size:11px;color:var(--mut);margin-left:2px}.ph input{border:0!important;border-radius:0!important;outline:0!important;flex:1;min-width:0}
@@ -116,7 +121,7 @@ html.hashd .card{border-top-left-radius:0;border-top-right-radius:0;border-top:0
 html.hasbg .b-logo{background:var(--card);padding:12px 24px;border-radius:calc(var(--rad) * 1.4);max-height:134px;box-shadow:0 8px 30px -10px rgba(0,0,0,.5)}
 .eg-h.nol{padding-top:6px}.eg-h.nol p{margin:8px 0 10px!important}h1.h-sm{font-size:21px}
 .h-logo{max-width:min(240px,70%);max-height:70px;object-fit:contain;display:block;margin:0 auto 10px}
-html.hasbg body{background-size:cover;background-position:center;background-attachment:fixed;background-repeat:no-repeat}html.hasbg .foot{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+html.hasbg body{background-size:cover;background-position:center;background-attachment:fixed;background-repeat:no-repeat}html.hasbg .foot{color:#222;text-shadow:none}
 @media(max-width:560px){.b-hd{aspect-ratio:16/7}.b-logo{max-height:84px}html.hasbg .b-logo{max-height:104px}}
 .rmw{margin-top:14px}.rms{display:flex;flex-wrap:wrap;gap:6px}.rms button{flex:1 1 auto;min-width:0;min-height:40px;padding:6px 14px;border:1px solid var(--line);border-radius:var(--rad);background:var(--card);color:var(--ink);font:inherit;font-size:15px;font-weight:600;cursor:pointer}.rms button.on{background:var(--btn);color:var(--btnink);border-color:transparent}
 .pers{display:flex;gap:6px;margin:0 0 8px}.pers button{flex:1 1 0;min-width:0;height:38px;border:1px solid var(--line);border-radius:var(--rad);background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer}.pers button.on{background:var(--btn);color:var(--btnink);border-color:transparent}.eg .pers button{border-radius:999px;font-weight:500}.eg .rms button{border-radius:999px;font-weight:500}.eg .rms button.on{background:var(--sand);border-color:var(--sandd);color:var(--sandink)}.eg .pers button.on{background:var(--sand);border-color:var(--sandd);color:var(--sandink)}
@@ -150,7 +155,8 @@ function roomHtml(){const R=RMS();if(!R.length)return"";const b=(v,l)=>`<button 
   return`<div class="rmw"><h2 class="${EG()?"eg-l":""}">Area</h2><div class="rms" role="group" aria-label="Area">${V.pick==="must"?"":b("","No preference")}${R.map(r=>b(r,r)).join("")}</div></div>`}
 let API="",KEY="",V=null;                                       // V = what the venue allows
 const U={step:"pick",room:"",size:2,date:"",times:null,why:"",time:"",busy:false,err:"",done:null,am:null,af:{ref:"",email:""},f:{name:"",phone:"",email:"",notes:"",mk:false}};
-async function call(a,params,body){const u=new URL(API);u.searchParams.set("v",SITE);u.searchParams.set("a",a);Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
+async function call(a,params,body){if(a==="book"||a==="amend"||a==="evbook"){SC={}}
+  const u=new URL(API);u.searchParams.set("v",SITE);u.searchParams.set("a",a);Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
   const r=await fetch(u,{method:body?"POST":"GET",headers:Object.assign({apikey:KEY,Authorization:"Bearer "+KEY},body?{"content-type":"application/json"}:{}),body:body?JSON.stringify(body):undefined});
   let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw Object.assign(new Error(j.message||"Something went wrong. Please try again."),{code:j.error||"",status:r.status});return j}
 /* The venue's own look (Widget page, "Look of the booking page"): light or dark, button colour, background, corners. */
@@ -162,7 +168,7 @@ function applyLook(L){L=L||{};const r=document.documentElement,st=r.style;r.clas
   if(L.style==="elegant"&&HEX.test(L.accent||"")){st.setProperty("--sand",L.accent);st.setProperty("--sandink",lum(L.accent)>0.62?"#1b1b1b":"#fff")}
   if(L.corners==="square")st.setProperty("--rad","3px");else if(L.corners==="pill")st.setProperty("--rad","22px");
   /* the venue's own pictures. On the booking link (a page of its own): logo on top, header photo, background photo. Inside a website: the logo only. */
-  const P=u=>typeof u==="string"&&/^https:\/\/[\w\-./:]+$/.test(u)?u:"",lg=P(L.logo),hd=P(L.header),bg=P(L.bgimg),B=$("#brand");
+  const P=u=>typeof u==="string"&&/^https:\/\/[\w\-./:]+$/.test(u)?u:"",lg=P(L.logo),hd=P(L.header),bg=EMBED&&L.bgl==="off"&&(L.size==="l"||L.layout==="wide")?"":P(L.bgimg),B=$("#brand");
   LOGO=lg;r.classList.toggle("haslogo",!!lg);r.classList.toggle("hashd",!!hd);r.classList.toggle("hasbg",!!bg);document.body.style.backgroundImage=bg?`url("${bg}")`:"";
   /* inside a website the logo sits in the form's own heading, so only the photo goes above it */
   if(B){B.hidden=EMBED?!hd:!(lg||hd);B.innerHTML=`${lg&&!EMBED?`<img class="b-logo" src="${lg}" alt="${esc(V&&V.name||"")}">`:""}${hd?`<img class="b-hd" src="${hd}" alt="">`:""}`;const im=B.querySelector(".b-hd");if(im)im.addEventListener("load",tell)}}
@@ -269,7 +275,7 @@ function render(){
       <div class="row">${phHtml("Mobile number",true)}
       <label class="af">Email<input id="f-email" type="email" inputmode="email" autocomplete="email" maxlength="120" value="${esc(f.email)}" required></label></div>
       <label class="af">Anything we should know? (optional)<textarea id="f-notes" rows="2" maxlength="300" placeholder="Allergies, high chair, occasion…">${esc(f.notes)}</textarea></label>
-      ${noteConsent()}<label class="chk"><input type="checkbox" id="f-mk" ${f.mk?"checked":""}><span>Send me offers and news from ${esc(V.name)} by email or text message. You can stop them at any time.</span></label>${privHtml()}
+      ${polHtml()}${noteConsent()}<label class="chk"><input type="checkbox" id="f-mk" ${f.mk?"checked":""}><span>Send me offers and news from ${esc(V.name)} by email or text message. You can stop them at any time.</span></label>${privHtml()}
       <div class="hp" aria-hidden="true"><label>Website<input id="f-web" tabindex="-1" autocomplete="off"></label></div>
       <button class="go" type="submit" ${U.busy?"disabled":""}>${U.busy?"Sending…":V.confirm==="request"?"Request this table":"Confirm booking"}</button></form>
       <button class="link" data-a="back">Change date or time</button>`);
@@ -293,6 +299,10 @@ function render(){
   $("#p-size").addEventListener("change",e=>{U.size=+e.target.value;loadTimes()});
   $("#p-date").addEventListener("change",e=>{const d=e.target.value;if(d&&d>=V.today&&d<=last){U.date=d;loadTimes()}});
   const on=document.querySelector(".days .on");if(on&&on.scrollIntoView)try{on.scrollIntoView({block:"nearest",inline:"nearest"})}catch(e){}}
+function shCal(last){if(!U.cm)U.cm=U.date.slice(0,7);const y=+U.cm.slice(0,4),mo=+U.cm.slice(5,7),dim=new Date(Date.UTC(y,mo,0,12)).getUTCDate(),lead=(new Date(Date.UTC(y,mo-1,1,12)).getUTCDay()+6)%7;
+  let c=["Mo","Tu","We","Th","Fr","Sa","Su"].map(d=>`<span class="dw">${d}</span>`).join("")+"<span></span>".repeat(lead);
+  for(let d=1;d<=dim;d++){const iso=U.cm+"-"+pad(d),ok=iso>=V.today&&iso<=last;c+=`<button type="button" ${ok?`data-a="day" data-d="${iso}"`:"disabled"} class="${iso===U.date?"on":""} ${iso===V.today?"t":""}" aria-pressed="${iso===U.date}">${d}</button>`}
+  return`<div class="sh-cal"><div class="sh-cm"><button type="button" data-a="mon" data-v="-1" aria-label="Previous month" ${U.cm<=V.today.slice(0,7)?"disabled":""}>\u2039</button><b>${MNL[mo-1]} ${y}</b><button type="button" data-a="mon" data-v="1" aria-label="Next month" ${U.cm>=last.slice(0,7)?"disabled":""}>\u203a</button></div><div class="sh-cg">${c}</div></div>`}
 /* Showcase template: logo and photo on top, one slim bar for guests, date and part of the day, then the free times as large coloured buttons */
 function pickSh(){const max=V.maxParty,last=addD(V.today,V.ahead),opts=[];for(let n=1;n<=max;n++)opts.push(`<option value="${n}" ${n===U.size?"selected":""}>${guests(n)}</option>`);
   const T=U.times||[],G=PERS.map(p=>({k:p[0],n:p[1],L:T.filter(t=>tmin(t)>=p[2]&&tmin(t)<p[3])})).filter(g=>g.L.length),cur=G.find(g=>g.k===U.shp),L=cur?cur.L:T;
@@ -302,14 +312,12 @@ function pickSh(){const max=V.maxParty,last=addD(V.today,V.ahead),opts=[];for(le
   else{const R=RMS(),B=U.byRoom?L.flatMap(t=>R.filter(r=>(U.byRoom[r]||[]).includes(t)).map(r=>`<button type="button" data-a="time" data-t="${t}" data-r="${esc(r)}"><b>${t12(t)}</b><small>${esc(r)}</small></button>`)):L.map(t=>`<button type="button" data-a="time" data-t="${t}">${t12(t)}</button>`),lim=innerWidth<640?9:16,cut=B.length>lim+3&&!U.shAll;
     tm=`<div class="times${U.byRoom?" tr":""}">${(cut?B.slice(0,lim):B).join("")}</div>${cut?`<button type="button" class="sh-al sh-mo" data-a="shall">Show more times</button>`:""}`}
   page(`${head("")}${amBan()}${U.err?`<div class="notice bad">${esc(U.err)}</div>`:""}
-    <div class="sh-bar"><label><span>Guests</span><select id="p-size">${opts.join("")}</select></label><label class="sh-dl"><span>Date</span><b class="sh-dv">${esc(new Date(U.date+"T12:00:00Z").toLocaleDateString("en-GB",innerWidth<560?{day:"numeric",month:"short",timeZone:"UTC"}:{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}))}</b><input id="p-date" type="date" min="${V.today}" max="${last}" value="${U.date}" aria-label="Date"></label><label><span>Time</span><select id="p-per"><option value="">All times</option>${G.map(g=>`<option value="${g.k}" ${cur===g?"selected":""}>${g.n}</option>`).join("")}</select></label></div>
+    <div class="sh-bar"><label><span>Guests</span><select id="p-size">${opts.join("")}</select></label><label class="sh-dl"><span>Date</span><b class="sh-dv">${esc(new Date(U.date+"T12:00:00Z").toLocaleDateString("en-GB",innerWidth<560?{day:"numeric",month:"short",timeZone:"UTC"}:{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}))}</b><button type="button" class="sh-dbtn" data-a="shcal" aria-label="Change date" aria-expanded="${!!U.shCal}"></button></label><label><span>Time</span><select id="p-per"><option value="">All times</option>${G.map(g=>`<option value="${g.k}" ${cur===g?"selected":""}>${g.n}</option>`).join("")}</select></label></div>${U.shCal?shCal(last):""}
     <div><h2 class="sh-d">${esc(fmtD(U.date))}</h2>${tm}${U.times!==null&&!U.am&&V.look&&V.look.alert==="on"?`<button type="button" class="sh-al" data-a="alert"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M12 22a2.500 2.500 0 0 0 2.450-2h-4.900A2.500 2.500 0 0 0 12 22zm7-6v-5a7 7 0 0 0-5.500-6.840V3.500a1.500 1.500 0 0 0-3 0v.660A7 7 0 0 0 5 11v5l-2 2v1h18v-1l-2-2z"/></svg>Alert me if a table comes free</button>`:""}</div>
     <p class="muted small">For more than ${max} guests please contact ${esc(V.name)} directly.</p>${findLink()}${aboutHtml()}`);
   $("#p-size").addEventListener("change",e=>{U.size=+e.target.value;loadTimes()});
-  $("#p-date").addEventListener("change",e=>{const d=e.target.value;if(d&&d>=V.today&&d<=last){U.date=d;loadTimes()}});
   $("#p-per").addEventListener("change",e=>{U.shp=e.target.value;U.shAll=false;render()});
-  /* the date shows as short text; the real date box lies invisibly over it, and a click opens its calendar */
-  $("#p-date").addEventListener("click",e=>{try{e.target.showPicker&&e.target.showPicker()}catch(x){}})}
+}
 const MNL=["January","February","March","April","May","June","July","August","September","October","November","December"];
 function pickEg(){const max=V.maxParty,last=addD(V.today,V.ahead);if(!U.cm)U.cm=U.date.slice(0,7);
   const sz=[];for(let n=1;n<=max;n++)sz.push(`<button type="button" class="eg-n ${n===U.size?"on":""}" data-a="size" data-n="${n}" aria-pressed="${n===U.size}">${n}</button>`);
@@ -336,10 +344,15 @@ function nextHtml(){const n=U.next;if(n===undefined||n===null)return"";if(n==="l
   if(SH()&&RMS().length)return`<div class="nxt"><b>Next available: ${esc(fmtD(n.date))}</b><button type="button" class="go" data-a="day" data-d="${n.date}">See the times that day</button></div>`;
   return`<div class="nxt"><b>Next available: ${esc(fmtD(n.date))}</b><div class="times">${n.times.slice(0,SH()&&innerWidth<560?3:4).map(t=>`<button type="button" data-a="nxt" data-d="${n.date}" data-t="${t}">${t12(t)}</button>`).join("")}</div>${n.times.length>(SH()&&innerWidth<560?3:4)?(SH()?`<button type="button" class="sh-al sh-mo" data-a="day" data-d="${n.date}" data-all="1">Show more times</button>`:`<button type="button" class="link" data-a="day" data-d="${n.date}">See all the times that day</button>`):""}</div>`}
 async function findNext(my){const last=addD(V.today,V.ahead);U.next="look";render();for(let i=1;i<=14;i++){const d=addD(U.date,i);if(d>last)break;try{const r=await call("slots",rq(SH()&&RMS().length?{date:d,size:U.size,all:1}:{date:d,size:U.size}));if(my!==seq)return;if(r.on===false)break;if(r.times&&r.times.length){U.next={date:d,times:r.times};render();return}}catch(e){if(my!==seq)return;break}}if(my===seq){U.next="none";render()}}
-async function loadTimes(){const my=++seq;U.times=null;U.why="";U.err="";U.next=null;U.byRoom=null;U.shAll=!!U.shNext;U.shNext=false;if(SH()&&U.step==="pick"&&RMS().length)U.room="";if(needRoom()&&!SH()){U.times=[];U.why="";render();return}render();
-  try{const r=await call("slots",rq(SH()&&RMS().length?{date:U.date,size:U.size,all:1}:{date:U.date,size:U.size}));if(my!==seq)return;if(r.on===false){V.on=false;fail("Online booking is not available",r.message||"");return}U.times=r.times||[];U.why=r.why||"";U.byRoom=r.byRoom||null}
-  catch(e){if(my!==seq)return;U.times=[];U.why=e.message;render();return}render();if(!U.times.length&&U.why)findNext(my)}
+/* times for every party size are fetched quietly in the background, so changing the number of guests answers at once */
+let SC={},PL=0;const skey=(n)=>U.date+"|"+(n||U.size)+"|"+(SH()&&RMS().length?"a":"")+"|"+(U.room||"");
+function preload(){if(!V||U.step!=="pick")return;const d=U.date,my=++PL,all=SH()&&RMS().length,sz=[];for(let n=1;n<=V.maxParty;n++)if(n!==U.size&&!SC[skey(n)])sz.push(n);
+  (async()=>{for(const n of sz){if(my!==PL||U.date!==d||U.step!=="pick")return;try{const r=await call("slots",rq(all?{date:d,size:n,all:1}:{date:d,size:n}));SC[d+"|"+n+"|"+(all?"a":"")+"|"+(U.room||"")]={t:Date.now(),r}}catch(e){return}}})()}
+async function loadTimes(){const my=++seq;U.why="";U.err="";U.next=null;U.byRoom=null;U.shAll=!!U.shNext;U.shNext=false;if(SH()&&U.step==="pick"&&RMS().length)U.room="";if(needRoom()&&!SH()){U.times=[];U.why="";render();return}const ck=skey(),cc=SC[ck];if(cc&&Date.now()-cc.t<9e4){U.times=cc.r.times||[];U.why=cc.r.why||"";U.byRoom=cc.r.byRoom||null;render();if(!U.times.length&&U.why)findNext(my);preload();return}U.times=null;render();
+  try{const r=await call("slots",rq(SH()&&RMS().length?{date:U.date,size:U.size,all:1}:{date:U.date,size:U.size}));if(my!==seq)return;if(r.on===false){V.on=false;fail("Online booking is not available",r.message||"");return}U.times=r.times||[];U.why=r.why||"";U.byRoom=r.byRoom||null;SC[ck]={t:Date.now(),r}}
+  catch(e){if(my!==seq)return;U.times=[];U.why=e.message;render();return}render();if(!U.times.length&&U.why)findNext(my);preload()}
 function menuTop(){const L=V&&V.look||{};return L.menu&&/^https:\/\/[^\s"'<>]+$/.test(L.menu)?`<a class="sh-mn" href="${esc(L.menu)}" target="_blank" rel="noopener">View menu</a>`:""}
+function polHtml(){const L=V&&V.look||{};if(!L.policy)return"";return`<section class="pol"><h3>Before you book</h3><ul>${String(L.policy).split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map(x=>`<li>${esc(x)}</li>`).join("")}</ul><label class="chk"><input type="checkbox" id="f-pol" ${U.pol?"checked":""}><span>${esc(L.policyTick||"I have read and agree to these policies")}</span></label></section>`}
 function menuHtml(){const L=V&&V.look||{};return L.menu&&/^https:\/\/[^\s"'<>]+$/.test(L.menu)?`<a style="display:block;text-align:center;text-decoration:none;margin:16px 0 0;padding:14px;border:2px solid currentColor;border-radius:12px;color:inherit;font-size:18px;font-weight:700" href="${esc(L.menu)}" target="_blank" rel="noopener">View menu</a>`:""}
 function aboutHtml(){const L=V&&V.look||{},ab=L.about?`<section class="sh-ab"><h2>About ${esc(V.name)}</h2><p>${esc(L.about).replace(/\n/g,"<br>")}</p></section>`:"",mp=L.addr&&L.map!=="off"?`<section class="sh-ab"><h2>Find us</h2><p class="muted" style="margin:0 0 8px">${esc(L.addr)} \u00b7 <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(V.name+", "+L.addr)}" target="_blank" rel="noopener">Open in Google Maps</a></p>${U.mapOn?`<iframe class="sh-map" loading="lazy" referrerpolicy="no-referrer" title="Map" src="https://www.google.com/maps?q=${encodeURIComponent(V.name+", "+L.addr)}&output=embed"></iframe>`:`<button type="button" class="link" data-a="showmap" style="margin-left:0">Show the map here (loads Google Maps)</button>`}</section>`:"";return ab+mp}
 async function evSend(e){e.preventDefault();if(U.busy)return;const f=U.f;U.evn=+$("#e-n").value;f.name=$("#f-name").value.trim();f.phone=phVal();f.email=$("#f-email").value.trim();f.notes=$("#f-notes").value.trim();f.mk=$("#f-mk").checked;const web=$("#f-web").value;
@@ -355,14 +368,15 @@ async function alertSend(e){e.preventDefault();if(U.busy)return;const f=U.f;f.na
   U.busy=true;U.err="";render();
   try{await call("alert",{},{date:U.date,size:U.size,room:rq({}).room||"",name:f.name,email:f.email,phone:f.phone,website:web});U.busy=false;U.step="alerted";render();scrollTo(0,0)}
   catch(err){U.busy=false;U.err=err.message;render()}}
-async function submit(e){e.preventDefault();if(U.busy)return;const f=U.f;
+async function submit(e){e.preventDefault();if(U.busy)return;const f=U.f;if($("#f-pol"))U.pol=$("#f-pol").checked;
   f.name=$("#f-name").value.trim();f.phone=phVal();f.email=$("#f-email").value.trim();f.notes=$("#f-notes").value.trim();f.mk=$("#f-mk").checked;const web=$("#f-web").value;
   if(f.name.length<2){U.err="Please enter your name.";render();$("#f-name").focus();return}
   if(f.phone.replace(/\D/g,"").length<7){U.err="Please enter a phone number we can reach you on.";render();$("#f-phone").focus();return}
   if(!f.email){U.err="Please enter your email address so we can send your confirmation.";render();$("#f-email").focus();return}
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)){U.err="That email address does not look right.";render();$("#f-email").focus();return}
+  if(V.look&&V.look.policy&&!U.pol){U.err="Please tick the box to confirm you have read the policies.";render();const q=$("#f-pol");if(q)q.focus();return}
   U.busy=true;U.err="";render();
-  try{const r=await call("book",{},{date:U.date,time:U.time,size:U.size,room:rq({}).room||"",name:f.name,phone:f.phone,email:f.email,notes:f.notes,mk:!!(f.email&&f.mk),website:web});U.busy=false;U.done=r;U.step="done";render();scrollTo(0,0)}
+  try{const r=await call("book",{},{date:U.date,time:U.time,size:U.size,room:rq({}).room||"",name:f.name,phone:f.phone,email:f.email,notes:f.notes+(V.look&&V.look.policy?(f.notes?" \u00b7 ":"")+"Policies accepted":""),mk:!!(f.email&&f.mk),website:web});U.busy=false;U.done=r;U.step="done";render();scrollTo(0,0)}
   catch(err){U.busy=false;if(err.code==="gone"){U.step="pick";U.err=err.message;loadTimes();return}U.err=err.message;render()}}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;
   if(a==="per"){U.per=b.dataset.v;render();return}
@@ -373,8 +387,9 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b
   if(a==="time"&&b.dataset.r!=null)U.room=b.dataset.r;
   if(a==="nxt"){const t=b.dataset.t;U.date=b.dataset.d;U.cm=U.date.slice(0,7);U.times=(U.next&&U.next.times)||[t];U.why="";U.next=null;U.time=t;if(U.am){doAmend("change",rq({date:U.date,time:U.time,size:U.size}))}else{U.step="form";U.err="";render();scrollTo(0,0);const n=$("#f-name");if(n&&!n.value)try{n.focus()}catch(x){}}}
   else if(a==="showmap"){U.mapOn=true;render()}
+  else if(a==="shcal"){U.shCal=!U.shCal;U.cm=U.date.slice(0,7);render()}
   else if(a==="calopen"){U.calOpen=true;U.cm=U.date.slice(0,7);render()}
-  else if(a==="day"){U.date=b.dataset.d;U.cm=U.date.slice(0,7);U.calOpen=false;U.shNext=!!b.dataset.all;loadTimes()}
+  else if(a==="day"){U.shCal=false;U.date=b.dataset.d;U.cm=U.date.slice(0,7);U.calOpen=false;U.shNext=!!b.dataset.all;loadTimes()}
   else if(a==="size"){U.size=+b.dataset.n;loadTimes()}
   else if(a==="room"){U.room=b.dataset.v;loadTimes()}
   else if(a==="mon"){const y=+U.cm.slice(0,4),m=+U.cm.slice(5,7)-1+(+b.dataset.v),d=new Date(Date.UTC(y,m,1,12));U.cm=d.getUTCFullYear()+"-"+pad(d.getUTCMonth()+1);render()}
