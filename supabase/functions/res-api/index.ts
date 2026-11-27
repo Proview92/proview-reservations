@@ -244,7 +244,7 @@ Deno.serve(async (req) => {
       const c = msgCfg(state || {}), rdy = msgReady(), vn = String((state && state.venue && state.venue.name) || gate.site_name || "your venue").slice(0, 60);
       const out: Record<string, unknown> = { ok: true, to, ready: rdy };
       if (b.wa === true) out.wa = await sendWa(to, "new", { "1": vn, "2": "Sat 5 Dec at 7:30pm", "3": "2 guests", "4": "TEST12" });
-      if (b.sms === true) out.sms = await sendSms(to, vn + ": this is a test. Booking messages to your guests will come like this.", c.name);
+      if (b.sms === true) out.sms = await sendSms(to, (vn.normalize("NFD").replace(/[^A-Za-z0-9 &'.,-]/g, "").slice(0, 60) + ": this is a test. Booking messages to your guests will come like this.").slice(0, 160), c.name);
       return send(out);
     }
 

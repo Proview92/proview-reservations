@@ -48,17 +48,19 @@ const dayShort = (d: string) => new Date(d + "T12:00:00Z").toLocaleDateString("e
 const refOf = (p: Any) => String(p.id).slice(0, 6).toUpperCase();
 const plain = (s: unknown, n: number) => String(s == null ? "" : s).replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, n);
 
-// The words of each message. Kept short: one text message is 160 characters.
-export function msgText(kind: Kind, venue: string, site: string, p: Any) {
+// The words of each message. A text is billed per 160-character part, and a single accented letter or symbol outside
+// the basic phone alphabet drops that to 70, so texts are kept to plain characters and one part: no link, and a long
+// venue name is shortened to fit. (WhatsApp messages use the approved templates, which take the same four values.)
+const gsm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\u2018\u2019\u02bc]/g, "'").replace(/[\u201c\u201d]/g, '"').replace(/[\u2013\u2014]/g, "-").replace(/[^A-Za-z0-9 !"#%&'()*+,\-.\/:;<=>?@_]/g, "").replace(/\s+/g, " ").trim();
+export function msgText(kind: Kind, venue: string, _site: string, p: Any) {
   const v = plain(venue, 60), when = dayShort(p.date) + " at " + t12(p.time), who = p.size + (p.size === 1 ? " guest" : " guests"), ref = refOf(p);
-  // the guest manages a booking with its reference and the email it was made with, so the link only helps if there is an email
-  const link = p.email ? " Change or cancel: " + (env("RES_APP_URL") || "https://reservations.proviewcrm.co.uk") + "/book/?v=" + encodeURIComponent(site) + "&ref=" + ref : "";
-  const body = kind === "cancelled" ? `${v}: your booking on ${when} is cancelled. We hope to see you another time.`
-    : kind === "changed" ? `${v}: your booking is now ${when}, ${who}. Ref ${ref}.${link}`
-    : kind === "request" ? `${v}: we have your request for ${when}, ${who}. We will confirm shortly. Ref ${ref}.`
-    : kind === "remind" ? `${v}: a reminder of your table on ${when} for ${who}. Ref ${ref}.${link}`
-    : `${v}: your table is booked for ${when}, ${who}. Ref ${ref}.${link}`;
-  return { body, vars: { "1": v, "2": when, "3": who, "4": ref } };
+  const rest = kind === "cancelled" ? `: your booking on ${when} is cancelled. We hope to see you another time.`
+    : kind === "changed" ? `: your booking is now ${when}, ${who}. Ref ${ref}.`
+    : kind === "request" ? `: we have your request for ${when}, ${who}. We will confirm shortly. Ref ${ref}.`
+    : kind === "remind" ? `: a reminder of your table on ${when} for ${who}. Ref ${ref}.`
+    : `: your table is booked for ${when}, ${who}. Ref ${ref}.`;
+  const r = gsm(rest);
+  return { body: gsm(v).slice(0, Math.max(3, 160 - r.length)).trim() + r, vars: { "1": v, "2": when, "3": who, "4": ref } };
 }
 
 async function twilio(form: Record<string, string>) {
