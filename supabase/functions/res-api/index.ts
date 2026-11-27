@@ -204,6 +204,30 @@ Deno.serve(async (req) => {
       if (r.error) throw r.error;
       return send({ token: t });
     }
+    // Settings, Emails to guests: send a test email to the venue's own address and say how it went out.
+    // "own" = sent from the venue's address (its domain is verified in Resend); "shared" = sent from the shared address
+    // with the venue's name and replies going to the venue. The same rules as the guest emails in res-book.
+    if (path === "api/mailtest" && req.method === "POST") {
+      if (!boss && gate.role !== "Manager") return send({ error: "forbidden" }, 403);
+      const b = await req.json().catch(() => ({})), addr = String(b.addr || "").trim().toLowerCase().slice(0, 120);
+      if (!/^[^@\s"'<>,;]+@[^@\s"'<>,;]+\.[^@\s"'<>,;]+$/.test(addr)) return send({ error: "bad", message: "That email address does not look right." }, 400);
+      const key = Deno.env.get("RESEND_API_KEY"), shared = Deno.env.get("RES_MAIL_FROM");
+      if (!key || !shared) return send({ ok: false, via: "", message: "Email sending is not switched on for Proview Reservations yet." });
+      const lk = "mailtest:" + site, bl = await db.rpc("pr_pin_blocked", { p_key: lk, p_max: 5 });
+      if (bl.data === true) return send({ error: "busy", message: "Too many test emails. Please wait ten minutes." }, 429);
+      await db.rpc("pr_pin_failed", { p_key: lk });
+      const vn = String((state && state.venue && state.venue.name) || gate.site_name || "Bookings").replace(/[<>"\\,;:@\u0000-\u001f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
+      const sharedAddr = ((/<([^>]+)>/.exec(shared) || [])[1] || shared).trim();
+      const free = /@(gmail|googlemail|hotmail|outlook|live|msn|yahoo|ymail|rocketmail|icloud|me|mac|aol|proton|protonmail|pm|gmx|mail|zoho|btinternet|btopenworld|sky|talktalk|virginmedia|ntlworld|blueyonder|tiscali|o2|orange)\.[a-z.]+$/i.test(addr);
+      const post = (from: string, how: string) => fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: "Bearer " + key, "content-type": "application/json" }, body: JSON.stringify({ from, to: [addr], reply_to: addr, subject: "Test email from " + vn,
+        text: "This is a test from Proview Reservations.\n\nEmails to your guests (confirmations, changes, cancellations) are sent as " + vn + ", " + how + "\nWhen a guest replies, the reply comes to " + addr + ".",
+      }) });
+      let via = "";
+      if (!free) { const r = await post(`${vn} <${addr}>`, "from your own address " + addr + "."); if (r.ok) via = "own"; else if (r.status === 429 || r.status >= 500) return send({ ok: false, via: "", message: "The email service is busy. Please try again in a minute." }); }
+      if (!via) { const r = await post(`${vn} <${sharedAddr}>`, "from " + sharedAddr + "."); if (r.ok) via = "shared"; else { console.error("mailtest", r.status, await r.text()); return send({ ok: false, via: "", message: "The test email could not be sent." }); } }
+      return send({ ok: true, via, to: addr, shared: sharedAddr, free });
+    }
+
     if (path === "api/lock" && req.method === "POST") { if (th) await db.from("pr_site_sessions").delete().eq("token_sha256", th); return send({ ok: true }); }
 
     if (path === "api/state" && req.method === "GET") return send({ rev, state: viewState(state, full), full });

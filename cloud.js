@@ -211,7 +211,30 @@ function clSettings(){if(!CL.site||U.view!=="settings")return;const main=$("#mai
  <label class="of" style="display:block;margin-top:12px"><span class="ot">Email guests can use to ask about their details</span><input type="email" data-clp="email" maxlength="120" placeholder="for example info@yourvenue.co.uk" value="${esc(P.email)}" ${dis}></label>
  <label class="of" style="display:block;margin-top:12px"><span class="ot">Link to your own privacy policy (optional)</span><input type="url" data-clp="url" maxlength="300" placeholder="https://" value="${esc(P.url)}" ${dis}><small class="mut" style="display:block">Shown under the notice on your booking page. To delete one guest, open them in Guests and press Delete guest.</small></label>`;
  const cols=host.querySelectorAll(":scope>.scol");(cols.length?[...cols].sort((x,y)=>x.offsetHeight-y.offsetHeight)[0]:host).appendChild(d);
- {const h=d.firstElementChild;d.classList.add("sc");h.classList.add("sh");h.dataset.act="setc";h.dataset.t="Guest privacy";h.setAttribute("role","button");h.setAttribute("tabindex","0");const cl=!SETO["Guest privacy"];d.classList.toggle("cl",cl);h.setAttribute("aria-expanded",cl?"false":"true")}}
+ {const h=d.firstElementChild;d.classList.add("sc");h.classList.add("sh");h.dataset.act="setc";h.dataset.t="Guest privacy";h.setAttribute("role","button");h.setAttribute("tabindex","0");const cl=!SETO["Guest privacy"];d.classList.toggle("cl",cl);h.setAttribute("aria-expanded",cl?"false":"true")}
+ clMailCard(host,dis)}
+/* ---------- Settings: Emails to guests ----------
+   venue.mail.addr is the venue's own email address. Every automatic email to a guest (confirmation, change, cancellation,
+   event booking, table alert) goes out under the venue's name with replies to this address; it is sent FROM this address
+   when the venue's domain is verified in Proview's email service, otherwise from the shared Proview address. */
+const clMail=()=>Object.assign({addr:""},S.venue.mail||{});
+function clMailCard(host,dis,at){if(document.getElementById("cl-mail"))return;const M=clMail(),T=CL.mailT,TT="Emails to guests";
+ const d=document.createElement("div");d.id="cl-mail";d.className="card pad";
+ const st=!M.addr?`<p style="margin:8px 0 0;color:var(--warn);font-weight:600">No address yet. Guest emails are sent from the Proview address and replies do not come to you.</p>`
+  :T&&T.to===M.addr?(T.via==="own"?`<p style="margin:8px 0 0;color:var(--ok);font-weight:600">Guest emails are sent from ${esc(M.addr)} and replies come to you.</p>`
+   :T.via==="shared"?`<p style="margin:8px 0 0;font-weight:600">Guest emails show your venue name, are sent from ${esc(T.shared)}, and replies come to ${esc(M.addr)}.</p><p class="mut small" style="margin:6px 0 0">${T.free?"Gmail, Outlook and similar addresses cannot be used as the sending address by another service, so this is as close as it gets. Use an address on your own website domain to send from it.":"To send from "+esc(M.addr)+" itself, your domain needs three DNS records. Call Proview on "+CL_PHONE+" and we will set it up with you."}</p>`
+   :`<p style="margin:8px 0 0;color:var(--warn);font-weight:600">${esc(T.message||"The test email could not be sent.")}</p>`):`<p class="mut small" style="margin:8px 0 0">Replies from guests come to this address. Press Send a test email to check it and see which address guests will see.</p>`;
+ d.innerHTML=`<h2>${TT}</h2><p class="mut" style="margin-top:0">Booking confirmations, changes, cancellations, event bookings and table alerts are emailed to guests as ${esc(S.venue.name||"your venue")}. Enter your own email address so they come from you and replies come back to you.</p>
+ <label class="of" style="display:block"><span class="ot">Your email address</span><input type="email" data-clm="addr" maxlength="120" placeholder="for example bookings@yourvenue.co.uk" value="${esc(M.addr)}" ${dis}></label>${st}
+ ${M.addr?`<div class="bar" style="margin:10px 0 0"><button class="btn" data-act="clMailTest" ${dis} ${CL.mailBusy?"disabled":""}>${CL.mailBusy?"Sending\u2026":"Send a test email"}</button></div>`:""}
+ <p class="mut small" style="margin:10px 0 0">Emails you write yourself from a booking or the marketing list open in your own email app and already come from you.</p>`;
+ if(at&&at.parentNode)at.parentNode.insertBefore(d,at);else{const cols=host.querySelectorAll(":scope>.scol");(cols.length?[...cols].sort((x,y)=>x.offsetHeight-y.offsetHeight)[0]:host).appendChild(d)}
+ {const h=d.firstElementChild;d.classList.add("sc");h.classList.add("sh");h.dataset.act="setc";h.dataset.t=TT;h.setAttribute("role","button");h.setAttribute("tabindex","0");const cl=!SETO[TT];d.classList.toggle("cl",cl);h.setAttribute("aria-expanded",cl?"false":"true")}}
+// redraw in the same place (after saving or testing)
+const clMailRedraw=()=>{const c=document.getElementById("cl-mail");if(!c)return;const h=c.closest(".setcols")||c.parentNode,mark=document.createComment("m");c.parentNode.insertBefore(mark,c);c.remove();clMailCard(h,can("settings")?"":"disabled",mark);mark.remove()};
+document.addEventListener("change",e=>{const t=e.target;if(!t||!t.dataset||!t.dataset.clm)return;if(!can("settings")){toast("Staff cannot change this. Ask a manager to sign in.");render();return}
+ const v=String(t.value||"").trim().toLowerCase();if(v&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)){toast("That email address does not look right");t.value=clMail().addr;return}
+ if(v)S.venue.mail={addr:v};else delete S.venue.mail;CL.mailT=null;save();clMailRedraw();toast(v?"Saved. Replies from guests will come to "+v:"Email address removed")});
 document.addEventListener("change",e=>{const t=e.target;if(t&&U.evDraft&&U.evDraft.isNew&&(t.id==="ev-rep"||t.id==="ev-date")){clEvRead();clEvForm();return}if(!t||!t.dataset||!t.dataset.clp)return;if(!can("settings")){toast("Staff cannot change this. Ask a manager to sign in.");render();return}const k=t.dataset.clp;
  if(k==="keep"){const v=+t.value||0,n=clKeepList(v).length;const set=()=>{S.venue.keep=v;if(!v)delete S.venue.keep;save();if(v)clKeepRun();render();toast(v?"Guest details are kept for "+v+" months":"Guest details are kept until you delete them")};
   if(v&&n){ask("Remove the details of "+n+" guest"+(n===1?"":"s")+" whose last booking was more than "+v+" months ago? Names, phone numbers, emails and notes are removed for good. Their bookings stay in your reports.","Remove details",set);t.value=String(+S.venue.keep||0)}else set();return}
@@ -333,6 +356,10 @@ function clBookCard(){if(!CL.site||U.view!=="online")return;const main=$("#main"
 Object.assign(A,{
  clPicUp:b=>clPicUp(b.dataset.k),clPicRm:b=>clPicRm(b.dataset.k),
  clBkReset:()=>{if(!can("settings")){toast("Manager only");return}const o=OB(),k=o.look||{};delete o.look;if(k.logo||k.header||k.bgimg||k.addr||k.about||k.map||k.menu||k.alert)o.look=Object.assign({},CL_LOOK,{menu:k.menu||"",alert:k.alert||"",logo:k.logo||"",header:k.header||"",bgimg:k.bgimg||"",addr:k.addr||"",about:k.about||"",map:k.map||""});save();clBookRe();toast("Back to the Proview colours")},
+ clMailTest:async()=>{if(!can("settings")){toast("Staff cannot change this. Ask a manager to sign in.");return}const a=clMail().addr;if(!a||CL.mailBusy)return;CL.mailBusy=true;clMailRedraw();
+  try{const r=await rsFetch("api/mailtest",{method:"POST",body:JSON.stringify({addr:a})});CL.mailT=Object.assign({to:a},r);toast(r.ok?"Test email sent to "+a:(r.message||"The test email could not be sent"))}
+  catch(e){CL.mailT={to:a,via:"",message:(e.body&&e.body.message)||"The test email could not be sent. Check the internet and try again."};toast(CL.mailT.message)}
+  CL.mailBusy=false;clMailRedraw()},
  clKeepNow:()=>{if(!can("settings")){toast("Staff cannot change this. Ask a manager to sign in.");return}const n=clKeepList().length;if(!n)return;ask("Remove the details of "+n+" guest"+(n===1?"":"s")+" past your keeping period? This cannot be undone.","Remove details",()=>{const c=clKeepRun();render();toast("Details removed for "+c+" guest"+(c===1?"":"s"))})},
  clBkCopy:b=>{const f=document.getElementById(b.dataset.f);if(!f)return;f.focus();f.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}const bad=()=>toast("Selected: press Cmd+C");if(ok){toast("Copied");return}try{navigator.clipboard.writeText(f.value).then(()=>toast("Copied"),bad)}catch(e){bad()}},
  clMemAdd:async()=>{const e=(($("#cl-me")||{}).value||"").trim().toLowerCase(),role=($("#cl-mr")||{}).value||"Staff";if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast("Enter a valid email address");return}

@@ -11,8 +11,7 @@
 //   POST ?v=…&a=find  { ref, email }   → the guest's own booking (needs the reference AND the email it was made with)
 //   POST ?v=…&a=amend { ref, email, action: "change" | "cancel", date, time, size } → the changed booking, or cancelled
 //
-// Emails (confirmation, change, cancel) go out through Resend when the function has the secrets RESEND_API_KEY and
-// RES_MAIL_FROM (for example "Brags and Brams <bookings@yourdomain>"). Without them nothing is sent and bookings work as before.
+// Emails (confirmation, change, cancel, event, table alert) go out through Resend as the venue: see "who a venue's emails come from".
 //
 // The free times are worked out with the same rules as the "Try it" box on the Widget page of the app
 // (availSlots in the app): opening hours, special days, stay length, notice, days ahead, last booking before
@@ -146,7 +145,7 @@ const gkeyOf = (ph: string, n: string) => normPh(ph) || (ph || n).toLowerCase();
 // What the booking page tells guests about their details: the venue's own policy link and contact email
 // (Widget page), and how long guest details are kept (Settings, 0 = until deleted).
 function privOf(S: Any) {
-  const v = (S && S.venue) || {}, P = (v.ob && v.ob.priv) || {}, url = clean(P.url, 300), email = clean(P.email, 120).toLowerCase(), k = Math.round(+v.keep || 0);
+  const v = (S && S.venue) || {}, P = (v.ob && v.ob.priv) || {}, url = clean(P.url, 300), email = clean(P.email || (v.mail && v.mail.addr) || "", 120).toLowerCase(), k = Math.round(+v.keep || 0);
   return { url: /^https:\/\/[^\s"'<>]+$/i.test(url) ? url : "", email: /^[^@\s"'<>]+@[^@\s"'<>]+\.[^@\s"'<>]+$/.test(email) ? email : "", keep: k >= 6 && k <= 120 ? k : 0 };
 }
 function lookOf(o: Any) {
@@ -159,14 +158,41 @@ const esc = (s: unknown) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) =>
 const t12 = (t: string) => { const h = +t.slice(0, 2); return ((h + 11) % 12 + 1) + ":" + t.slice(3) + (h < 12 ? "am" : "pm"); };
 const dayLong = (d: string) => new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 const refOf = (p: Any) => String(p.id).slice(0, 6).toUpperCase();
-// Sends one email through Resend. Returns false (and sends nothing) until RESEND_API_KEY and RES_MAIL_FROM are set.
-async function mail(to: string, subject: string, html: string, text: string) {
-  const key = Deno.env.get("RESEND_API_KEY"), from = Deno.env.get("RES_MAIL_FROM");
-  if (!key || !from || !to) return false;
+// ---------- who a venue's emails come from, and where replies go ----------
+// Every email to a guest carries the venue's own name, and replies go to the venue's own address (Settings, Emails to guests).
+//  - If the venue's email domain has been added and verified in the Resend account, the email is sent FROM the venue's own
+//    address (for example bookings@bellapizza.co.uk).
+//  - Otherwise (domain not verified, or a Gmail / Outlook style address, which nobody but Google or Microsoft may send from)
+//    it is sent from the shared address in RES_MAIL_FROM with the venue's name, and Reply-To is the venue's address.
+// Secrets: RESEND_API_KEY and RES_MAIL_FROM (for example "Proview Reservations <bookings@proviewcrm.co.uk>").
+// Without them nothing is sent and bookings work as before.
+type Who = { name: string; addr: string };
+const MAIL_OK = /^[^@\s"'<>,;]+@[^@\s"'<>,;]+\.[^@\s"'<>,;]+$/;
+const FREE_MAIL = /@(gmail|googlemail|hotmail|outlook|live|msn|yahoo|ymail|rocketmail|icloud|me|mac|aol|proton|protonmail|pm|gmx|mail|zoho|btinternet|btopenworld|sky|talktalk|virginmedia|ntlworld|blueyonder|tiscali|o2|orange)\.[a-z.]+$/i;
+const notOurs = new Map<string, number>(); // domains Resend refused to send from, remembered for an hour
+function mailWho(S: Any, fallbackName: string): Who {
+  const v = (S && S.venue) || {}, a = clean((v.mail && v.mail.addr) || (v.ob && v.ob.priv && v.ob.priv.email) || "", 120).toLowerCase();
+  return { name: clean(v.name || fallbackName, 80).replace(/[<>"\\,;:@]/g, " ").replace(/\s+/g, " ").trim(), addr: MAIL_OK.test(a) ? a : "" };
+}
+// Sends one email. Returns "own" (sent from the venue's address), "shared" (shared address, replies to the venue) or false.
+async function mail(to: string, subject: string, html: string, text: string, who?: Who): Promise<false | "own" | "shared"> {
+  const key = Deno.env.get("RESEND_API_KEY"), shared = Deno.env.get("RES_MAIL_FROM");
+  if (!key || !shared || !to) return false;
+  const sharedAddr = ((/<([^>]+)>/.exec(shared) || [])[1] || shared).trim(), nm = (who && who.name) || "", own = (who && who.addr) || "", dom = own.split("@")[1] || "";
+  const post = async (from: string) => {
+    const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: "Bearer " + key, "content-type": "application/json" }, body: JSON.stringify({ from, to: [to], subject, html, text, ...(own ? { reply_to: own } : {}) }) });
+    if (!r.ok) console.error("mail failed", from, r.status, await r.text());
+    return r;
+  };
   try {
-    const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: "Bearer " + key, "content-type": "application/json" }, body: JSON.stringify({ from, to: [to], subject, html, text }) });
-    if (!r.ok) console.error("mail failed", r.status, await r.text());
-    return r.ok;
+    if (own && !FREE_MAIL.test(own) && !((notOurs.get(dom) || 0) > Date.now())) {
+      const r = await post(`${nm || "Bookings"} <${own}>`);
+      if (r.ok) return "own";
+      if (r.status === 429 || r.status >= 500) return false;       // Resend is busy: do not hide that behind the shared address
+      notOurs.set(dom, Date.now() + 36e5);                         // the domain is not verified for sending: use the shared address
+    }
+    const r = await post(nm ? `${nm} <${sharedAddr}>` : shared);
+    return r.ok ? "shared" : false;
   } catch (e) { console.error("mail error", e); return false; }
 }
 // kind: "new" | "request" | "changed" | "cancelled"
@@ -225,6 +251,8 @@ Deno.serve(async (req) => {
     // Hiding the Widget page from the menu (Settings, Plan) does not stop online booking: only the "Accept online bookings" switch does.
     const on = !!o.on;
 
+    const who = () => mailWho(row && row.data, name);
+
     // Guests who pressed "Alert me": when a table is free for their day and party, email them once. At most 5 emails a run.
     const runAlerts = async () => {
       for (let tryN = 0; tryN < 2; tryN++) {
@@ -243,7 +271,7 @@ Deno.serve(async (req) => {
         S.alerts = list.filter((x) => x && !del.includes(x.id));
         const c = await db.rpc("pr_state_commit", { p_site: site, p_rev: rw.rev, p_data: S, p_ops: [{ k: "alerts", up, del }] });
         if (c.error) throw c.error;
-        if (c.data != null) { for (const mm of mails) { const e = alertMail(name, site, mm.al, mm.first); await mail(mm.al.email, e.subject, e.html, e.text); } return; }
+        if (c.data != null) { for (const mm of mails) { const e = alertMail(name, site, mm.al, mm.first); await mail(mm.al.email, e.subject, e.html, e.text, who()); } return; }
       }
     };
     // the app calls this every few minutes while a guest is waiting, so a table freed by staff is noticed too
@@ -307,8 +335,8 @@ Deno.serve(async (req) => {
         if (c.data != null) {
           await db.rpc("pr_pin_failed", { p_key: key });
           const em = eventMail(name, { ...ev, title: clean(ev.title, 80), price: clean(ev.price, 120) }, eb);
-          const sent = await mail(email, em.subject, em.html, em.text);
-          return send({ ok: true, ref: refOf(eb), title: clean(ev.title, 80), date: ev.date, start: ev.start || "", n, emailed: sent });
+          const sent = await mail(email, em.subject, em.html, em.text, who());
+          return send({ ok: true, ref: refOf(eb), title: clean(ev.title, 80), date: ev.date, start: ev.start || "", n, emailed: !!sent });
         }
       }
       return send({ error: "busy", message: "We could not save your booking just now. Please try again." }, 503);
@@ -381,8 +409,8 @@ Deno.serve(async (req) => {
           // connection addresses are only needed for ten minutes: clear yesterday's
           try { await db.from("pr_pin_fails").delete().lt("t", new Date(Date.now() - 864e5).toISOString()); } catch (_e) { /* not important */ }
           const em = bookingMail(ask ? "request" : "new", name, site, p, o.msg || "", room);
-          const sent = await mail(email, em.subject, em.html, em.text);
-          return send({ ok: true, ref: p.id.slice(0, 6).toUpperCase(), confirm: o.confirm, name, date, time, size, room, emailed: sent });
+          const sent = await mail(email, em.subject, em.html, em.text, who());
+          return send({ ok: true, ref: p.id.slice(0, 6).toUpperCase(), confirm: o.confirm, name, date, time, size, room, emailed: !!sent });
         }
         // someone else saved in between: read again and re-check the time
       }
@@ -438,9 +466,9 @@ Deno.serve(async (req) => {
         if (c.error) throw c.error;
         if (c.data != null) {
           const e = bookingMail(act === "cancel" ? "cancelled" : "changed", name, site, p, act === "cancel" ? "" : o.msg || "", act === "cancel" ? "" : mk(p).room);
-          const sent = await mail(em, e.subject, e.html, e.text);
+          const sent = await mail(em, e.subject, e.html, e.text, who());
           try { await runAlerts(); } catch (x) { console.error("alerts", x); }
-          return send({ ...mk(p), emailed: sent });
+          return send({ ...mk(p), emailed: !!sent });
         }
       }
       return send({ error: "busy", message: "We could not save the change just now. Please try again." }, 503);
