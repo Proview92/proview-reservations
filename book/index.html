@@ -194,7 +194,7 @@ const amBan=()=>U.am&&U.am.b?`<div class="notice">Changing booking <b>${esc(U.am
 const noteConsent=()=>`<p class="muted small" style="margin:-8px 0 0">If you tell us about allergies or access needs, you agree to ${esc(V.name)} using that information to look after you on your visit.</p>`;
 function privHtml(){const P=V.priv||{},n=esc(V.name),k=+P.keep||0,em=P.email?` at <a href="mailto:${esc(P.email)}">${esc(P.email)}</a>`:"";
   return`<details class="priv"><summary>How ${n} uses your details</summary><div>
-  <p>${n} uses your name, phone number and email address to make and manage your booking and to contact you about it. They are needed to provide the booking you have asked for.</p>
+  <p>${n} uses your name, phone number and email address to make and manage your booking and to contact you about it by email, text message or WhatsApp. They are needed to provide the booking you have asked for.</p>
   <p>Anything you write in the notes, including allergies or access needs, is used only to look after you on your visit.</p>
   <p>Offers and news are only sent if you tick the box. You can stop them at any time by replying STOP or by contacting ${n}.</p>
   <p>${k?`Your details are removed ${k} months after your last booking.`:`Your details are kept while ${n} needs them for its bookings and records. You can ask for them to be deleted at any time.`}</p>

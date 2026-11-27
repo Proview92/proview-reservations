@@ -212,7 +212,7 @@ function clSettings(){if(!CL.site||U.view!=="settings")return;const main=$("#mai
  <label class="of" style="display:block;margin-top:12px"><span class="ot">Link to your own privacy policy (optional)</span><input type="url" data-clp="url" maxlength="300" placeholder="https://" value="${esc(P.url)}" ${dis}><small class="mut" style="display:block">Shown under the notice on your booking page. To delete one guest, open them in Guests and press Delete guest.</small></label>`;
  const cols=host.querySelectorAll(":scope>.scol");(cols.length?[...cols].sort((x,y)=>x.offsetHeight-y.offsetHeight)[0]:host).appendChild(d);
  {const h=d.firstElementChild;d.classList.add("sc");h.classList.add("sh");h.dataset.act="setc";h.dataset.t="Guest privacy";h.setAttribute("role","button");h.setAttribute("tabindex","0");const cl=!SETO["Guest privacy"];d.classList.toggle("cl",cl);h.setAttribute("aria-expanded",cl?"false":"true")}
- clMailCard(host,dis)}
+ clMailCard(host,dis);clMsgCard(host,dis)}
 /* ---------- Settings: Emails to guests ----------
    venue.mail.addr is the venue's own email address. Every automatic email to a guest (confirmation, change, cancellation,
    event booking, table alert) goes out under the venue's name with replies to this address; it is sent FROM this address
@@ -230,6 +230,32 @@ function clMailCard(host,dis,at){if(document.getElementById("cl-mail"))return;co
  <p class="mut small" style="margin:10px 0 0">Emails you write yourself from a booking or the marketing list open in your own email app and already come from you.</p>`;
  if(at&&at.parentNode)at.parentNode.insertBefore(d,at);else{const cols=host.querySelectorAll(":scope>.scol");(cols.length?[...cols].sort((x,y)=>x.offsetHeight-y.offsetHeight)[0]:host).appendChild(d)}
  {const h=d.firstElementChild;d.classList.add("sc");h.classList.add("sh");h.dataset.act="setc";h.dataset.t=TT;h.setAttribute("role","button");h.setAttribute("tabindex","0");const cl=!SETO[TT];d.classList.toggle("cl",cl);h.setAttribute("aria-expanded",cl?"false":"true")}}
+/* ---------- Settings: Texts and WhatsApp to guests ----------
+   venue.msg = { wa, sms, rem, staff, name }. Sent by the server through Proview's Twilio account (see _shared/notify.ts).
+   WhatsApp is tried first when it is on; a text is sent only if WhatsApp is off or cannot be delivered. */
+const clMsg=()=>Object.assign({wa:false,sms:false,rem:false,staff:false,name:""},S.venue.msg||{});
+function clMsgCard(host,dis,at){if(document.getElementById("cl-msg"))return;const M=clMsg(),I=CL.msgInfo,TT="Texts and WhatsApp to guests",T=CL.msgT;
+ if(!I&&!CL.msgAsk&&CL.site){CL.msgAsk=true;rsFetch("api/msginfo").then(r=>{CL.msgInfo=r;clMsgRedraw()}).catch(()=>{CL.msgInfo={sms:false,wa:false,tpl:[],err:true};clMsgRedraw()})}
+ const d=document.createElement("div");d.id="cl-msg";d.className="card pad";
+ const sw=(k,t,sub,off)=>`<label class="chk" style="display:flex;gap:10px;align-items:flex-start;margin:10px 0 0"><input type="checkbox" data-clg="${k}" style="width:auto;margin-top:3px" ${M[k]?"checked":""} ${dis} ${off?"disabled":""}><span><b>${t}</b><small class="mut" style="display:block">${sub}</small></span></label>`;
+ const none=I&&!I.sms&&!I.wa,any=M.wa||M.sms;
+ const top=!I?`<p class="mut small" style="margin:8px 0 0">Checking\u2026</p>`:none?`<p style="margin:8px 0 0;color:var(--warn);font-weight:600">Text and WhatsApp messages are not switched on for Proview Reservations yet. Call Proview on ${CL_PHONE}.</p>`:"";
+ const tplNote=I&&I.wa&&(I.tpl||[]).length<5?`<small class="mut" style="display:block">WhatsApp is ready for: ${(I.tpl||[]).map(k=>({new:"confirmations",request:"requests",changed:"changes",cancelled:"cancellations",remind:"reminders"})[k]).join(", ")||"nothing yet"}. Other messages go by text if texts are on.</small>`:"";
+ const res=T?`<p style="margin:8px 0 0;font-weight:600;color:${(T.sms||T.wa)?"var(--ok)":"var(--warn)"}">${esc(T.message||[T.wa===true?"WhatsApp test sent":T.wa===false?"WhatsApp test could not be sent":"",T.sms===true?"Text test sent":T.sms===false?"Text test could not be sent":""].filter(Boolean).join(". ")+" to "+T.to+".")}</p>`:"";
+ d.innerHTML=`<h2>${TT}</h2><p class="mut" style="margin-top:0">Tell guests about their booking on their mobile as well as by email. Each message is paid for, so this is off until you switch it on. If both are on, WhatsApp is tried first and a text is sent only if WhatsApp cannot deliver.</p>${top}
+ ${sw("wa","WhatsApp message","Sent from the Proview Reservations WhatsApp number, with your venue name in the message.",I&&!I.wa)}${tplNote}
+ ${sw("sms","Text message","A short text with the day, time, party size and reference.",I&&!I.sms)}
+ ${sw("rem","Reminder the day before","Sent after 10am the day before the booking. Guests who booked in the last 12 hours are not reminded.",!any)}
+ ${sw("staff","Also for bookings my staff make and change","Guests get a message when staff add, move or cancel a booking in the app. Walk-ins are never messaged.",!any)}
+ <label class="of" style="display:block;margin-top:12px"><span class="ot">Name shown as the sender of texts (optional)</span><input type="text" data-clg="name" maxlength="11" placeholder="up to 11 letters or numbers" value="${esc(M.name)}" ${dis}><small class="mut" style="display:block">For example ${esc((S.venue.name||"Venue").replace(/[^A-Za-z0-9]/g,"").slice(0,11))}. Guests cannot reply to a named sender. Leave empty to send from the Proview number.</small></label>
+ ${any&&!none?`<div style="display:flex;gap:8px;align-items:center;margin:12px 0 0;flex-wrap:wrap"><input type="tel" id="cl-msg-to" placeholder="Your mobile, e.g. 07700 900123" style="flex:1;min-width:180px" value="${esc(CL.msgTo||"")}" ${dis}><button class="btn" data-act="clMsgTest" ${dis} ${CL.msgBusy?"disabled":""}>${CL.msgBusy?"Sending\u2026":"Send a test"}</button></div>`:""}${res}`;
+ if(at&&at.parentNode)at.parentNode.insertBefore(d,at);else{const cols=host.querySelectorAll(":scope>.scol");(cols.length?[...cols].sort((x,y)=>x.offsetHeight-y.offsetHeight)[0]:host).appendChild(d)}
+ {const h=d.firstElementChild;d.classList.add("sc");h.classList.add("sh");h.dataset.act="setc";h.dataset.t=TT;h.setAttribute("role","button");h.setAttribute("tabindex","0");const cl=!SETO[TT];d.classList.toggle("cl",cl);h.setAttribute("aria-expanded",cl?"false":"true")}}
+const clMsgRedraw=()=>{const c=document.getElementById("cl-msg");if(!c)return;const t=document.getElementById("cl-msg-to");if(t)CL.msgTo=t.value;const h=c.closest(".setcols")||c.parentNode,mark=document.createComment("m");c.parentNode.insertBefore(mark,c);c.remove();clMsgCard(h,can("settings")?"":"disabled",mark);mark.remove()};
+document.addEventListener("change",e=>{const t=e.target;if(!t||!t.dataset||!t.dataset.clg)return;if(!can("settings")){toast("Staff cannot change this. Ask a manager to sign in.");render();return}
+ const k=t.dataset.clg,M=clMsg();if(k==="name"){M.name=String(t.value||"").replace(/[^A-Za-z0-9 ]/g,"").trim().slice(0,11);if(M.name&&!/[A-Za-z]/.test(M.name)){toast("The sender name needs at least one letter");M.name=""}}else M[k]=!!t.checked;
+ if(!M.wa&&!M.sms){M.rem=false;M.staff=false}
+ S.venue.msg=M;CL.msgT=null;save();clMsgRedraw();toast(k==="name"?(M.name?"Texts will show "+M.name.replace(/\s+/g,"")+" as the sender":"Texts will come from the Proview number"):"Saved")});
 // redraw in the same place (after saving or testing)
 const clMailRedraw=()=>{const c=document.getElementById("cl-mail");if(!c)return;const h=c.closest(".setcols")||c.parentNode,mark=document.createComment("m");c.parentNode.insertBefore(mark,c);c.remove();clMailCard(h,can("settings")?"":"disabled",mark);mark.remove()};
 document.addEventListener("change",e=>{const t=e.target;if(!t||!t.dataset||!t.dataset.clm)return;if(!can("settings")){toast("Staff cannot change this. Ask a manager to sign in.");render();return}
@@ -362,6 +388,11 @@ Tables are held for 15 minutes.">${esc(L.policy||"")}</textarea></label>
 Object.assign(A,{
  clPicUp:b=>clPicUp(b.dataset.k),clPicRm:b=>clPicRm(b.dataset.k),
  clBkReset:()=>{if(!can("settings")){toast("Manager only");return}const o=OB(),k=o.look||{};delete o.look;if(k.logo||k.header||k.bgimg||k.addr||k.about||k.map||k.menu||k.alert)o.look=Object.assign({},CL_LOOK,{menu:k.menu||"",alert:k.alert||"",logo:k.logo||"",header:k.header||"",bgimg:k.bgimg||"",addr:k.addr||"",about:k.about||"",map:k.map||""});save();clBookRe();toast("Back to the Proview colours")},
+ clMsgTest:async()=>{if(!can("settings")){toast("Staff cannot change this. Ask a manager to sign in.");return}const M=clMsg(),i=document.getElementById("cl-msg-to"),to=i?i.value.trim():"";if(CL.msgBusy)return;if(to.replace(/\D/g,"").length<9){toast("Enter your mobile number first");if(i)i.focus();return}
+  CL.msgTo=to;CL.msgBusy=true;clMsgRedraw();
+  try{CL.msgT=await rsFetch("api/msgtest",{method:"POST",body:JSON.stringify({to,wa:M.wa,sms:M.sms})})}
+  catch(e){CL.msgT={to,message:(e.body&&e.body.message)||"The test could not be sent. Check the internet and try again."}}
+  CL.msgBusy=false;clMsgRedraw()},
  clMailTest:async()=>{if(!can("settings")){toast("Staff cannot change this. Ask a manager to sign in.");return}const a=clMail().addr;if(!a||CL.mailBusy)return;CL.mailBusy=true;clMailRedraw();
   try{const r=await rsFetch("api/mailtest",{method:"POST",body:JSON.stringify({addr:a})});CL.mailT=Object.assign({to:a},r);toast(r.ok?"Test email sent to "+a:(r.message||"The test email could not be sent"))}
   catch(e){CL.mailT={to:a,via:"",message:(e.body&&e.body.message)||"The test email could not be sent. Check the internet and try again."};toast(CL.mailT.message)}

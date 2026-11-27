@@ -26,6 +26,10 @@
 //   { k, up: [items], del: [ids] }    lists of things with an id (bookings, tables, punches…)
 //   { k, mp: {sub: value}, md: [sub] } fields inside an object (table status, guest notes, venue…)
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { e164, guestMsg, msgCfg, msgReady, remindersDue, sendSms, sendWa, staffChanges, ukNow } from "../_shared/notify.ts";
+
+// Reminders are looked for when a signed-in device asks for changes, at most once every five minutes per location.
+const remLast = new Map<string, number>();
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -228,6 +232,22 @@ Deno.serve(async (req) => {
       return send({ ok: true, via, to: addr, shared: sharedAddr, free });
     }
 
+    // Settings, Texts and WhatsApp to guests: what the server can send, and a test message.
+    if (path === "api/msginfo" && req.method === "GET") return send({ ...msgReady() });
+    if (path === "api/msgtest" && req.method === "POST") {
+      if (!boss && gate.role !== "Manager") return send({ error: "forbidden" }, 403);
+      const b = await req.json().catch(() => ({})), to = e164(b.to);
+      if (!to) return send({ error: "bad", message: "Enter a mobile number, for example 07700 900123." }, 400);
+      const lk = "msgtest:" + site, bl = await db.rpc("pr_pin_blocked", { p_key: lk, p_max: 5 });
+      if (bl.data === true) return send({ error: "busy", message: "Too many test messages. Please wait ten minutes." }, 429);
+      await db.rpc("pr_pin_failed", { p_key: lk });
+      const c = msgCfg(state || {}), rdy = msgReady(), vn = String((state && state.venue && state.venue.name) || gate.site_name || "your venue").slice(0, 60);
+      const out: Record<string, unknown> = { ok: true, to, ready: rdy };
+      if (b.wa === true) out.wa = await sendWa(to, "new", { "1": vn, "2": "Sat 5 Dec at 7:30pm", "3": "2 guests", "4": "TEST12" });
+      if (b.sms === true) out.sms = await sendSms(to, vn + ": this is a test. Booking messages to your guests will come like this.", c.name);
+      return send(out);
+    }
+
     if (path === "api/lock" && req.method === "POST") { if (th) await db.from("pr_site_sessions").delete().eq("token_sha256", th); return send({ ok: true }); }
 
     if (path === "api/state" && req.method === "GET") return send({ rev, state: viewState(state, full), full });
@@ -243,9 +263,17 @@ Deno.serve(async (req) => {
         const missed = log ? log.map((e) => viewOps(e, full)).filter((x) => x.length) : [];
         const stale = log === null;                       // too far behind: tell the device to reload everything
         if (!ops.length) return send({ rev, missed, dropped: chk.dropped + (stale ? 1 : 0), full });
+        // bookings staff are adding or changing, as they were before this save (for the messages below)
+        const ups = ops.filter((o: Any) => o && o.k === "parties" && Array.isArray(o.up)).flatMap((o: Any) => o.up);
+        const before = ups.length && ups.length <= 3 ? JSON.parse(JSON.stringify((Array.isArray(state.parties) ? state.parties : []).filter((x: Any) => x && ups.some((u: Any) => u && u.id === x.id)))) : [];
         applyOps(state, ops);
         const nr = await commit(db, site, rev, state, ops);
         if (!nr) continue;                                // someone else saved first: read again and retry
+        // the venue has asked for guests to be told about bookings and changes made by staff
+        if (ups.length && msgCfg(state).staff) {
+          const job = (async () => { for (const ch of staffChanges(before, ups, ukNow().today)) { try { await guestMsg(ch.kind, state, site, ch.p); } catch (e) { console.error("msg", e); } } })();
+          const rt = (globalThis as Any).EdgeRuntime; if (rt && typeof rt.waitUntil === "function") rt.waitUntil(job); else await job;
+        }
         if (Math.random() < 0.03) await tidy(db);         // now and then: clear out old records nobody needs
         return send({ rev: nr, missed, dropped: chk.dropped + (stale ? 1 : 0), full });
       }
@@ -254,6 +282,24 @@ Deno.serve(async (req) => {
 
     if (path === "api/changes" && req.method === "GET") {
       const since = Number(url.searchParams.get("since")) || 0;
+      // reminders for tomorrow's bookings (only if the venue switched them on). Marked as reminded first, so that
+      // two devices asking at the same moment cannot both send; one that cannot be delivered is un-marked and not retried.
+      if (state && (remLast.get(site) || 0) < Date.now() - 3e5) {
+        remLast.set(site, Date.now());
+        try {
+          const due = remindersDue(state);
+          if (due.length) {
+            due.forEach((p: Any) => { p.rem = Date.now(); });
+            const nr = await commit(db, site, rev, state, [{ k: "parties", up: due } as Any]);
+            if (nr) {
+              const failed: Any[] = [];
+              for (const p of due) { if (!(await guestMsg("remind", state, site, p))) { delete p.rem; p.remFail = 1; failed.push(p); } }
+              if (failed.length) await commit(db, site, nr, state, [{ k: "parties", up: failed } as Any]);
+            }
+            ({ rev, state } = await loadState(db, site));
+          }
+        } catch (e) { console.error("reminders", e); ({ rev, state } = await loadState(db, site)); }
+      }
       if (since >= rev) return send({ rev, ops: [], full });
       const log = await logSince(db, site, since, rev);
       if (!log) return send({ rev, snapshot: viewState(state, full), full });

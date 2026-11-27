@@ -21,6 +21,7 @@
 //
 // Deploy with verify_jwt = false (guests have no login).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { guestMsg } from "../_shared/notify.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -409,8 +410,9 @@ Deno.serve(async (req) => {
           // connection addresses are only needed for ten minutes: clear yesterday's
           try { await db.from("pr_pin_fails").delete().lt("t", new Date(Date.now() - 864e5).toISOString()); } catch (_e) { /* not important */ }
           const em = bookingMail(ask ? "request" : "new", name, site, p, o.msg || "", room);
-          const sent = await mail(email, em.subject, em.html, em.text, who());
-          return send({ ok: true, ref: p.id.slice(0, 6).toUpperCase(), confirm: o.confirm, name, date, time, size, room, emailed: !!sent });
+          // the email, and a text or WhatsApp message if the venue has switched those on (Settings)
+          const [sent, texted] = await Promise.all([mail(email, em.subject, em.html, em.text, who()), guestMsg(ask ? "request" : "new", S, site, p).catch((x) => { console.error("msg", x); return false; })]);
+          return send({ ok: true, ref: p.id.slice(0, 6).toUpperCase(), confirm: o.confirm, name, date, time, size, room, emailed: !!sent, texted: !!texted });
         }
         // someone else saved in between: read again and re-check the time
       }
@@ -466,9 +468,9 @@ Deno.serve(async (req) => {
         if (c.error) throw c.error;
         if (c.data != null) {
           const e = bookingMail(act === "cancel" ? "cancelled" : "changed", name, site, p, act === "cancel" ? "" : o.msg || "", act === "cancel" ? "" : mk(p).room);
-          const sent = await mail(em, e.subject, e.html, e.text, who());
+          const [sent, texted] = await Promise.all([mail(em, e.subject, e.html, e.text, who()), guestMsg(act === "cancel" ? "cancelled" : "changed", S, site, p).catch((x) => { console.error("msg", x); return false; })]);
           try { await runAlerts(); } catch (x) { console.error("alerts", x); }
-          return send({ ...mk(p), emailed: !!sent });
+          return send({ ...mk(p), emailed: !!sent, texted: !!texted });
         }
       }
       return send({ error: "busy", message: "We could not save the change just now. Please try again." }, 503);
