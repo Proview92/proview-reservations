@@ -710,6 +710,45 @@ html body :is(#sq-all,.tbl.r,.tbl.r .ch,.dc-plant,input[type=radio]){border-radi
 @media(min-width:640px){.sheet.wis #wi-plan{display:grid!important;grid-template-columns:auto 1fr;grid-template-rows:auto minmax(0,1fr) auto;column-gap:14px}.sheet.wis #wi-plan>.bar{grid-column:1;grid-row:1;margin:0 0 6px}.sheet.wis #wi-plan>.wik{grid-column:2;grid-row:1;margin:0 0 6px;align-self:center;justify-content:flex-end}.sheet.wis #wi-plan>.plan{grid-column:1/-1;grid-row:2}.sheet.wis #wi-plan>.wim{grid-column:1/-1;grid-row:3}.sheet.wis>h2{margin:0 0 2px}}
 /* Activity labels and small green/red words use the same calm style as every other tag */
 .aet,.aet.cg,.aet.cb,.aet.cr,.aet.cy{background:color-mix(in srgb,var(--ink) 12%,var(--card))!important;color:var(--ink)!important}.rrow .rst,.btn.tp em{color:var(--ink)!important}
+
+/* Tablets, Edit layout: the plan keeps the whole screen. Landscape: tools and the table box sit in a column beside the plan. Portrait: the table box is a small strip. */
+@media(min-width:640px) and (max-width:1366px){
+.tsplit.ed .insw{position:static;max-height:none;box-shadow:none}
+}
+@media(min-width:900px) and (max-width:1366px) and (orientation:landscape){
+.tsplit.ed .tsp{display:grid;grid-template-columns:minmax(0,1fr) 300px;grid-template-rows:auto auto auto minmax(0,1fr);column-gap:14px;align-items:start}
+.tsplit.ed .tsp>.tbtop{grid-column:1/3;grid-row:1}
+.tsplit.ed .tsp>.planw{grid-column:1;grid-row:2/5;min-width:0}
+.tsplit.ed .tsp>.edtools{grid-column:2;grid-row:2;margin:0 0 10px!important;padding:10px}
+.tsplit.ed .tsp>.insw,.tsplit.ed .tsp>p.mut{grid-column:2;grid-row:3;margin:0!important}
+.tsplit.ed .edtools .bar{gap:6px}
+.tsplit.ed .tsp:has(>.insw)>.edtools{display:none}
+.tsplit.ed .tsp>.insw{grid-row:2}
+.tsplit.ed .insw{max-height:calc(100dvh - 330px);overflow:auto;padding:10px}
+.tsplit.ed .insw .ins{grid-template-columns:1fr;gap:8px}
+.tsplit.ed .insw .st{flex-wrap:nowrap;justify-content:space-between}.tsplit.ed .insw .st>span{min-width:0;flex:1}
+.tsplit.ed .insw .ins>label,.tsplit.ed .insw .ins>.st{width:100%}
+.tsplit.ed .insw .bar{gap:6px}
+.tsplit.ed .tbtop .pz .mut.small{display:none}.tsplit.ed .tbtop>.bar{display:none}.tsplit.ed .tsp .plan{max-height:calc(100dvh - 150px)}
+}
+@media(min-width:640px) and (max-width:1366px) and (orientation:portrait){
+.tsplit.ed .insw{position:sticky;bottom:6px;max-height:25dvh;overflow:auto;padding:8px 10px;box-shadow:0 6px 24px rgba(0,0,0,.22)}
+.tsplit.ed .insw .ins{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 10px;align-items:center}
+.tsplit.ed .insw .ins label,.tsplit.ed .insw .st{font-size:11.5px}
+.tsplit.ed .insw .btn,.tsplit.ed .insw .ins input,.tsplit.ed .insw .ins select{min-height:34px!important;padding-top:2px;padding-bottom:2px}
+.tsplit.ed .insw .bar{flex-wrap:nowrap;overflow-x:auto;margin-top:8px!important}.tsplit.ed .insw .bar .btn{white-space:nowrap;flex:none}
+.tsplit.ed .edtools{padding:8px 10px}
+.tsplit.ed .tsp .plan{max-height:none}
+.tsplit.ed .tbtop>.bar{display:none}
+.tsplit.ed .insw{z-index:60}
+.tsplit.ed .tbtop .pz .mut.small{display:none}
+.tsplit.ed .tbtop{margin-bottom:6px}
+.tsplit.ed .edtools{margin-bottom:8px!important;padding:6px 8px}
+.tsplit.ed .edtools .bar{flex-wrap:nowrap;overflow-x:auto;gap:6px;margin:0 0 4px!important;-webkit-overflow-scrolling:touch}
+.tsplit.ed .edtools .bar:last-child{margin-bottom:0!important}
+.tsplit.ed .edtools .btn{flex:none;white-space:nowrap;min-height:38px!important;padding:0 10px}
+.tsplit.ed .edtools .bar>b{flex:none;min-width:72px}
+}
 </style>
 </head>
 <body>
@@ -1659,7 +1698,7 @@ function vPlan(){
  const pk=(k,id)=>U.pick&&U.pick.k===k&&U.pick.id===id?"pri":"",sel=ts.find(t=>t.id===U.selT),sd=ds.find(d=>d.id===U.selD),jg=(()=>{if(!U.selT)return[];const q=S.parties.find(x=>x.date===today()&&x.status==="seated"&&onT(x,U.selT));return q&&(q.join||[]).length?[q.table,...q.join]:[]})();
  const rz=(k,id)=>U.edit?`<i class="rz" data-rz="${k}" data-id="${id}"></i>`:"";
  const stp=(l,v,act,id,dk,dv)=>`<div class="st"><span>${l}</span><button class="btn sm" data-act="${act}" data-id="${id}" data-dim="${dk||""}" data-d="-${dv}" aria-label="Less ${l}">−</button>${act==="tsz"?`<input class="tszi" type="number" inputmode="numeric" min="50" max="320" step="10" data-tszin="1" data-id="${id}" data-dim="${dk}" value="${v}" aria-label="${l}">`:`<b>${v}</b>`}<button class="btn sm" data-act="${act}" data-id="${id}" data-dim="${dk||""}" data-d="${dv}" aria-label="More ${l}">+</button></div>`;
- const tools=U.edit?`<div class="card pad" style="margin-bottom:12px"><div class="bar" style="margin:0 0 8px"><b class="small">Add table</b>${[["r2","Round 2"],["s4","Square 4"],["x6","Rectangle 6"],["l8","Long 8"]].map(x=>`<button class="btn sm" data-act="addtb" data-v="${x[0]}">${x[1]}</button>`).join("")}</div><div class="bar" style="margin:0 0 8px"><b class="small">Add item</b>${Object.keys(DECO).map(k=>`<button class="btn sm" data-act="adddc" data-v="${k}">${DECO[k].n}</button>`).join("")}</div><div class="bar" style="margin:0"><b class="small">Room</b><button class="btn sm" data-act="roomadd">New room</button><button class="btn sm" data-act="roomren">Rename</button><button class="btn sm danger" data-act="roomdel">Delete</button><button class="btn sm danger" data-act="roomclr" title="Remove every table and item in this room">Clear room</button><button class="btn sm" data-act="tidy">Tidy up</button><button class="btn sm" data-act="shiftall" title="Slide the whole room up and to the left to remove the empty space. The layout itself stays the same.">Remove empty space</button><button class="btn sm" data-act="tplopen">Templates</button></div></div>`:"";
+ const tools=U.edit?`<div class="card pad edtools" style="margin-bottom:12px"><div class="bar" style="margin:0 0 8px"><b class="small">Add table</b>${[["r2","Round 2"],["s4","Square 4"],["x6","Rectangle 6"],["l8","Long 8"]].map(x=>`<button class="btn sm" data-act="addtb" data-v="${x[0]}">${x[1]}</button>`).join("")}</div><div class="bar" style="margin:0 0 8px"><b class="small">Add item</b>${Object.keys(DECO).map(k=>`<button class="btn sm" data-act="adddc" data-v="${k}">${DECO[k].n}</button>`).join("")}</div><div class="bar" style="margin:0"><b class="small">Room</b><button class="btn sm" data-act="roomadd">New room</button><button class="btn sm" data-act="roomren">Rename</button><button class="btn sm danger" data-act="roomdel">Delete</button><button class="btn sm danger" data-act="roomclr" title="Remove every table and item in this room">Clear room</button><button class="btn sm" data-act="tidy">Tidy up</button><button class="btn sm" data-act="shiftall" title="Slide the whole room up and to the left to remove the empty space. The layout itself stays the same.">Remove empty space</button><button class="btn sm" data-act="tplopen">Templates</button></div></div>`:"";
  const rfl=areas.length>1?`<div class="rfl">${U.rmenu?`<div class="rfm" role="menu">${areas.map(x=>`<button role="menuitem" data-act="area" data-v="${esc(x)}" class="${x===ar?"on":""}">${esc(x)}${PI?` <small class="rfc ${PI.rooms[x]?"y":""}">${PI.rooms[x]||0} free</small>`:""}</button>`).join("")}</div>`:""}<div class="rfr"><button class="rfn" data-act="rmenu">${esc(ar)}</button></div></div>`:"";
  const stc=(areas.length>1?`<span class="mut small op">All rooms</span>`:"")+Object.keys(TS).map(k=>{const n=S.tables.filter(t=>tst(t)===k).length;return`<span class="chip op ${TS[k][1]}${n?"":" z0"}">${TS[k][0]} ${n}</span><span class="sst ow${n||k==="free"||k==="seated"?"":" z0"}">${k==="free"?"Free tables":TS[k][0]} <b class="nb${n?" "+(TS[k][1]||"dark"):""}">${n}</b></span>`}).join("");
  let ins="";
