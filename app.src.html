@@ -749,6 +749,9 @@ html body :is(#sq-all,.tbl.r,.tbl.r .ch,.dc-plant,input[type=radio]){border-radi
 .tsplit.ed .edtools .btn{flex:none;white-space:nowrap;min-height:38px!important;padding:0 10px}
 .tsplit.ed .edtools .bar>b{flex:none;min-width:72px}
 }
+
+/* Enlarged floorplan on phones and tablets held upright: the plan is turned a quarter so it fills the tall screen; table numbers turn with it, so you turn the tablet to read it */
+@media(max-width:700px) and (orientation:portrait){.sheet.fpz.fpzo{height:calc(100dvh - 16px);max-height:none}.sheet.fpz.fpzo .plan{flex:1 1 auto}}
 </style>
 </head>
 <body>
@@ -1169,7 +1172,7 @@ function sampleHist(){
 function brandUp(){const n=((S.venue&&S.venue.name)||"Proview").trim()||"Proview",b=$("#bname"),m=$("#bmono");if(b)b.innerHTML=esc(n)+" <i>Bookings</i>";if(m)m.textContent=n.charAt(0).toUpperCase();document.title=n+" bookings"}
 /* Tables in service: the page is exactly one screen and never scrolls; only the floor plan box moves. Fit = the whole plan just fits its box (also the smallest zoom). */
 const ZMN=()=>U.edit||!U.zfit?.2:U.zfit,ZMX=()=>U.edit||!U.zmax?3:U.zmax;
-function planApply(pl,Z){const w=pl.firstElementChild,c=w&&w.firstElementChild;if(!c)return;const W=parseFloat(c.style.width),H=parseFloat(c.style.height);if(!(W>0&&H>0))return;w.style.width=W*Z+"px";w.style.height=H*Z+"px";c.style.transform=c.style.transform.replace(/scale\([^)]*\)/,"scale("+Z+")")}
+function planApply(pl,Z){const w=pl.firstElementChild,c=w&&w.firstElementChild;if(!c)return;const W=parseFloat(c.style.width),H=parseFloat(c.style.height);if(!(W>0&&H>0))return;if(pl.classList.contains("fpzp")&&c.dataset.tr!==undefined){const r=pl.classList.contains("fpzr");w.style.width=(r?H:W)*Z+"px";w.style.height=(r?W:H)*Z+"px";c.style.transform=(r?"translate("+H*Z+"px,0) rotate(90deg) ":"")+"scale("+Z+") "+c.dataset.tr;return}w.style.width=W*Z+"px";w.style.height=H*Z+"px";c.style.transform=c.style.transform.replace(/scale\([^)]*\)/,"scale("+Z+")")}
 function fitTables(){const sp=document.querySelector("#main .tsplit"),mn=$("#main");if(!sp||!mn||U.view!=="tables"){return}
  const fx=!U.edit&&innerWidth>=640;sp.classList.toggle("fx",fx);sp.style.height="";
  if(fx){mn.scrollTop=0;const cs=getComputedStyle(mn),av=Math.floor(Math.min(mn.getBoundingClientRect().bottom,innerHeight)-parseFloat(cs.paddingBottom)-sp.getBoundingClientRect().top-2);if(av>=320)sp.style.height=av+"px";else sp.classList.remove("fx")}
@@ -1713,11 +1716,11 @@ function vPlan(){
 }
 function fpzShow(){
  const c=document.querySelector("#main .card.plan .cin");if(!c||U.view!=="tables"){closeM();return}
- const areas=roomList(),cur=curRoom(),W=parseFloat(c.style.width)+24,H=parseFloat(c.style.height)+24,m=c.style.transform.match(/translate\([^)]*\)/),tr="translate(12px,12px) "+(m?m[0]:"");
- $("#modal").innerHTML=`<div class="sheet wide apkm fpz" role="dialog" aria-modal="true" aria-label="Floorplan"><div class="fpzh"><div class="fpzt"><h2 style="margin:0">Floorplan</h2><p class="mut fpzs" style="margin:2px 0 0">Tap a table to select it. Pinch to zoom.</p></div>${areas.length>1?`<div class="seg">${areas.map(x=>`<button data-act="tenla" data-v="${esc(x)}" class="${x===cur?"on":""}">${esc(x)}</button>`).join("")}</div>`:""}<div class="fpzz"><button class="btn" data-act="tenlz" data-v="-0.1" aria-label="Zoom out">-</button><span class="zbx"><input id="fzin" type="number" inputmode="numeric" min="20" max="300" step="1" value="100" aria-label="Zoom percent"><b>%</b></span><button class="btn" data-act="tenlz" data-v="0.1" aria-label="Zoom in">+</button><button class="btn" data-act="tenlf">Fit</button></div><button class="btn pri tenlx" data-act="tenlx">Close</button></div><div class="card plan fpzp" data-w="${W}" data-h="${H}"><div style="width:${W}px;height:${H}px"><div class="cin" style="width:${W}px;height:${H}px;transform:scale(1) ${tr}">${c.innerHTML}</div></div></div></div>`;
+ const areas=roomList(),cur=curRoom(),W=parseFloat(c.style.width)+24,H=parseFloat(c.style.height)+24,m=c.style.transform.match(/translate\([^)]*\)/),tr="translate(12px,12px) "+(m?m[0]:""),rot=innerWidth<1024&&innerHeight>innerWidth&&W>H*1.15;
+ $("#modal").innerHTML=`<div class="sheet wide apkm fpz${rot?" fpzo":""}" role="dialog" aria-modal="true" aria-label="Floorplan"><div class="fpzh"><div class="fpzt"><h2 style="margin:0">Floorplan</h2><p class="mut fpzs" style="margin:2px 0 0">Tap a table to select it. Pinch to zoom.</p></div>${areas.length>1?`<div class="seg">${areas.map(x=>`<button data-act="tenla" data-v="${esc(x)}" class="${x===cur?"on":""}">${esc(x)}</button>`).join("")}</div>`:""}<div class="fpzz"><button class="btn" data-act="tenlz" data-v="-0.1" aria-label="Zoom out">-</button><span class="zbx"><input id="fzin" type="number" inputmode="numeric" min="20" max="300" step="1" value="100" aria-label="Zoom percent"><b>%</b></span><button class="btn" data-act="tenlz" data-v="0.1" aria-label="Zoom in">+</button><button class="btn" data-act="tenlf">Fit</button></div><button class="btn pri tenlx" data-act="tenlx">Close</button></div><div class="card plan fpzp${rot?" fpzr":""}" data-w="${W}" data-h="${H}"><div style="width:${W}px;height:${H}px"><div class="cin" data-tr="${tr}" style="width:${W}px;height:${H}px;transform:scale(1) ${tr}">${c.innerHTML}</div></div></div></div>`;
  $("#modal").hidden=false;fpzFit()}
 function fpzSet(Z){const p=$("#modal .fpzp");if(!p)return;Z=Math.min(3,Math.max(.2,+Z.toFixed(3)));U.fzc=Z;planApply(p,Z);const i=$("#fzin");if(i)i.value=Math.round(Z*100)}
-function fpzFit(){const p=$("#modal .fpzp");if(!p)return;const W=+p.dataset.w,H=+p.dataset.h,cw=p.clientWidth-24,ch=p.clientHeight-24,hug=innerWidth<=700&&innerHeight>innerWidth,zf=hug?cw/W:Math.min(cw/W,ch/H);fpzSet(zf)}
+function fpzFit(){const p=$("#modal .fpzp");if(!p)return;const W=+p.dataset.w,H=+p.dataset.h,rt=innerWidth<1024&&innerHeight>innerWidth&&W>H*1.15,sh=p.closest(".sheet");p.classList.toggle("fpzr",rt);if(sh)sh.classList.toggle("fpzo",rt);const cw=p.clientWidth-24,ch=p.clientHeight-24,hug=innerWidth<=700&&innerHeight>innerWidth,zf=p.classList.contains("fpzr")?Math.min(cw/H,ch/W):hug?cw/W:Math.min(cw/W,ch/H);fpzSet(zf)}
 function apkShow(){
  const k=U.apk,p=k&&S.parties.find(x=>x.id===k.id);if(!p){closeM();return}
  const areas=roomList(),own=p.table&&S.tables.find(t=>t.id===p.table),cur=areas.includes(k.area)?k.area:(own&&areas.includes(own.area||"Main room")?(own.area||"Main room"):curRoom()),v="plan";
